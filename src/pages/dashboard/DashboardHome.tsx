@@ -3,13 +3,13 @@ import {
   CpuChipIcon, 
   UsersIcon, 
   BanknotesIcon,
-  ArrowUpIcon,
+ 
   HeartIcon,
   CircleStackIcon,
   SignalIcon
 } from "@heroicons/react/24/outline";
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
+   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, AreaChart, Area 
 } from 'recharts';
 

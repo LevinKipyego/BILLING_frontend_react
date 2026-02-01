@@ -5,11 +5,11 @@ import {
   PencilSquareIcon, 
   KeyIcon, 
   MagnifyingGlassIcon,
-  FunnelIcon,
+  //FunnelIcon,
   EnvelopeIcon,
   PhoneIcon,
-  MapPinIcon,
-  CpuChipIcon,
+  //MapPinIcon,
+  //CpuChipIcon,
   GlobeAltIcon
 } from '@heroicons/react/24/outline';
 import type { User, CreateUserPayload } from '../../types/user';
