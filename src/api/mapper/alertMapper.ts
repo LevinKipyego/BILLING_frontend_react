@@ -18,7 +18,7 @@ export function mapBackendAlerts(
     temperature: a.latest_temperature,
     status:a.latest_status,
     severity:
-      a.latest_status === "down" ? "critical" : (a.latest_cpu >= 90 || a.latest_temperature >= 80 ? "critical" : "warning"),
+      a.latest_status === "down" ? "critical" : (a.latest_cpu >= 90 || a.latest_temperature >= 80 ? "warning" : "critical"),
       
   }));
 }

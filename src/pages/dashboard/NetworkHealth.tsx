@@ -5,9 +5,11 @@ import AlertsPanel from "../../components/alerts/AlertsPanel";
 import type { NetworkStats, Router, Alert } from "../../types/network";
 import { getRouters, getNetworkStats } from "../../api/network";
 import { mapBackendAlerts } from "../../api/mapper/alertMapper";
+import { useParams } from "react-router-dom";
 
 
 export default function NetworkHealth() {
+ // const { vendorId } = useParams<{ vendorId: string }>();
   const [routers, setRouters] = useState<Router[]>([]);
 
   const [stats, setStats] = useState<NetworkStats | null>(null);
@@ -15,12 +17,13 @@ export default function NetworkHealth() {
   const [error, setError] = useState<string | null>(null);
 
 useEffect(() => {
+  let socket: WebSocket | null = null;
+
   const loadData = async () => {
     setLoading(true);
 
     try {
       const routersData = await getRouters();
-      console.log("Routers OK:", routersData);
       setRouters(routersData.results);
     } catch (e) {
       console.error("Routers failed", e);
@@ -28,7 +31,6 @@ useEffect(() => {
 
     try {
       const statsData = await getNetworkStats();
-      console.log("Stats OK:", statsData);
       setStats(statsData);
     } catch (e) {
       console.error("Stats failed", e);
@@ -38,7 +40,62 @@ useEffect(() => {
   };
 
   loadData();
-}, []);
+
+  // 🔥 Setup WebSocket after initial load
+  const protocol =
+    window.location.protocol === "https:" ? "wss" : "ws";
+
+  socket = new WebSocket(
+    `${protocol}://${window.location.host}/ws/vendor/${vendorId}/`
+  );
+
+  socket.onopen = () => {
+    console.log("WebSocket connected");
+  };
+
+  socket.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+
+    // 🟢 Router update
+    if (message.type === "router_update") {
+      const updated = message.data;
+
+      setRouters((prev) =>
+        prev.map((router) =>
+          router.id === updated.router_id
+            ? {
+                ...router,
+                status: updated.status,
+                cpu: updated.cpu,
+                memory: updated.memory,
+                latency: updated.latency,
+                temperature: updated.temperature,
+                pppoe_sessions: updated.pppoe_sessions,
+              }
+            : router
+        )
+      );
+    }
+
+    // 🔵 Network stats update
+    if (message.type === "network_stats_update") {
+      setStats(message.data);
+    }
+  };
+
+  socket.onerror = (err) => {
+    console.error("WebSocket error", err);
+  };
+
+  socket.onclose = () => {
+    console.log("WebSocket disconnected");
+  };
+
+  // 🧹 Cleanup
+  return () => {
+    if (socket) socket.close();
+  };
+}, [vendorId]);
 
 
   if (loading) {
