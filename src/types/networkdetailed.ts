@@ -38,10 +38,61 @@ export interface HealthHistoryItem {
   temperature: number
 }
 
+export interface uplink_history {
+  timestamp: string
+  rx_rate: number
+  tx_rate: number
+  total_mbps: number
+  total_bytes: number
+}
+
 export interface RouterDetailResponse {
   router: RouterInfo
   current_health: CurrentHealth
   stats_24h: Stats24h
   recent_alerts: AlertItem[]
   health_history: HealthHistoryItem[]
+  interfaces: RouterIntelligence
+  
+  
+}
+
+
+export type RiskLevel =
+  | "low"
+  | "medium"
+  | "high"
+  | "critical"
+
+export interface InterfaceData {
+  name: string
+  rx_rate: number
+  tx_rate: number
+  status: "up" | "down"
+  trend_slope: number
+  predicted_30min: number
+  saturation_rx: boolean
+  saturation_tx: boolean
+  absolute_saturation: boolean
+  burst_rx: boolean
+  burst_tx: boolean
+  packet_drop_alert: boolean
+  congestion_predicted: boolean
+  alerts: string[]
+  anomaly_score: number
+  risk_level: RiskLevel
+  capacity_mbps?: number
+  throughput_24h_gb?: number
+
+}
+
+export interface RouterIntelligence {
+  uplink: InterfaceData | null
+  downlinks: InterfaceData[]
+  uplink_detected_as: string[]
+  any_port_down: boolean
+  suspicious_idle_ports: string[]
+  network_health_score: number
+  network_alerts: string[]
+  uplink_history: uplink_history[]
 }

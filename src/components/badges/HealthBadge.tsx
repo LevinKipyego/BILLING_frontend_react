@@ -13,7 +13,7 @@ const styles: Record<RouterStatus, string> = {
 export default function HealthBadge({ status }: HealthBadgeProps) {
   return (
     <span className={`px-2 py-1 text-xs rounded ${styles[status]}`}>
-      {status.toUpperCase()}
+      {status}
     </span>
   );
 }
