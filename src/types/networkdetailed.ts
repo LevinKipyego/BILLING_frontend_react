@@ -28,8 +28,7 @@ export interface AlertItem {
   cpu: number
   temperature: number
   created_at: string
-}
-
+}              
 export interface HealthHistoryItem {
   created_at: string
   cpu: number
@@ -38,7 +37,7 @@ export interface HealthHistoryItem {
   temperature: number
 }
 
-export interface uplink_history {
+export interface uplink_history {   
   timestamp: string
   rx_rate: number
   tx_rate: number
@@ -52,6 +51,7 @@ export interface RouterDetailResponse {
   stats_24h: Stats24h
   recent_alerts: AlertItem[]
   health_history: HealthHistoryItem[]
+
   interfaces: RouterIntelligence
   
   
@@ -65,17 +65,18 @@ export type RiskLevel =
   | "critical"
 
 export interface InterfaceData {
-  name: string
+
+  name: string,
   rx_rate: number
-  tx_rate: number
-  status: "up" | "down"
+  tx_rate: number             
   trend_slope: number
   predicted_30min: number
   saturation_rx: boolean
   saturation_tx: boolean
   absolute_saturation: boolean
-  burst_rx: boolean
+  burst_rx: boolean,
   burst_tx: boolean
+
   packet_drop_alert: boolean
   congestion_predicted: boolean
   alerts: string[]

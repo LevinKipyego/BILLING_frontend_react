@@ -192,12 +192,15 @@ const RouterDetail = () => {
 
             </div>
 
+           
+             
+          
+
             <div>
-              <UplinkTrafficGraph
-                data={intelligence.uplink_history
-                  
-                }
+               <UplinkTrafficGraph
+                data={intelligence.uplink_history }
               />
+              
               <ThroughputGraph
                 data={intelligence.uplink_history}
               />

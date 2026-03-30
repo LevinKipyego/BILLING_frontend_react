@@ -6,7 +6,7 @@ import type { uplink_history } from '../../types/networkdetailed';
 
 const ThroughputGraph = ({ data }: { data: uplink_history[] }) => {
   return (
-    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 w-full">
+    <div className="bg-white p-6 rounded-[1rem] shadow-sm border border-slate-100 w-full padding-6 mt-6 transition-all hover:shadow-md">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-50 rounded-xl text-blue-600">

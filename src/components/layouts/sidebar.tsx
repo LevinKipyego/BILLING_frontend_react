@@ -22,6 +22,7 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
     { to: "/dashboard/mpesa", label: "M-Pesa Config", icon: CreditCardIcon },
     { to: "/dashboard/users", label: "Users", icon: UserIcon },
     { to: "/dashboard/network", label: "Network", icon: CpuChipIcon },
+    { to: "/dashboard/sessions/dashboard", label: "Sessions", icon: Squares2X2Icon },
   ];
 
   return (

@@ -12,6 +12,8 @@ import Mpesa from "./pages/dashboard/MpesaConfig";
 import UsersPage from "./pages/dashboard/Users";
 import NetworkHealth from "./pages/dashboard/NetworkHealth";
 import NetworkDetailed from "./pages/dashboard/NetworkDetailed";
+import SessionDetail from "./pages/dashboard/SessionDetail";
+import SessionsPage from "./pages/dashboard/SessionPage";
 
 export default function App() {
   return (
@@ -34,6 +36,9 @@ export default function App() {
           <Route path="users" element={<UsersPage />} />
           <Route path="network" element={<NetworkHealth />} />
           <Route path="routers/:id" element={<NetworkDetailed />} />
+
+          <Route path="sessions/dashboard" element={<SessionsPage />} />
+          <Route path="sessions/:id" element={<SessionDetail />} />
         </Route>
 
         {/* Fallback */}
