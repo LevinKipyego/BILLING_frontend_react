@@ -21,7 +21,7 @@ id: number,
 payload: Partial<CreateUserPayload>
 ): Promise<User> {
 return apiFetch(`/users/${id}/`, {
-method: 'PUT',
+method: 'PATCH',
 body: JSON.stringify(payload),
 });
 }

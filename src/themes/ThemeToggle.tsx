@@ -8,11 +8,18 @@ export default function ThemeToggle() {
   );
 
   useEffect(() => {
+    const root = window.document.documentElement;
     if (darkMode) {
-      document.documentElement.classList.add("dark");
+      root.classList.add("dark");
+      // Set the body background directly to match your specific requirement
+      root.classList.remove("bg-gray-900");
+      root.classList.add("bg-black");
       localStorage.setItem("theme", "dark");
     } else {
-      document.documentElement.classList.remove("dark");
+      root.classList.remove("dark");
+      // Fallback light mode uses the gray-900 look you requested
+      root.classList.remove("bg-black");
+      root.classList.add("bg-gray-900");
       localStorage.setItem("theme", "light");
     }
   }, [darkMode]);
@@ -20,17 +27,22 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={() => setDarkMode(!darkMode)}
-      className="p-2 rounded-xl transition-all duration-300 
-        bg-slate-100 text-slate-600 hover:bg-slate-200 
-        dark:bg-slate-800 dark:text-yellow-400 dark:hover:bg-slate-700
-        border border-transparent dark:border-slate-700 shadow-sm"
+      className="group relative p-2.5 rounded-xl transition-all duration-500 
+        bg-gray-900 dark:bg-white/5 
+        text-gray-400 hover:text-white
+        border border-white/10 shadow-2xl hover:bg-gray-800 dark:hover:bg-white/10"
       aria-label="Toggle Dark Mode"
     >
-      {darkMode ? (
-        <SunIcon className="w-5 h-5 animate-in zoom-in duration-300" />
-      ) : (
-        <MoonIcon className="w-5 h-5 animate-in zoom-in duration-300" />
-      )}
+      {/* Subtle glow effect on hover */}
+      <div className="absolute inset-0 rounded-xl bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity blur-md" />
+      
+      <div className="relative">
+        {darkMode ? (
+          <SunIcon className="w-5 h-5 text-yellow-400 animate-in zoom-in spin-in-90 duration-500" />
+        ) : (
+          <MoonIcon className="w-5 h-5 text-blue-400 animate-in zoom-in spin-in-45 duration-500" />
+        )}
+      </div>
     </button>
   );
 }

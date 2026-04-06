@@ -5,7 +5,8 @@
 @layer base {
   html {
     /* Set Geist as the default */
-    font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
+    /* font-family: "Geist", ui-sans-serif, system-ui, sans-serif; */
+    font-family: 'Figtree', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* Smooth scrolling for internal links */
@@ -16,6 +17,7 @@
     @apply bg-slate-50 text-slate-900 antialiased;
     /* Prevent "rubber-banding" on mobile scrolls */
     overscroll-behavior-y: none;
+    font-family: 'Figtree', sans-serif;
   }
 }
 

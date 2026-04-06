@@ -1,72 +1,88 @@
-import { useEffect, useState } from "react";
-import StatCard from "../../components/cards/StatCard";
+// src/pages/NetworkHealth.tsx
+import { useEffect, useState, useRef,useMemo } from "react";
+import { 
+  SignalIcon, 
+  CpuChipIcon, 
+  ExclamationCircleIcon, 
+  CheckBadgeIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ArrowPathIcon
+} from "@heroicons/react/24/outline";
+
+//import StatCard from "../../components/cards/StatCard";
 import RouterTable from "../../components/tables/RouterTable";
 import AlertsPanel from "../../components/alerts/AlertsPanel";
-// Import your new professional components
-//import CurrentHealthCard from "../../components/networkdetailed/CurrentHealthCard";
-//import Stats24hCard from "../../components/networkdetailed/Stats24hCard";
-//import AlertsList from "../../components/networkdetailed/AlertsList";
-//import HealthChart from "../../components/networkdetailed/HealthChart";
-
-import type { NetworkStats, Router } from "../../types/network";
 import { getRouters, getNetworkStats } from "../../api/network";
 import { mapBackendAlerts } from "../../api/mapper/alertMapper";
+import type { NetworkStats, Router } from "../../types/network";
 
 export default function NetworkHealth() {
   const [routers, setRouters] = useState<Router[]>([]);
   const [stats, setStats] = useState<NetworkStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // UI States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+
+  const hasConnected = useRef(false);
 
   useEffect(() => {
+    if (hasConnected.current) return;
+    hasConnected.current = true;
+
     let socket: WebSocket | null = null;
     let isMounted = true;
 
-    const loadData = async () => {
-      setLoading(true);
+    // FIX: Simultaneous Fetch & WS connection
+    const init = async () => {
       try {
+        console.time("Initial Data Fetch");
         const [routersData, statsData] = await Promise.all([
           getRouters(),
           getNetworkStats()
         ]);
+        console.timeEnd("Initial Data Fetch");
         
         if (isMounted) {
           setRouters(routersData.results);
           setStats(statsData);
-          setLoading(false);
+          setLoading(false); // Only stop loading when data is actually here
         }
       } catch (e) {
-        console.error("Data fetch failed", e);
         if (isMounted) {
-          setError("Failed to connect to monitoring services.");
+          setError("Infrastructure offline. Retrying connection...");
           setLoading(false);
         }
       }
     };
 
-    loadData();
+    init();
 
     const token = localStorage.getItem("access_token");
-    if (!token) return;
+    if (token) {
+      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+      // Ensure this matches your production/dev IP logic
+      const wsUrl = `${protocol}://192.168.100.88:8000/ws/routers/?token=${token}`;
+      socket = new WebSocket(wsUrl);
 
-    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const wsUrl = `${protocol}://192.168.100.88:8000/ws/routers/?token=${token}`;
-    socket = new WebSocket(wsUrl);
-
-    socket.onmessage = (event) => {
-      try {
+      socket.onmessage = (event) => {
         const message = JSON.parse(event.data);
-        if (message.type === "router_update") {
+        if (message.type === "router_update" && isMounted) {
           const updated = message.data;
           setRouters((prev) => prev.map((r) => r.id === updated.router_id ? { ...r, ...updated } : r));
         }
-        if (message.type === "network_stats_update") {
+        if (message.type === "network_stats_update" && isMounted) {
           setStats(message.data);
         }
-      } catch (err) {
-        console.error("WS parse error", err);
-      }
-    };
+      };
+    }
 
     return () => {
       isMounted = false;
@@ -74,44 +90,145 @@ export default function NetworkHealth() {
     };
   }, []);
 
-  if (loading) return <div className="p-10 flex justify-center items-center font-medium animate-pulse">Initializing Network Dashboard...</div>;
-  if (error) return <div className="p-6 text-rose-600 bg-rose-50 m-6 rounded-xl border border-rose-200">{error}</div>;
-  if (!stats) return null;
+  // Filter Logic
+  const filteredRouters = useMemo(() => {
+    return routers.filter(r => {
+      const matchesSearch = r.router_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                            r.ip?.includes(searchTerm);
+      const matchesStatus = statusFilter === "All" || 
+                           (statusFilter === "Online" && r.online) || 
+                           (statusFilter === "Offline" && !r.online);
+      return matchesSearch && matchesStatus;
+    });
+  }, [routers, searchTerm, statusFilter]);
 
-  // Assuming stats contains history and current health for the "Main" router or aggregated view
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredRouters.length / itemsPerPage);
+  const paginatedRouters = filteredRouters.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-gray-900">
+      <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+      <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">Establishing Telemetry...</h2>
+    </div>
+  );
+
+  if (error) return (
+    <div className="m-6 p-4 bg-red-500/10 border border-red-500/20 text-red-600 rounded-md font-black text-xs uppercase italic flex items-center gap-3">
+      <ExclamationCircleIcon className="w-5 h-5" />
+      {error}
+    </div>
+  );
+
   return (
-    <div className="p-6 space-y-8 bg-slate-50/50 min-h-screen">
-      {/* 1. Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Network Command Center</h1>
-          <p className="text-slate-500 text-sm">Real-time health telemetry from MikroTik infrastructure</p>
-        </div>
-        <div className="flex gap-2">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">
-            <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
-            LIVE STREAM ACTIVE
-          </span>
-        </div>
-      </div>
-
-      {/* 2. Top-Level Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Nodes" value={stats.total} />
-        <StatCard title="Active" value={stats.online} variant="success" />
-        <StatCard title="High Load" value={stats.warning} variant="warning" />
-        <StatCard title="Critical/Down" value={stats.offline} variant="danger" />
-      </div>
-
-      {/* Main */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <RouterTable routers={routers} />
-              </div>
-              <AlertsPanel alerts={mapBackendAlerts(stats.alerts || [])} />
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-2 md:p-8 space-y-6 transition-colors duration-500">
       
+      {/* 1. SMART HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
+        <div>
+          <h1 className="text-xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase italic">Network Command</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <div className="flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </div>
+            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Global Infrastructure Live</p>
+          </div>
+        </div>
+
+        {/* SEARCH & FILTER GROUP */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative group">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Search ID or IP..." 
+              className="w-full md:w-64 pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-slate-200 dark:border-white/10 rounded-md text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/10 shadow-sm transition-all"
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+            />
+          </div>
+
+          <div className="flex items-center bg-white dark:bg-gray-800 border border-slate-200 dark:border-white/10 rounded-md overflow-hidden shadow-sm">
+            <div className="px-3 py-2 border-r border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-gray-900">
+              <FunnelIcon className="w-3.5 h-3.5 text-slate-400" />
+            </div>
+            <select 
+              className="bg-transparent text-[10px] font-black uppercase text-slate-500 dark:text-slate-300 px-3 outline-none cursor-pointer"
+              onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
+            >
+              <option value="All">All Status</option>
+              <option value="Online">Online</option>
+              <option value="Offline">Offline</option>
+            </select>
+          </div>
+        </div>
       </div>
-    
+
+      {/* 2. TELEMETRY CARDS */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        {[
+          { label: 'Total Nodes', val: stats?.total, icon: CpuChipIcon, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+          { label: 'Operational', val: stats?.online, icon: CheckBadgeIcon, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          { label: 'High Load', val: stats?.warning, icon: SignalIcon, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+          { label: 'Down', val: stats?.offline, icon: ExclamationCircleIcon, color: 'text-rose-500', bg: 'bg-rose-500/10' }
+        ].map((card, i) => (
+          <div key={i} className="bg-white dark:bg-gray-800 p-4 rounded-md border border-slate-100 dark:border-white/5 shadow-sm">
+            <div className={`${card.bg} w-8 h-8 rounded flex items-center justify-center mb-3`}>
+              <card.icon className={`w-5 h-5 ${card.color}`} />
+            </div>
+            <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{card.label}</p>
+            <p className="text-xl md:text-2xl font-black text-slate-900 dark:text-white italic">{card.val || 0}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* 3. MAIN DASHBOARD CONTENT */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-20">
+        
+        {/* ROUTER LIST WITH PAGINATION */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="bg-white dark:bg-gray-800 rounded-md border border-slate-200 dark:border-white/5 shadow-xl overflow-hidden">
+            <div className="p-4 border-b border-slate-100 dark:border-white/5 flex justify-between items-center bg-slate-50/50 dark:bg-transparent">
+               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Router Infrastructure</h3>
+               <span className="text-[9px] font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded uppercase">
+                 {filteredRouters.length} Total
+               </span>
+            </div>
+            
+            {/* Using your custom RouterTable component but ensuring it handles the list */}
+            <RouterTable routers={paginatedRouters} />
+
+            {/* PAGINATION FOOTER */}
+            <div className="px-6 py-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+              <p className="text-[9px] font-black text-slate-400 uppercase">Page {currentPage} of {totalPages || 1}</p>
+              <div className="flex gap-2">
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                  className="p-1.5 rounded border border-slate-200 dark:border-white/10 disabled:opacity-20 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
+                >
+                  <ChevronLeftIcon className="w-4 h-4 text-slate-600 dark:text-white" />
+                </button>
+                <button 
+                  disabled={currentPage === totalPages || totalPages === 0}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  className="p-1.5 rounded border border-slate-200 dark:border-white/10 disabled:opacity-20 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
+                >
+                  <ChevronRightIcon className="w-4 h-4 text-slate-600 dark:text-white" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ALERTS PANEL */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6">
+            <AlertsPanel alerts={mapBackendAlerts(stats?.alerts || [])} />
+          </div>
+        </div>
+
+      </div>
+    </div>
   );
 }
