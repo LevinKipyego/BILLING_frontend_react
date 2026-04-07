@@ -14,7 +14,6 @@ export interface Router {
   pppoe_sessions: number;
   status: string;
   created_at: string;
-  online:NetworkStats;
 }
 
 

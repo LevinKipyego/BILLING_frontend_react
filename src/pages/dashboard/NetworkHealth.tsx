@@ -31,73 +31,104 @@ export default function NetworkHealth() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
-  const hasConnected = useRef(false);
+ useEffect(() => {
+  let socket: WebSocket | null = null;
+  let isMounted = true;
 
-  useEffect(() => {
-    if (hasConnected.current) return;
-    hasConnected.current = true;
-
-    let socket: WebSocket | null = null;
-    let isMounted = true;
-
-    // FIX: Simultaneous Fetch & WS connection
-    const init = async () => {
-      try {
-        console.time("Initial Data Fetch");
-        const [routersData, statsData] = await Promise.all([
-          getRouters(),
-          getNetworkStats()
-        ]);
-        console.timeEnd("Initial Data Fetch");
-        
+  const loadData = async () => {
+    try {
+      // OPTIMIZATION: Don't use Promise.all if one is significantly slower.
+      // Fetch them independently so the UI can populate partially.
+      
+      getNetworkStats().then(statsData => {
         if (isMounted) {
-          setRouters(routersData.results);
           setStats(statsData);
-          setLoading(false); // Only stop loading when data is actually here
+          // If stats are critical for the layout, hide loader now
+          setLoading(false); 
         }
-      } catch (e) {
+      });
+
+      getRouters().then(routersData => {
         if (isMounted) {
-          setError("Infrastructure offline. Retrying connection...");
-          setLoading(false);
+          setRouters(routersData.results || []);
+          // Ensure loading is off even if stats failed
+          setLoading(false); 
         }
+      });
+
+    } catch (e) {
+      console.error("❌ Critical Load Failed:", e);
+      if (isMounted) {
+        setError("Telemetry link interrupted.");
+        setLoading(false);
+      }
+    }
+  };
+
+  const connectWS = () => {
+    const token = localStorage.getItem("access_token");
+    if (!token || !isMounted) return;
+
+    // Use the explicit IP if localhost is causing issues, 
+    // but window.location.hostname is usually best.
+    const host = window.location.hostname; 
+    const wsUrl = `ws://${host}:8000/ws/routers/?token=${token}`;
+    
+    socket = new WebSocket(wsUrl);
+
+    socket.onopen = () => console.log("🔌 Connected to Network Stream");
+
+    socket.onmessage = (event) => {
+      if (!isMounted) return;
+      try {
+        const message = JSON.parse(event.data);
+        
+        if (message.type === "router_update") {
+          setRouters(prev => {
+            // OPTIMIZATION: Check if data exists before mapping
+            if (prev.length === 0) return prev; 
+            return prev.map(r => r.id === message.data.router_id ? { ...r, ...message.data } : r);
+          });
+        }
+        
+        if (message.type === "network_stats_update") {
+          setStats(message.data);
+        }
+      } catch (err) {
+        console.error("📩 WS Parsing Error:", err);
       }
     };
 
-    init();
-
-    const token = localStorage.getItem("access_token");
-    if (token) {
-      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-      // Ensure this matches your production/dev IP logic
-      const wsUrl = `${protocol}://192.168.100.88:8000/ws/routers/?token=${token}`;
-      socket = new WebSocket(wsUrl);
-
-      socket.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        if (message.type === "router_update" && isMounted) {
-          const updated = message.data;
-          setRouters((prev) => prev.map((r) => r.id === updated.router_id ? { ...r, ...updated } : r));
-        }
-        if (message.type === "network_stats_update" && isMounted) {
-          setStats(message.data);
-        }
-      };
-    }
-
-    return () => {
-      isMounted = false;
-      if (socket) socket.close();
+    socket.onerror = (e) => {
+      console.error("❌ WS Socket Error:", e);
+      // If WS fails, we don't necessarily want to break the whole UI
     };
-  }, []);
+
+    socket.onclose = () => {
+      console.warn("⚠️ Stream Disconnected");
+      // Optional: Add a timeout to reconnect here
+    };
+  };
+
+  loadData();
+  connectWS();
+
+  return () => {
+    isMounted = false;
+    if (socket) {
+      socket.close();
+      console.log("🔌 Stream Closed");
+    }
+  };
+}, []);
 
   // Filter Logic
   const filteredRouters = useMemo(() => {
     return routers.filter(r => {
       const matchesSearch = r.router_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                             r.ip?.includes(searchTerm);
-      const matchesStatus = statusFilter === "All" || 
-                           (statusFilter === "Online" && r.online) || 
-                           (statusFilter === "Offline" && !r.online);
+      const matchesStatus = statusFilter === "All"
+                           
       return matchesSearch && matchesStatus;
     });
   }, [routers, searchTerm, statusFilter]);
