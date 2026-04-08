@@ -1,5 +1,5 @@
 // src/pages/NetworkHealth.tsx
-import { useEffect, useState, useRef,useMemo } from "react";
+import { useEffect, useState,useMemo } from "react";
 import { 
   SignalIcon, 
   CpuChipIcon, 

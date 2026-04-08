@@ -1,73 +1,145 @@
-import { Activity, ArrowDown, ArrowUp, AlertCircle, HardDrive } from 'lucide-react'; // Using Lucide for visual cues
+import React from 'react';
+import { Activity, ArrowDown, ArrowUp, AlertCircle, HardDrive, Cpu } from 'lucide-react';
 
-const InterfaceCard = ({ iface }: any) => {
-  const riskStyles = {
-    low: "border-l-green-500 bg-green-50/30",
-    medium: "border-l-yellow-500 bg-yellow-50/30",
-    high: "border-l-orange-500 bg-orange-50/30",
-    critical: "border-l-red-500 bg-red-50/40 animate-pulse"
+interface InterfaceProps {
+  iface: {
+    name: string;
+    rx_rate: number;
+    tx_rate: number;
+    capacity_mbps: number;
+    
+    risk_level: 'low' | 'medium' | 'high' | 'critical';
+    predicted_30min: number;
+    alerts: string[];
+    status?: 'up' | 'down';
+  };
+}
+
+const InterfaceNodeCard: React.FC<InterfaceProps> = ({ iface }) => {
+  // Calculate hardware utilization percentage
+  const totalUsage = iface.rx_rate + iface.tx_rate;
+  const usagePercent = Math.min((totalUsage / iface.capacity_mbps) * 100, 100);
+
+  // Industrial Theme Logic
+  const getRiskTheme = (level: string) => {
+    switch (level) {
+      case 'critical': 
+        return "border-l-red-600 bg-red-50/10 dark:bg-red-900/10 ring-1 ring-red-500/20 animate-pulse";
+      case 'high': 
+        return "border-l-orange-500 bg-orange-50/10 dark:bg-orange-900/10";
+      case 'medium': 
+        return "border-l-amber-500 bg-amber-50/10 dark:bg-amber-900/10";
+      default: 
+        return "border-l-emerald-500 bg-emerald-50/10 dark:bg-emerald-900/10";
+    }
   };
 
-  const currentStyle = riskStyles[iface.risk_level as keyof typeof riskStyles] || riskStyles.low;
+  const getBadgeStyles = (level: string) => {
+    switch (level) {
+      case 'critical': return "bg-red-600 text-white shadow-[0_0_10px_rgba(220,38,38,0.5)]";
+      case 'high': return "bg-orange-500 text-white";
+      case 'medium': return "bg-amber-500 text-white";
+      default: return "bg-emerald-500 text-white";
+    }
+  };
 
   return (
-    <div className={`relative overflow-hidden rounded-xl border border-slate-200 border-l-4 shadow-sm transition-all hover:shadow-md ${currentStyle} p-4`}>
-    
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <HardDrive size={18} className="text-slate-500" />
-            {iface.name}
-          </h3>
-          <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-            {iface.status == 'up' ? "● Active" : "○ Disconnected"} • {iface.capacity_mbps} Mbps Cap
-          </span>
+    <div className={`relative overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700 border-l-4 shadow-xl transition-all hover:scale-[1.02] duration-300 ${getRiskTheme(iface.risk_level)} p-5 bg-white dark:bg-gray-800`}>
+      
+      {/* Header: Identity & Telemetry Status */}
+      <div className="flex justify-between items-start mb-6">
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded shadow-inner ${iface.status === 'up' ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'bg-slate-100 dark:bg-gray-900 text-slate-400'}`}>
+            <HardDrive size={20} />
+          </div>
+          <div>
+            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight italic flex items-center gap-2">
+              {iface.name}
+              {iface.status === 'up' && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />}
+            </h3>
+            <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-0.5">
+              {iface.status === 'up' ? 'ACTIVE_LINK' : 'DISCONNECTED'} // {iface.capacity_mbps} Mbps
+            </p>
+          </div>
         </div>
         
-       
-        <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${iface.risk_level === 'critical' ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-700'}`}>
-          {iface.risk_level} Risk
+        <div className={`text-[8px] px-2.5 py-1 rounded font-black uppercase tracking-widest italic ${getBadgeStyles(iface.risk_level)}`}>
+          {iface.risk_level}_RISK
         </div>
       </div>
 
-      {/* Traffic Grid */}
-      <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-3">
-        <div className="flex flex-col">
-          <span className="text-[10px] text-slate-500 flex items-center gap-1">
-            <ArrowDown size={12} className="text-blue-500" /> DOWNLOAD
+      {/* Hardware Utilization Bar */}
+      <div className="mb-6">
+        <div className="flex justify-between items-end mb-2">
+          <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest italic">Hardware_Load</span>
+          <span className={`text-xs font-black italic ${usagePercent > 85 ? 'text-red-500' : 'text-blue-500'}`}>
+            {usagePercent.toFixed(1)}%
           </span>
-          <span className="text-sm font-semibold text-slate-700">{iface.rx_rate.toFixed(2)} <small>Mbps</small></span>
         </div>
-        
-        <div className="flex flex-col">
-          <span className="text-[10px] text-slate-500 flex items-center gap-1">
-            <ArrowUp size={12} className="text-green-500" /> UPLOAD
+        <div className="h-1.5 w-full bg-slate-100 dark:bg-gray-900 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-700/50">
+          <div 
+            className={`h-full transition-all duration-1000 ease-out rounded-full ${usagePercent > 85 ? 'bg-red-500' : 'bg-blue-600'}`}
+            style={{ width: `${usagePercent}%`, boxShadow: '0 0 8px rgba(37,99,235,0.3)' }}
+          />
+        </div>
+      </div>
+
+      {/* Throughput Matrix */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <div className="bg-slate-50 dark:bg-gray-900/50 p-3 rounded border border-slate-100 dark:border-slate-700/50">
+          <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 mb-1">
+            <ArrowDown size={12} />
+            <span className="text-[9px] font-black uppercase tracking-widest">RX_Rate</span>
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-lg font-black italic text-slate-900 dark:text-white leading-none">{iface.rx_rate.toFixed(2)}</span>
+            <span className="text-[9px] font-black text-slate-400 uppercase italic">Mb/s</span>
+          </div>
+        </div>
+
+        <div className="bg-slate-50 dark:bg-gray-900/50 p-3 rounded border border-slate-100 dark:border-slate-700/50">
+          <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-500 mb-1">
+            <ArrowUp size={12} />
+            <span className="text-[9px] font-black uppercase tracking-widest">TX_Rate</span>
+          </div>
+          <div className="flex items-baseline gap-1">
+            <span className="text-lg font-black italic text-slate-900 dark:text-white leading-none">{iface.tx_rate.toFixed(2)}</span>
+            <span className="text-[9px] font-black text-slate-400 uppercase italic">Mb/s</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Analytics Footer */}
+      <div className="pt-4 border-t border-slate-100 dark:border-slate-700 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Activity size={14} className="text-purple-500" />
+            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Forecast (30m)</span>
+          </div>
+          <span className="text-xs font-black italic text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded">
+            {iface.predicted_30min} Mbps
           </span>
-          <span className="text-sm font-semibold text-slate-700">{iface.tx_rate.toFixed(2)} <small>Mbps</small></span>
         </div>
+
+        {iface.alerts.length > 0 && (
+          <div className="flex items-start gap-2 rounded bg-red-500/10 p-2.5 border border-red-500/20 shadow-inner">
+            <AlertCircle size={14} className="shrink-0 text-red-500 animate-pulse" />
+            <p className="text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-tighter leading-tight italic">
+              {iface.alerts.join(" // ")}
+            </p>
+          </div>
+        )}
       </div>
 
-     
-      <div className="mt-4 flex items-center justify-between bg-white/50 rounded-lg p-2 border border-slate-100">
-        <div className="flex items-center gap-2 text-xs text-slate-600">
-          <Activity size={14} className="text-purple-500" />
-          <span>Forecast (30m):</span>
-        </div>
-        <span className="text-xs font-bold text-purple-700">{iface.predicted_30min} Mbps</span>
+      {/* Architectural Background Decor */}
+      <div className="absolute top-[-20px] right-[-20px] opacity-[0.03] dark:opacity-[0.05] pointer-events-none">
+        <Cpu size={100} />
       </div>
-
-     
-      {iface.alerts.length > 0 && (
-        <div className="mt-3 flex items-start gap-2 rounded-md bg-red-50 p-2 text-xs text-red-700 border border-red-100">
-          <AlertCircle size={14} className="shrink-0" />
-          <p className="leading-tight">{iface.alerts.join(" • ")}</p>
-        </div>
-      )}
     </div>
   );
 };
 
-export default InterfaceCard;
+export default InterfaceNodeCard;
 
 {/*import React from 'react';}
 import React from 'react';

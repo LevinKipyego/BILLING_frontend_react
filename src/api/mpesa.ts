@@ -7,7 +7,7 @@ export type MpesaConfigPayload = {
   consumer_key: string;
   consumer_secret: string;
   callback_url: string;
-  environment: "sandbox" | "production";
+  environment: "SANDBOX" | "PRODUCTION";
 };
 
 export async function getMpesaConfig() {
@@ -22,7 +22,7 @@ export async function createMpesaConfig(data: MpesaConfigPayload) {
 }
 
 export async function updateMpesaConfig(data: MpesaConfigPayload) {
-  return apiFetch("/payments/mpesa/", {
+  return apiFetch("/update/", {
     method: "PUT",
     body: JSON.stringify(data),
   });

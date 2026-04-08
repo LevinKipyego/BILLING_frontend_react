@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { 
   ServerStackIcon, 
   PlusIcon, 
@@ -7,10 +7,12 @@ import {
   KeyIcon, 
   GlobeAltIcon,
   CpuChipIcon,
-  HashtagIcon,
   InformationCircleIcon,
   XMarkIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  MagnifyingGlassIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from "@heroicons/react/24/outline";
 import type { NAS } from "../../types/nas";
 import { listNAS, createNAS, updateNAS, deleteNAS } from "../../api/nas";
@@ -20,6 +22,12 @@ export default function NASPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   const initialForm: Partial<NAS> = {
     nasname: "",
@@ -48,6 +56,20 @@ export default function NASPage() {
 
   useEffect(() => { loadNAS(); }, [loadNAS]);
 
+  // Search & Pagination Logic
+  const filteredItems = useMemo(() => {
+    return items.filter(n => 
+      (n.nasname?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (n.shortname?.toLowerCase() || "").includes(searchTerm.toLowerCase())
+    );
+  }, [items, searchTerm]);
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const paginatedItems = filteredItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -59,6 +81,7 @@ export default function NASPage() {
       }
       setForm(initialForm);
       setEditingId(null);
+      setShowForm(false);
       loadNAS();
     } catch (e: any) {
       setError(e.message);
@@ -68,10 +91,10 @@ export default function NASPage() {
   }
 
   async function handleDelete(id: number) {
-    if (!confirm("Are you sure? Deleting this NAS will stop RADIUS authentication for this server.")) return;
+    if (!confirm("Are you sure? This stops RADIUS authentication for this server.")) return;
     try {
       await deleteNAS(id);
-      setItems(prev => prev.filter(item => item.id !== id));
+      loadNAS();
     } catch (e: any) {
       setError("Failed to delete NAS entry.");
     }
@@ -80,218 +103,208 @@ export default function NASPage() {
   function startEdit(nas: NAS) {
     setEditingId(nas.id);
     setForm(nas);
+    setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
+    <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-fadeIn dark:bg-gray-900 min-h-screen transition-colors">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
-            <ServerStackIcon className="w-8 h-8 text-indigo-600" />
-            NAS Management
+          <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase flex items-center gap-2 italic">
+            <ServerStackIcon className="w-8 h-8 text-blue-600" />
+            NAS Infrastructure
           </h1>
-          <p className="text-sm text-gray-500">Configure Network Access Servers for your RADIUS database.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">RADIUS Network Access Server configurations.</p>
         </div>
-        <button 
-          onClick={loadNAS}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all"
-        >
-          <ArrowPathIcon className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh Database
-        </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={loadNAS}
+            className="p-2.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+            title="Refresh Database"
+          >
+            <ArrowPathIcon className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button 
+            onClick={() => {
+              setShowForm(!showForm);
+              if(showForm) { setEditingId(null); setForm(initialForm); }
+            }}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-black text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest shadow-lg transition-all"
+          >
+            {showForm ? <XMarkIcon className="w-4 h-4 stroke-[3]" /> : <PlusIcon className="w-4 h-4 stroke-[3]" />}
+            {showForm ? "Cancel" : "Add NAS Server"}
+          </button>
+        </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-600 text-sm flex items-center gap-3">
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-xl text-red-600 dark:text-red-400 text-[10px] font-black uppercase flex items-center gap-3 animate-shake">
           <InformationCircleIcon className="w-5 h-5" />
           {error}
         </div>
       )}
 
-      {/* Modern Form Card */}
-      <div className={`bg-white rounded-2xl shadow-sm border transition-all duration-300 ${editingId ? 'border-indigo-500 ring-4 ring-indigo-50' : 'border-gray-100'}`}>
-        <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
-          <h2 className="text-sm font-bold text-gray-700 flex items-center gap-2">
-            {editingId ? <PencilSquareIcon className="w-5 h-5 text-indigo-600" /> : <PlusIcon className="w-5 h-5 text-indigo-600" />}
-            {editingId ? `Editing NAS: ${form.nasname}` : "Register New NAS"}
-          </h2>
-          {editingId && (
-            <button onClick={() => { setEditingId(null); setForm(initialForm); }} className="text-xs font-bold text-gray-400 hover:text-red-500 flex items-center gap-1">
-              <XMarkIcon className="w-4 h-4" /> Cancel Edit
-            </button>
-          )}
+      {/* Toggleable Form Card */}
+      {showForm && (
+        <section className="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-slideDown">
+          <div className="p-6 border-b border-gray-50 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-800/50">
+            <h2 className="text-[10px] font-black text-gray-800 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2 italic">
+              {editingId ? <PencilSquareIcon className="w-5 h-5 text-blue-600" /> : <PlusIcon className="w-5 h-5 text-blue-600" />}
+              {editingId ? `Update NAS: ${form.nasname}` : "RADIUS Entry Registration"}
+            </h2>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="p-6 md:p-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">NAS IP / Hostname</label>
+                <div className="relative">
+                  <GlobeAltIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    required
+                    className="w-full bg-gray-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-blue-500 pl-11 p-4 rounded-lg text-sm font-black dark:text-white transition-all outline-none italic"
+                    placeholder="10.0.0.1"
+                    value={form.nasname || ""}
+                    onChange={(e) => setForm({ ...form, nasname: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Short Name</label>
+                <input
+                  className="w-full bg-gray-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-blue-500 p-4 rounded-lg text-sm font-black dark:text-white outline-none italic uppercase"
+                  placeholder="Core_Router"
+                  value={form.shortname || ""}
+                  onChange={(e) => setForm({ ...form, shortname: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Shared Secret</label>
+                <div className="relative">
+                  <KeyIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="password"
+                    required
+                    className="w-full bg-gray-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-blue-500 pl-11 p-4 rounded-lg text-sm font-black dark:text-white outline-none italic"
+                    placeholder="Secret Key"
+                    value={form.secret || ""}
+                    onChange={(e) => setForm({ ...form, secret: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Ports</label>
+                <input
+                  type="number"
+                  className="w-full bg-gray-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-blue-500 p-4 rounded-lg text-sm font-black dark:text-white outline-none italic"
+                  placeholder="1700"
+                  value={form.ports || ""}
+                  onChange={(e) => setForm({ ...form, ports: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+
+              <div className="space-y-2 lg:col-span-1">
+                <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Server Type</label>
+                <div className="relative">
+                  <CpuChipIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    className="w-full bg-gray-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-blue-500 pl-11 p-4 rounded-lg text-sm font-black dark:text-white outline-none italic uppercase"
+                    placeholder="Mikrotik"
+                    value={form.type || ""}
+                    onChange={(e) => setForm({ ...form, type: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 lg:col-span-3">
+                <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest ml-1">Description / Location</label>
+                <input
+                  className="w-full bg-gray-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-blue-500 p-4 rounded-lg text-sm font-black dark:text-white outline-none italic"
+                  placeholder="Main Gateway Infrastructure"
+                  value={form.description || ""}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                />
+              </div>
+
+              <button 
+                type="submit"
+                disabled={loading}
+                className={`lg:col-span-4 py-4 rounded-lg font-black text-xs uppercase tracking-[0.2em] text-white transition-all shadow-xl active:scale-[0.98] ${
+                  editingId ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-blue-600 hover:bg-black'
+                }`}
+              >
+                {editingId ? "Update RADIUS Entry" : "Save to RADIUS Database"}
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
+
+      {/* Table Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+        
+        {/* Table Head Search */}
+        <div className="p-4 border-b border-gray-50 dark:border-gray-700 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50/20 dark:bg-gray-800/40">
+           <div className="relative w-full max-w-xs">
+              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search NAS..." 
+                className="w-full pl-11 pr-4 py-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-lg text-[10px] font-black uppercase tracking-widest dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
+                value={searchTerm}
+                onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}}
+              />
+           </div>
+           <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-4">
+              {filteredItems.length} Registered Nodes
+           </div>
         </div>
-        <form onSubmit={handleSubmit} className="p-6">
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-    
-    {/* NAS IP / Hostname */}
-    <div className="space-y-1">
-      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">NAS IP / Hostname</label>
-      <div className="relative">
-        <GlobeAltIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          required
-          placeholder="10.0.0.1"
-          value={form.nasname || ""}
-          onChange={(e) => setForm({ ...form, nasname: e.target.value })}
-          className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
-        />
-      </div>
-    </div>
 
-    {/* Short Name */}
-    <div className="space-y-1">
-      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Short Name</label>
-      <div className="relative">
-        <InformationCircleIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          placeholder="Core_Router"
-          value={form.shortname || ""}
-          onChange={(e) => setForm({ ...form, shortname: e.target.value })}
-          className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
-        />
-      </div>
-    </div>
-
-    {/* Shared Secret */}
-    <div className="space-y-1">
-      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Shared Secret</label>
-      <div className="relative">
-        <KeyIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type="password"
-          placeholder="testing123"
-          value={form.secret || ""}
-          onChange={(e) => setForm({ ...form, secret: e.target.value })}
-          className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
-        />
-      </div>
-    </div>
-
-    {/* Ports */}
-    <div className="space-y-1">
-      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Ports</label>
-      <div className="relative">
-        <HashtagIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type="number"
-          placeholder="1700"
-          value={form.ports || ""}
-          onChange={(e) => setForm({ ...form, ports: parseInt(e.target.value) || 0 })}
-          className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
-        />
-      </div>
-    </div>
-
-    {/* Server Name */}
-    <div className="space-y-1">
-      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Server Name</label>
-      <div className="relative">
-        <ServerStackIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          placeholder="radius_main"
-          value={form.server || ""}
-          onChange={(e) => setForm({ ...form, server: e.target.value })}
-          className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
-        />
-      </div>
-    </div>
-
-    {/* SNMP Community */}
-    <div className="space-y-1">
-      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">SNMP Community</label>
-      <div className="relative">
-        <GlobeAltIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          placeholder="public"
-          value={form.community || ""}
-          onChange={(e) => setForm({ ...form, community: e.target.value })}
-          className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
-        />
-      </div>
-    </div>
-
-    {/* Device Type */}
-    <div className="space-y-1">
-      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Device Type</label>
-      <div className="relative">
-        <CpuChipIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          placeholder="mikrotik"
-          value={form.type || ""}
-          onChange={(e) => setForm({ ...form, type: e.target.value })}
-          className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
-        />
-      </div>
-    </div>
-
-    {/* Description */}
-    <div className="space-y-1">
-      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Description</label>
-      <div className="relative">
-        <InformationCircleIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          placeholder="Main Gateway"
-          value={form.description || ""}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-          className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
-        />
-      </div>
-    </div>
-
-  </div>
-
-  <button 
-    type="submit"
-    className={`mt-6 w-full py-3 rounded-xl font-bold text-white transition-all shadow-lg active:scale-[0.98] ${
-      editingId ? 'bg-indigo-600 shadow-indigo-100 hover:bg-indigo-700' : 'bg-blue-600 shadow-gray-100 hover:bg-black'
-    }`}
-  >
-    {editingId ? "Update RADIUS Entry" : "Save to RADIUS Database"}
-  </button>
-</form>
-      </div>
-
-      {/* Enhanced Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">NAS Identity</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Connection</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest hidden lg:table-cell">SNMP/Radius</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Description</th>
-                <th className="px-6 py-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+              <tr className="bg-gray-50/50 dark:bg-gray-900/50 text-gray-400 dark:text-gray-500 text-[10px] uppercase tracking-[0.2em] font-black italic">
+                <th className="px-6 py-5">NAS Identity</th>
+                <th className="px-4 py-5 text-center">Connection</th>
+                <th className="px-4 py-5 hidden lg:table-cell text-center">Description</th>
+                <th className="px-8 py-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
-              {items.map((nas) => (
-                <tr key={nas.id} className="hover:bg-indigo-50/20 transition-colors group">
+            <tbody className="divide-y divide-gray-50 dark:divide-gray-700/50">
+              {paginatedItems.map((nas) => (
+                <tr key={nas.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors group">
                   <td className="px-6 py-4">
-                    <p className="font-bold text-gray-800">{nas.nasname}</p>
-                    <p className="text-[10px] text-gray-400 font-medium tracking-wide italic">{nas.shortname || 'No Alias'}</p>
+                    <div className="flex flex-col">
+                      <span className="font-black text-[12px] text-gray-600 dark:text-gray-200 tracking-tight uppercase italic">{nas.nasname}</span>
+                      <span className="text-[10px] text-gray-400 font-bold ">{nas.shortname || 'No Alias'}</span>
+                    </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2 py-1 rounded-md">{nas.type}</span>
-                    <p className="text-[10px] text-gray-400 mt-1">Ports: {nas.ports}</p>
+                  <td className="px-4 py-5 text-center">
+                    <div className="flex flex-col items-center">
+                      <span className="text-[10px] font-black bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded uppercase">
+                        {nas.type}
+                      </span>
+                      <span className="text-[9px] text-gray-400 mt-1 font-bold">PORT: {nas.ports}</span>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 hidden lg:table-cell">
-                    <p className="text-xs text-gray-500 font-medium">Srv: {nas.server || '-'}</p>
-                    <p className="text-xs text-gray-500 font-medium">Comm: {nas.community || '-'}</p>
+                  <td className="px-4 py-5 hidden lg:table-cell text-center">
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold italic line-clamp-1">
+                      {nas.description || '---'}
+                    </p>
                   </td>
-                  <td className="px-6 py-4">
-                    <p className="text-xs text-gray-500 line-clamp-1">{nas.description || '---'}</p>
-                  </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-8 py-5 text-right">
                     <div className="flex justify-end gap-2">
-                      <button onClick={() => startEdit(nas)} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
-                        <PencilSquareIcon className="w-5 h-5" />
+                      <button onClick={() => startEdit(nas)} className="p-2 text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all">
+                        <PencilSquareIcon className="w-4 h-4 stroke-[2]" />
                       </button>
-                      <button onClick={() => handleDelete(nas.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-all">
-                        <TrashIcon className="w-5 h-5" />
+                      <button onClick={() => handleDelete(nas.id)} className="p-2 text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all">
+                        <TrashIcon className="w-4 h-4 stroke-[2]" />
                       </button>
                     </div>
                   </td>
@@ -299,33 +312,37 @@ export default function NASPage() {
               ))}
             </tbody>
           </table>
-          {!loading && items.length === 0 && (
-            <div className="p-16 text-center">
-              <GlobeAltIcon className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-              <p className="text-gray-400 font-medium tracking-tight">Your RADIUS nas table is empty.</p>
+          
+          {!paginatedItems.length && (
+            <div className="py-20 text-center space-y-3 dark:bg-gray-800">
+              <GlobeAltIcon className="w-10 h-10 text-gray-200 dark:text-gray-700 mx-auto" />
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest italic">No NAS servers found.</p>
             </div>
           )}
         </div>
-      </div>
-    </div>
-  );
-}
 
-// Reusable Sub-component for form cleanliness
-function FormInput({ label, icon: Icon, value, onChange, placeholder, type = "text", required = false }: any) {
-  return (
-    <div className="space-y-1">
-      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</label>
-      <div className="relative">
-        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <input
-          type={type}
-          required={required}
-          placeholder={placeholder}
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full border border-gray-200 pl-9 pr-4 py-2.5 rounded-xl text-sm focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50 outline-none transition-all"
-        />
+        {/* Pagination Controls */}
+        <div className="px-8 py-5 border-t border-gray-50 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800">
+           <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+             {currentPage} / {totalPages || 1}
+           </span>
+           <div className="flex gap-2">
+              <button 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(c => c - 1)}
+                className="p-2 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 disabled:opacity-20 transition-all dark:text-white"
+              >
+                <ChevronLeftIcon className="w-4 h-4 stroke-[3]" />
+              </button>
+              <button 
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage(c => c + 1)}
+                className="p-2 border border-gray-100 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900 disabled:opacity-20 transition-all dark:text-white"
+              >
+                <ChevronRightIcon className="w-4 h-4 stroke-[3]" />
+              </button>
+           </div>
+        </div>
       </div>
     </div>
   );

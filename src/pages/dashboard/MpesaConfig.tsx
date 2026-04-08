@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   getMpesaConfig,
   createMpesaConfig,
   updateMpesaConfig,
-  deleteMpesaConfig, // Ensure this is exported in your api/mpesa.ts
+  deleteMpesaConfig,
 } from "../../api/mpesa";
 
 import { 
@@ -13,19 +13,31 @@ import {
   GlobeAltIcon, 
   ArrowPathIcon,
   PlusIcon,
-  XMarkIcon
+  XMarkIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from "@heroicons/react/24/outline";
 
 import type { MpesaConfigPayload } from "../../api/mpesa";
 
-// Define the environment type for strict TS checks
-type MpesaEnvironment = "sandbox" | "production";
+type MpesaEnvironment = "SANDBOX" | "PRODUCTION";
 
 export default function Mpesa() {
   const [loading, setLoading] = useState(true);
-  const [exists, setExists] = useState(false);
+  const [configs, setConfigs] = useState<any[]>([]); 
   const [isEditing, setIsEditing] = useState(false); 
   const [error, setError] = useState("");
+  const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({});
+
+  // Search & Filter State
+  const [searchTerm, setSearchTerm] = useState("");
+  const [envFilter, setEnvFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const [form, setForm] = useState({
     business_shortcode: "",
@@ -40,7 +52,7 @@ export default function Mpesa() {
     try {
       const data = await getMpesaConfig();
       if (data && data.business_shortcode) {
-        setExists(true);
+        setConfigs([data]);
         setForm({
           business_shortcode: data.business_shortcode,
           callback_url: data.callback_url,
@@ -50,43 +62,48 @@ export default function Mpesa() {
           consumer_secret: "",
         });
       } else {
-        setExists(false);
-        setIsEditing(true); // Open form if no config exists
+        setConfigs([]);
+        setIsEditing(true);
       }
     } catch (err) {
-      setExists(false);
+      setConfigs([]);
       setIsEditing(true);
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => {
-    loadConfig();
-  }, []);
+  useEffect(() => { loadConfig(); }, []);
+
+  const toggleSecret = (field: string) => {
+    setShowSecrets(prev => ({ ...prev, [field]: !prev[field] }));
+  };
+
+  const filteredConfigs = useMemo(() => {
+    return configs.filter(c => {
+      const matchesSearch = c.business_shortcode.includes(searchTerm) || 
+                            c.callback_url.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesEnv = envFilter === "ALL" || c.environment === envFilter;
+      return matchesSearch && matchesEnv;
+    });
+  }, [configs, searchTerm, envFilter]);
+
+  const totalPages = Math.ceil(filteredConfigs.length / itemsPerPage);
+  const paginatedConfigs = filteredConfigs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-
     try {
+      const exists = configs.length > 0;
       if (exists) {
         await updateMpesaConfig(form as MpesaConfigPayload);
       } else {
         await createMpesaConfig(form as MpesaConfigPayload);
-        setExists(true);
       }
-      
       alert("Configuration saved successfully");
-      setIsEditing(false); // Close form on success
-      
-      // Clear sensitive fields from memory
-      setForm((f) => ({
-        ...f,
-        passkey: "",
-        consumer_key: "",
-        consumer_secret: "",
-      }));
+      setIsEditing(false);
+      loadConfig();
     } catch (err: any) {
       setError(err.message || "An error occurred while saving.");
     }
@@ -94,19 +111,10 @@ export default function Mpesa() {
 
   async function handleDelete() {
     if (!window.confirm("Are you sure? This will disable automated M-Pesa payments.")) return;
-    
     try {
       await deleteMpesaConfig();
-      setExists(false);
+      setConfigs([]);
       setIsEditing(true);
-      setForm({
-        business_shortcode: "",
-        passkey: "",
-        consumer_key: "",
-        consumer_secret: "",
-        callback_url: "",
-        environment: "sandbox",
-      });
       alert("Configuration deleted.");
     } catch (err: any) {
       setError(err.message);
@@ -120,107 +128,153 @@ export default function Mpesa() {
   );
 
   return (
-    <div className="max-w-5xl mx-auto pb-10 space-y-8 animate-fadeIn">
+    <div className="max-w-6xl mx-auto pb-10 space-y-6 animate-fadeIn p-4">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
-            <ShieldCheckIcon className="w-8 h-8 text-green-600" />
-            M-Pesa Gateway
-          </h1>
-          <p className="text-gray-500 mt-1">Manage Daraja API credentials for your automated payment system.</p>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">M-Pesa Gateway</h1>
+          <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Daraja API Credentials Management</p>
         </div>
+        {!isEditing && (
+          <button 
+            onClick={() => setIsEditing(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/20"
+          >
+            <PlusIcon className="w-4 h-4" />
+            Add Configuration
+          </button>
+        )}
       </div>
 
       {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm flex justify-between items-center">
-          <p className="text-red-700 text-sm font-medium">{error}</p>
-          <button onClick={() => setError("")}><XMarkIcon className="w-5 h-5 text-red-400" /></button>
+        <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-xl flex justify-between items-center">
+          <p className="text-red-700 text-xs font-bold uppercase">{error}</p>
+          <button onClick={() => setError("")}><XMarkIcon className="w-4 h-4 text-red-400" /></button>
         </div>
       )}
 
-      {/* Configuration Table / Status View */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
-          <h3 className="font-bold text-gray-700 uppercase text-xs tracking-wider">Active Credentials</h3>
-          {!exists && (
-            <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-bold uppercase">
-              Action Required
-            </span>
-          )}
+      {/* SEARCH & FILTERS BAR */}
+      <div className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-100 dark:border-slate-700 flex flex-wrap gap-3 shadow-sm">
+        <div className="relative flex-1 min-w-[200px]">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input 
+            type="text"
+            placeholder="Search shortcode or URL..."
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-gray-900 border-none rounded-lg text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500/20"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-        
+        <div className="flex items-center gap-2 bg-slate-50 dark:bg-gray-900 px-3 py-2 rounded-lg border-none">
+          <FunnelIcon className="w-4 h-4 text-slate-400" />
+          <select 
+            className="bg-transparent dark:bg-gray-900 text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer"
+            value={envFilter}
+            onChange={(e) => setEnvFilter(e.target.value)}
+          >
+            <option value="ALL">ALL ENVS</option>
+            <option value="production">PRODUCTION</option>
+            <option value="sandbox">SANDBOX</option>
+          </select>
+        </div>
+      </div>
+
+      {/* TABLE */}
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-gray-50/50 text-gray-400 text-[11px] uppercase tracking-widest">
-              <tr>
-                <th className="px-6 py-3">Shortcode</th>
-                <th className="px-6 py-3">Environment</th>
-                <th className="px-6 py-3">Callback URL</th>
-                <th className="px-6 py-3 text-right">Actions</th>
+            <thead>
+              <tr className="bg-slate-50/50 dark:bg-gray-900/50 border-b border-slate-100 dark:border-slate-700">
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Shortcode</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Environment</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Callback URL</th>
+                <th className="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
-              {exists ? (
-                <tr className="hover:bg-gray-50/20 transition-colors">
-                  <td className="px-6 py-4 font-mono font-bold text-blue-600">{form.business_shortcode}</td>
+            <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
+              {paginatedConfigs.length > 0 ? paginatedConfigs.map((config, idx) => (
+                <tr key={idx} className="hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-colors">
+                  <td className="px-6 py-4 font-mono font-bold text-blue-600 text-sm">{config.business_shortcode}</td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${
-                      form.environment === 'production' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                    <span className={`px-2 py-1 rounded-md text-[9px] font-black uppercase ${
+                      config.environment === 'production' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
                     }`}>
-                      <GlobeAltIcon className="w-3.5 h-3.5" />
-                      {form.environment.toUpperCase()}
+                      <GlobeAltIcon className="w-3 h-3 mr-1 inline" />
+                      {config.environment}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-[200px]">{form.callback_url}</td>
-                  <td className="px-6 py-4 text-right space-x-2">
-                    <button 
-                      onClick={() => setIsEditing(!isEditing)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                    >
-                      <PencilSquareIcon className="w-5 h-5" />
-                    </button>
-                    <button 
-                      onClick={handleDelete}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                    >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
+                  <td className="px-6 py-4 text-[11px] text-slate-500 font-medium truncate max-w-[200px]">{config.callback_url}</td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button 
+                        onClick={() => {
+                          setForm({...config, passkey: "", consumer_key: "", consumer_secret: ""});
+                          setIsEditing(true);
+                        }} 
+                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                      >
+                        <PencilSquareIcon className="w-5 h-5" />
+                      </button>
+                      <button 
+                        onClick={handleDelete} 
+                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                      >
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
-              ) : (
+              )) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-10 text-center text-gray-400 italic text-sm">
-                    No gateway configured. Please fill in the details below.
-                  </td>
+                  <td colSpan={4} className="px-6 py-10 text-center text-slate-400 italic text-xs uppercase tracking-widest">No matching configurations found.</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+
+        {/* PAGINATION */}
+        <div className="p-4 border-t border-slate-50 dark:border-slate-700 flex items-center justify-between">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Page {currentPage} of {totalPages || 1}</span>
+          <div className="flex gap-2">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => p - 1)}
+              className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
+            >
+              <ChevronLeftIcon className="w-4 h-4" />
+            </button>
+            <button 
+              disabled={currentPage === totalPages || totalPages === 0}
+              onClick={() => setCurrentPage(p => p + 1)}
+              className="p-1.5 rounded-lg border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all"
+            >
+              <ChevronRightIcon className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Form Section */}
-      {(isEditing || !exists) && (
-        <section className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-slideUp">
-          <div className="p-6 border-b border-gray-50 flex items-center justify-between bg-gray-50/20">
-            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-              {exists ? <ArrowPathIcon className="w-5 h-5 text-blue-500" /> : <PlusIcon className="w-5 h-5 text-green-500" />}
-              {exists ? "Update Gateway Credentials" : "Configure New Gateway"}
+      {/* FORM SECTION */}
+      {isEditing && (
+        <section className="bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-blue-500/20 overflow-hidden animate-slideUp">
+          <div className="p-5 border-b border-slate-50 dark:border-slate-700 flex items-center justify-between bg-blue-50/30 dark:bg-blue-500/5">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-widest flex items-center gap-2">
+              <ShieldCheckIcon className="w-5 h-5 text-blue-600" />
+              {configs.length > 0 ? "Edit Gateway" : "New Gateway"}
             </h2>
-            <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              AES-256 ENCRYPTED STORAGE
-            </div>
+            <button onClick={() => setIsEditing(false)}>
+               <XMarkIcon className="w-5 h-5 text-slate-400 hover:text-slate-600" />
+            </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-8 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Business Shortcode</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Business Shortcode</label>
                 <input
-                  className="w-full border-gray-200 focus:ring-2 focus:ring-blue-500 p-3 rounded-xl border transition-all outline-none"
-                  placeholder="e.g. 174379"
+                  className="w-full bg-slate-50 dark:bg-gray-900 border-none p-3 rounded-lg text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20"
+                  placeholder="174379"
                   value={form.business_shortcode}
                   onChange={(e) => setForm({ ...form, business_shortcode: e.target.value })}
                   required
@@ -228,66 +282,73 @@ export default function Mpesa() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Environment</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Environment</label>
                 <select
-                  className="w-full border-gray-200 focus:ring-2 focus:ring-blue-500 p-3 rounded-xl border bg-white transition-all outline-none"
+                  className="w-full bg-slate-50 dark:bg-gray-900 border-none p-3 rounded-lg text-xs font-bold outline-none cursor-pointer"
                   value={form.environment}
                   onChange={(e) => setForm({ ...form, environment: e.target.value as MpesaEnvironment })}
                 >
-                  <option value="sandbox">Sandbox (Testing)</option>
-                  <option value="production">Production (Live)</option>
+                  <option value="sandbox">SANDBOX (TESTING)</option>
+                  <option value="production">PRODUCTION (LIVE)</option>
                 </select>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 { label: "Passkey", key: "passkey" },
                 { label: "Consumer Key", key: "consumer_key" },
                 { label: "Consumer Secret", key: "consumer_secret" }
               ].map((field) => (
                 <div key={field.key} className="space-y-1">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">{field.label}</label>
-                  <input
-                    className="w-full border-gray-200 focus:ring-2 focus:ring-blue-500 p-3 rounded-xl border transition-all outline-none"
-                    type="password"
-                    placeholder="••••••••••••"
-                    value={(form as any)[field.key]}
-                    onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
-                    required={!exists}
-                  />
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{field.label}</label>
+                  <div className="relative">
+                    <input
+                      className="w-full bg-slate-50 dark:bg-gray-900 border-none p-3 rounded-lg text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 pr-10"
+                      type={showSecrets[field.key] ? "text" : "password"}
+                      placeholder="••••••••••••"
+                      value={(form as any)[field.key]}
+                      onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                      required={configs.length === 0}
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => toggleSecret(field.key)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500"
+                    >
+                      {showSecrets[field.key] ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-400 uppercase ml-1">Callback URL</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Callback URL</label>
               <input
-                className="w-full border-gray-200 focus:ring-2 focus:ring-blue-500 p-3 rounded-xl border font-mono text-sm outline-none"
-                placeholder="https://your-api.com/mpesa/callback"
+                className="w-full bg-slate-50 dark:bg-gray-900 border-none p-3 rounded-lg text-xs font-mono outline-none focus:ring-2 focus:ring-blue-500/20"
+                placeholder="https://api.yourdomain.com/mpesa/callback"
                 value={form.callback_url}
                 onChange={(e) => setForm({ ...form, callback_url: e.target.value })}
                 required
               />
             </div>
 
-            <div className="flex gap-3 pt-4">
-              <button className={`flex-1 font-bold py-4 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 text-white ${
-                exists ? "bg-blue-600 hover:bg-blue-700 shadow-blue-100" : "bg-green-600 hover:bg-green-700 shadow-green-100"
-              }`}>
-                {exists ? <ArrowPathIcon className="w-5 h-5" /> : <PlusIcon className="w-5 h-5" />}
-                {exists ? "Update Credentials" : "Initialize Gateway"}
+            <div className="flex gap-3 pt-2">
+              <button 
+                type="submit"
+                className="flex-1 bg-blue-600 text-white font-black text-[10px] uppercase tracking-widest py-4 rounded-lg shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+              >
+                <ArrowPathIcon className="w-4 h-4" />
+                {configs.length > 0 ? "Update Credentials" : "Save Gateway"}
               </button>
-              
-              {exists && (
-                <button 
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="px-6 py-4 bg-gray-100 text-gray-500 font-bold rounded-xl hover:bg-gray-200 transition-all"
-                >
-                  Cancel
-                </button>
-              )}
+              <button 
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="px-8 bg-slate-100 dark:bg-gray-700 text-slate-500 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest py-4 rounded-lg hover:bg-slate-200 transition-all"
+              >
+                Cancel
+              </button>
             </div>
           </form>
         </section>

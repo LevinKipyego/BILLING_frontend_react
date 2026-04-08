@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'; // Added useRef
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { 
   UserPlusIcon, 
   TrashIcon, 
@@ -9,7 +9,10 @@ import {
   PhoneIcon,
   GlobeAltIcon,
   XMarkIcon,
-  CheckIcon
+  PlusIcon,
+  FunnelIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import type { User, CreateUserPayload } from '../../types/user';
 import {
@@ -22,11 +25,17 @@ import {
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [plans, setPlans] = useState<{id: number, name: string}[]>([]); 
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
-  // Reference to the form container for smooth scrolling
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
   const formRef = useRef<HTMLDivElement>(null);
 
   const initialForm: CreateUserPayload = {
@@ -43,7 +52,18 @@ export default function UsersPage() {
   async function load() {
     setLoading(true);
     try {
-      setUsers(await fetchUsers());
+      const [userData, planData] = await Promise.all([
+        fetchUsers(),
+        Promise.resolve([
+          {id: 101, name: 'Home Basic (5Mbps)'}, 
+          {id: 102, name: 'Home Pro (10Mbps)'},
+          {id: 201, name: 'Business (20Mbps)'}
+        ])
+      ]);
+      setUsers(userData);
+      setPlans(planData);
+    } catch (err) {
+      console.error("Fetch failed", err);
     } finally {
       setLoading(false);
     }
@@ -51,25 +71,55 @@ export default function UsersPage() {
 
   useEffect(() => { load(); }, []);
 
+  // Reset to first page on search or filter to prevent empty views
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, categoryFilter]);
+
   async function handleSubmit() {
     try {
       if (editingId) {
         const updatedUser = await updateUser(editingId, form);
         setUsers((prev) => prev.map(u => u.id === editingId ? updatedUser : u));
         setEditingId(null);
-        alert("Client updated successfully");
       } else {
         const user = await createUser(form);
         setUsers((prev) => [user, ...prev]);
       }
       setForm(initialForm);
+      setIsFormOpen(false);
     } catch (err) { 
-      alert(editingId ? "Failed to update user" : "Failed to create user"); 
+      alert("Action failed. Check network."); 
+    }
+  }
+
+  async function handleDelete(id: number) {
+    if (!confirm('Permanently remove this client?')) return;
+    try {
+      await deleteUser(id);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+    } catch (err) {
+      alert("Could not delete client.");
+    }
+  }
+
+  async function handlePPPoE(user: User) {
+    try {
+      setLoading(true);
+      await createPPPoE(user.id);
+      setUsers((prev) =>
+        prev.map((u) => u.id === user.id ? { ...u, pppoe_created: true } : u)
+      );
+    } catch (err) {
+      alert("PPPoE creation failed.");
+    } finally {
+      setLoading(false);
     }
   }
 
   function startEdit(user: User) {
     setEditingId(user.id);
+    setIsFormOpen(true);
     setForm({
       full_name: user.full_name,
       email: user.email,
@@ -78,215 +128,254 @@ export default function UsersPage() {
       plan: user.plan,
       service_type: user.service_type,
     });
-
-    // Smooth scroll to the form
-    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    formRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
 
-  function handleCancel() {
-    setEditingId(null);
-    setForm(initialForm);
-  }
+  const filteredUsers = useMemo(() => {
+    return users.filter(u => {
+      const matchesSearch = u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            u.location?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCat = categoryFilter === "ALL" || u.service_type === categoryFilter;
+      return matchesSearch && matchesCat;
+    });
+  }, [users, searchTerm, categoryFilter]);
 
-  async function handleDelete(id: number) {
-    if (!confirm('Are you sure you want to delete this client?')) return;
-    try {
-        await deleteUser(id);
-        setUsers((prev) => prev.filter((u) => u.id !== id));
-    } catch (err) {
-        alert("Could not delete from database/MikroTik.");
-    }
-  }
-
-  async function handlePPPoE(user: User) {
-    await createPPPoE(user.id);
-    setUsers((prev) =>
-      prev.map((u) => u.id === user.id ? { ...u, pppoe_created: true } : u)
-    );
-  }
-
-  const filteredUsers = users.filter(u => 
-    u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.phone?.includes(searchTerm)
-  );
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredUsers.slice(start, start + itemsPerPage);
+  }, [filteredUsers, currentPage]);
 
   return (
-    <div className="space-y-6 animate-fadeIn pb-10">
-      {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight">Client Directory</h1>
-          <p className="text-sm text-gray-500">Manage your ISP subscribers and service credentials.</p>
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300 -m-4 md:m-0">
+      <div className="p-4 md:p-6 space-y-4">
+        
+        {/* TOP HEADER */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex-1">
+            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter">CLIENTS</h1>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-bold tracking-widest leading-none">Network Edge Management</p>
+          </div>
+          
+          <button 
+            onClick={() => { setIsFormOpen(!isFormOpen); setEditingId(null); setForm(initialForm); }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-black transition-all shadow-lg shadow-blue-500/20 uppercase tracking-widest"
+          >
+            {isFormOpen ? <XMarkIcon className="w-4 h-4" /> : <PlusIcon className="w-4 h-4" />}
+            <span>{isFormOpen ? 'Close' : 'Add Client'}</span>
+          </button>
         </div>
-        <div className="flex items-center gap-2">
-           <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+
+        {/* SLIDE-DOWN FORM */}
+        {isFormOpen && (
+          <div ref={formRef} className="animate-in fade-in slide-in-from-top-4 duration-300 bg-white dark:bg-slate-800 rounded-lg border-2 border-blue-500/30 shadow-xl overflow-hidden mb-6">
+            <div className="p-4 bg-blue-50/50 dark:bg-blue-500/5 border-b border-blue-100 dark:border-blue-500/10">
+              <h3 className="text-xs font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                {editingId ? <PencilSquareIcon className="w-4 h-4" /> : <UserPlusIcon className="w-4 h-4" />}
+                {editingId ? `Update: ${form.full_name}` : 'New Registration'}
+              </h3>
+            </div>
+            <div className="p-4 md:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                { label: 'Full Name', key: 'full_name', type: 'text' },
+                { label: 'Email', key: 'email', type: 'email' },
+                { label: 'Phone', key: 'phone', type: 'text' },
+                { label: 'Location', key: 'location', type: 'text' },
+              ].map((field) => (
+                <div key={field.key} className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{field.label}</label>
+                  <input 
+                    value={(form as any)[field.key]} 
+                    className="w-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-lg text-xs dark:text-white outline-none focus:border-blue-500 transition-all" 
+                    onChange={(e) => setForm({ ...form, [field.key]: e.target.value })} 
+                  />
+                </div>
+              ))}
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Service Plan</label>
+                <select 
+                  className="w-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-lg text-xs dark:text-white outline-none focus:border-blue-500"
+                  value={form.plan}
+                  onChange={(e) => setForm({ ...form, plan: Number(e.target.value) })}
+                >
+                  <option value={0}>Select Package...</option>
+                  {plans.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Service Mode</label>
+                <select 
+                  className="w-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-700 p-2.5 rounded-lg text-xs dark:text-white outline-none focus:border-blue-500" 
+                  value={form.service_type} 
+                  onChange={(e) => setForm({ ...form, service_type: e.target.value as any })}
+                >
+                  <option value="HOTSPOT">HOTSPOT</option>
+                  <option value="PPPOE">PPPOE</option>
+                </select>
+              </div>
+              <div className="lg:col-span-3 pt-4 flex gap-2">
+                <button onClick={handleSubmit} className="flex-1 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest py-3 rounded-lg hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-500/20">
+                  {editingId ? 'Confirm Update' : 'Initialize Client'}
+                </button>
+                <button onClick={() => { setIsFormOpen(false); setEditingId(null); }} className="px-6 py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-bold rounded-lg uppercase tracking-widest">
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TABLE WRAPPER */}
+        <div className="bg-white dark:bg-slate-800/50 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+          
+          {/* SEARCH & FILTERS */}
+          <div className="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-gray-900/50 flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[200px]">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
               <input 
-                type="text" 
-                placeholder="Search clients..." 
-                className="pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none w-full md:w-64"
+                type="text"
+                placeholder="Search database..."
+                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] font-medium dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-           </div>
-        </div>
-      </div>
+            </div>
+            <div className="flex items-center gap-2 bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-700 px-2 py-1.5 rounded-lg">
+              <FunnelIcon className="w-3.5 h-3.5 text-slate-400" />
+              <select 
+                className="bg-transparent text-[11px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+              >
+                <option value="ALL">ALL TYPES</option>
+                <option value="PPPOE">PPPOE</option>
+                <option value="HOTSPOT">HOTSPOT</option>
+              </select>
+            </div>
+          </div>
 
-      {/* Quick Create/Edit Card - Added ref and scroll margin */}
-      <div 
-        ref={formRef}
-        className={`bg-white rounded-2xl shadow-sm border transition-all scroll-mt-10 ${
-            editingId ? 'border-blue-500 ring-4 ring-blue-50 scale-[1.01]' : 'border-gray-100'
-        }`}
-      >
-        <div className={`p-4 border-b flex justify-between items-center ${editingId ? 'bg-blue-50/50 border-blue-100' : 'bg-gray-50/50 border-gray-50'}`}>
-          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
-            {editingId ? <PencilSquareIcon className="w-5 h-5 text-blue-600" /> : <UserPlusIcon className="w-5 h-5 text-blue-600" />}
-            {editingId ? `Editing Client: ${form.full_name}` : 'Quick Onboard Client'}
-          </h3>
-          {editingId && (
-            <button onClick={handleCancel} className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1">
-                <XMarkIcon className="w-4 h-4" /> Cancel Edit
-            </button>
-          )}
-        </div>
-        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-widest">Full Name</label>
-            <input value={form.full_name} placeholder="Jane Doe" className="w-full border border-gray-200 p-2.5 rounded-xl text-sm outline-none focus:border-blue-500" onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-widest">Email Address</label>
-            <input value={form.email} placeholder="jane@example.com" className="w-full border border-gray-200 p-2.5 rounded-xl text-sm outline-none focus:border-blue-500" onChange={(e) => setForm({ ...form, email: e.target.value })} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-widest">Phone Number</label>
-            <input value={form.phone} placeholder="254..." className="w-full border border-gray-200 p-2.5 rounded-xl text-sm outline-none focus:border-blue-500" onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-widest">Location</label>
-            <input value={form.location} placeholder="Nairobi, KE" className="w-full border border-gray-200 p-2.5 rounded-xl text-sm outline-none focus:border-blue-500" onChange={(e) => setForm({ ...form, location: e.target.value })} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-widest">Service Plan ID</label>
-            <input value={form.plan} type="number" placeholder="101" className="w-full border border-gray-200 p-2.5 rounded-xl text-sm outline-none focus:border-blue-500" onChange={(e) => setForm({ ...form, plan: Number(e.target.value) })} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase ml-1 tracking-widest">Service Type</label>
-            <select disabled={!!editingId} className="w-full border border-gray-200 p-2.5 rounded-xl text-sm outline-none focus:border-blue-500 appearance-none bg-white disabled:bg-gray-100 disabled:text-gray-400" value={form.service_type} onChange={(e) => setForm({ ...form, service_type: e.target.value as any })}>
-              <option value="HOTSPOT">Hotspot Service</option>
-              <option value="PPPOE">PPPoE Subscription</option>
-            </select>
-          </div>
-          <div className="lg:col-span-3 pt-2 flex gap-2">
-            <button onClick={handleSubmit} className="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 active:scale-95 flex items-center justify-center gap-2">
-              {editingId ? <CheckIcon className="w-5 h-5" /> : <UserPlusIcon className="w-5 h-5" />}
-              {editingId ? 'Save Changes' : 'Register Client'}
-            </button>
-            {editingId && (
-                <button onClick={handleCancel} className="px-8 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all">
-                    Cancel
-                </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Users Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100">
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Client Details</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest hidden md:table-cell">Location</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Contacts</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest ">Service</th>
-                <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filteredUsers.map((user) => {
-                const isPPPOE = user.service_type === 'PPPOE';
-                const needsCredentials = isPPPOE && !user.pppoe_created;
-                const isCurrentlyEditing = editingId === user.id;
-
-                return (
-                  <tr key={user.id} className={`transition-colors group ${isCurrentlyEditing ? 'bg-blue-50' : 'hover:bg-blue-50/30'}`}>
-                    <td className="px-6 py-4">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/50 dark:bg-gray-900/50 border-b border-slate-100 dark:border-slate-700">
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Subscriber</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Service</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hidden sm:table-cell">Location</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest hidden lg:table-cell">Contact</th>
+                  <th className="px-4 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
+                {paginatedUsers.map((user) => (
+                  <tr key={user.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-colors group">
+                    <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${isPPPOE ? 'bg-indigo-100 text-indigo-600' : 'bg-amber-100 text-amber-600'}`}>
-                          {user.full_name?.charAt(0) || '?'}
+                        <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-gray-900 flex items-center justify-center font-black text-slate-500 dark:text-slate-400 text-xs shadow-inner">
+                          {user.full_name?.charAt(0)}
                         </div>
-                        <div>
-                          <p className="font-bold text-gray-800">{user.full_name || 'Anonymous User'}</p>
-                          <p className="text-xs text-gray-400 font-medium">ID: #{user.id.toString().padStart(4, '0')}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 hidden md:table-cell">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <GlobeAltIcon className="w-3 h-3" /> {user.location || 'N/A'}
+                        <div className="min-w-0">
+                          <p className="font-bold text-slate-800 dark:text-slate-100 text-[11px] md:text-sm truncate leading-tight">{user.full_name}</p>
+                          <p className="text-[9px] text-slate-400 font-medium sm:hidden truncate">{user.location}</p>
                         </div>
                       </div>
                     </td>
                     
-                    <td className="px-6 py-4 hidden md:table-cell">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-xs text-gray-500">
-                          <EnvelopeIcon className="w-3 h-3" /> {user.email || 'N/A'}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 font-bold">
-                          <PhoneIcon className="w-3 h-3" /> {user.phone || 'N/A'}
-                        </div>
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col gap-1">
+                        <span className={`w-fit px-2 py-0.5 rounded-md text-[8px] font-black tracking-tighter shadow-sm ${
+                          user.service_type === 'PPPOE' ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20' : 'bg-amber-100 text-amber-600 dark:bg-amber-500/20'
+                        }`}>
+                          {user.service_type}
+                        </span>
+                        {user.pppoe_created && (
+                          <div className="flex items-center gap-1 text-[8px] text-emerald-500 font-bold uppercase tracking-tighter">
+                            <KeyIcon className="w-2.5 h-2.5" /> Active
+                          </div>
+                        )}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${isPPPOE ? 'bg-indigo-50 text-indigo-600' : 'bg-amber-50 text-amber-600'}`}>
-                        {user.service_type}
-                      </span>
-                      {user.pppoe_created && (
-                        <p className="text-[10px] text-emerald-600 font-bold mt-1 flex items-center gap-1">
-                          <KeyIcon className="w-3 h-3" /> Creds Active
-                        </p>
-                      )}
+
+                    <td className="px-4 py-4 hidden sm:table-cell">
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tight">
+                        <GlobeAltIcon className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600" />
+                        {user.location || 'N/A'}
+                      </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        {needsCredentials && (
-                          <button 
-                            onClick={() => handlePPPoE(user)}
-                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                            title="Create PPPoE"
-                          >
-                            <KeyIcon className="w-5 h-5" />
+
+                    <td className="px-4 py-4 hidden lg:table-cell">
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 space-y-0.5">
+                        <p className="flex items-center gap-1.5"><EnvelopeIcon className="w-3 h-3 opacity-50" /> {user.email}</p>
+                        <p className="flex items-center gap-1.5 font-bold"><PhoneIcon className="w-3 h-3 opacity-50" /> {user.phone}</p>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4">
+                      <div className="flex items-center justify-end gap-1">
+                        {user.service_type === 'PPPOE' && !user.pppoe_created && (
+                          <button onClick={() => handlePPPoE(user)} className="p-2 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-lg transition-all" title="Provision PPPoE">
+                            <KeyIcon className="w-4 h-4" />
                           </button>
                         )}
-                        <button 
-                            onClick={() => startEdit(user)} 
-                            className={`p-2 rounded-lg transition-colors ${isCurrentlyEditing ? 'bg-blue-600 text-white' : 'text-blue-600 hover:bg-blue-50'}`}
-                            title="Edit Client"
-                        >
-                          <PencilSquareIcon className="w-5 h-5" />
+                        <button onClick={() => startEdit(user)} className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-all" title="Edit Profile">
+                          <PencilSquareIcon className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(user.id)} className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors" title="Delete Client">
-                          <TrashIcon className="w-5 h-5" />
+                        <button onClick={() => handleDelete(user.id)} className="p-2 text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-all" title="Delete Client">
+                          <TrashIcon className="w-4 h-4" />
                         </button>
                       </div>
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* PAGINATION CONTROLS */}
+          <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-gray-900/30 flex items-center justify-between">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Showing {paginatedUsers.length} of {filteredUsers.length} entries
+            </p>
+            <div className="flex items-center gap-2">
+              <button 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 disabled:opacity-30 hover:bg-white dark:hover:bg-slate-800 transition-all"
+              >
+                <ChevronLeftIcon className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-1">
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`w-7 h-7 rounded-lg text-[10px] font-black transition-all ${
+                      currentPage === i + 1 
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
+                      : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button 
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 disabled:opacity-30 hover:bg-white dark:hover:bg-slate-800 transition-all"
+              >
+                <ChevronRightIcon className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* FOOTER SYNC STATUS */}
       {loading && (
-        <div className="fixed bottom-10 right-10 bg-white shadow-2xl rounded-full px-6 py-3 flex items-center gap-3 border border-blue-100 animate-bounce">
-          <div className="w-2 h-2 bg-blue-600 rounded-full animate-ping" />
-          <span className="text-sm font-bold text-gray-700">Syncing with MikroTik...</span>
+        <div className="fixed bottom-6 right-6 bg-slate-900 dark:bg-blue-600 text-white px-5 py-2.5 rounded-lg flex items-center gap-3 shadow-2xl z-50 border border-white/10">
+          <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+          <span className="text-[9px] font-black uppercase tracking-[0.2em]">Radius Syncing...</span>
         </div>
       )}
     </div>
