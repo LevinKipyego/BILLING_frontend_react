@@ -15,6 +15,7 @@ import NetworkDetailed from "./pages/dashboard/NetworkDetailed";
 import SessionDetail from "./pages/dashboard/SessionDetail";
 import SessionsPage from "./pages/dashboard/SessionPage";
 import StkTransactions from "./pages/dashboard/StkTransactions";
+import PPPoESubscriptionPage from "./pages/dashboard/PpoeSubsicriptions";
 
 export default function App() {
   return (
@@ -35,7 +36,8 @@ export default function App() {
           <Route path="mikrotik/configurations" element={<MikrotikConfig />} />
           <Route path="mpesa" element={<Mpesa />} />
           <Route path="transactions" element={<StkTransactions />} /> {/* Placeholder for Transactions page */}
-          
+          <Route path="subscriptions/list" element={<PPPoESubscriptionPage />} /> {/* Placeholder for Subscriptions page */}
+
           <Route path="users" element={<UsersPage />} />
           <Route path="network" element={<NetworkHealth />} />
           <Route path="routers/:id" element={<NetworkDetailed />} />
