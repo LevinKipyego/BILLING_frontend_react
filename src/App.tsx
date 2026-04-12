@@ -14,6 +14,7 @@ import NetworkHealth from "./pages/dashboard/NetworkHealth";
 import NetworkDetailed from "./pages/dashboard/NetworkDetailed";
 import SessionDetail from "./pages/dashboard/SessionDetail";
 import SessionsPage from "./pages/dashboard/SessionPage";
+import StkTransactions from "./pages/dashboard/StkTransactions";
 
 export default function App() {
   return (
@@ -31,8 +32,10 @@ export default function App() {
           <Route path="plans" element={<Plans />} />
           <Route path="nas" element={<Nas />} />
           <Route path="mikrotik" element={<Mikrotiks />} />
+          <Route path="mikrotik/configurations" element={<MikrotikConfig />} />
           <Route path="mpesa" element={<Mpesa />} />
-          <Route path="mikroconfig" element={<MikrotikConfig />} />
+          <Route path="transactions" element={<StkTransactions />} /> {/* Placeholder for Transactions page */}
+          
           <Route path="users" element={<UsersPage />} />
           <Route path="network" element={<NetworkHealth />} />
           <Route path="routers/:id" element={<NetworkDetailed />} />

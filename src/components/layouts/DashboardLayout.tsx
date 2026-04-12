@@ -104,7 +104,7 @@ export default function DashboardLayout() {
 
           <div className="flex items-center gap-1 md:gap-4">
             <ThemeToggle />
-            <div className="h-6 w-px bg-gray-200 dark:bg-slate-700 mx-1"></div>
+            <div className="h-6 w-px bg-gray-200 dark:bg-slate-600 mx-1"></div>
             
             {/* NOTIFICATIONS */}
             <div className="relative" ref={notifRef}>

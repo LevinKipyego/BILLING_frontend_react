@@ -7,6 +7,7 @@ import {
   CreditCardIcon, 
   UserIcon 
 } from "@heroicons/react/24/outline";
+import { CardSimIcon } from "lucide-react";
 
 interface SidebarProps {
   closeMobile?: () => void; 
@@ -19,7 +20,11 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
     { to: "/dashboard/plans", label: "Service Plans", icon: TicketIcon },
     { to: "/dashboard/nas", label: "NAS Management", icon: ServerIcon },
     { to: "/dashboard/mikrotik", label: "MikroTik Devices", icon: CpuChipIcon },
-    { to: "/dashboard/mpesa", label: "M-Pesa Config", icon: CreditCardIcon },
+    { to: "/dashboard/mikrotik/configurations", label: "Configurations", icon: CpuChipIcon }, 
+    { to: "/dashboard/mpesa", label: "M-Pesa Config", icon: CardSimIcon },
+
+    { to: "/dashboard/transactions", label: "Transactions", icon: CreditCardIcon },
+    
     { to: "/dashboard/users", label: "Users", icon: UserIcon },
     { to: "/dashboard/network", label: "Network", icon: CpuChipIcon },
     { to: "/dashboard/sessions/dashboard", label: "Sessions", icon: Squares2X2Icon },

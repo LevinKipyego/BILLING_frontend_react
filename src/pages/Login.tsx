@@ -6,9 +6,11 @@ import {
   EyeIcon, 
   EyeSlashIcon,
   ArrowLeftIcon,
+  ArrowRightIcon,
   CpuChipIcon,
   ShieldCheckIcon,
-  KeyIcon
+  KeyIcon,
+  BoltIcon
 } from "@heroicons/react/24/outline";
 
 export default function Login() {
@@ -33,7 +35,7 @@ export default function Login() {
       });
 
       if (!response.ok) {
-        throw new Error("Invalid email or password. Please try again.");
+        throw new Error("AUTH_FAILURE: Invalid credentials detected.");
       }
 
       const data = await response.json();
@@ -42,42 +44,47 @@ export default function Login() {
 
       navigate("/dashboard", { replace: true });
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      setError(err.message || "Connection to Auth Server failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-white">
-      {/* LEFT SIDE: Login Form */}
-      <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-1/2 lg:px-12 xl:px-24">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-[#0a0f18] selection:bg-blue-500/30">
+      
+      {/* 1. LEFT SIDE: AUTH STATION */}
+      <div className="flex w-full flex-col justify-center px-6 py-12 lg:w-[45%] lg:px-16 xl:px-24 bg-white dark:bg-[#0a0f18] relative z-10 border-r border-slate-100 dark:border-slate-800 shadow-2xl">
         
         {/* Navigation Actions */}
-        <div className="flex justify-between items-center mb-12">
-          <Link to="/" className="group flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
+        <div className="flex justify-between items-center mb-16">
+          <Link to="/" className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-blue-600 transition-colors italic">
             <ArrowLeftIcon className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            Back to Home
+            Return_to_Hub
           </Link>
-          <Link to="/signup" className="text-sm font-bold text-blue-600 hover:underline">
-            Create an Account
+          <Link to="/signup" className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-600 hover:text-blue-500 transition-colors italic">
+            Create_New_Node
           </Link>
         </div>
 
         <div className="mb-10">
-          <div className="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center mb-6 lg:hidden">
-             <CpuChipIcon className="w-8 h-8 text-white" />
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-blue-600 p-2.5 rounded-xl shadow-lg shadow-blue-500/20">
+               <CpuChipIcon className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.4em] italic">Access_Terminal</span>
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-            Welcome Back
+          
+          <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic leading-none mb-4">
+            Authorized_Entry
           </h1>
-          <p className="mt-2 text-gray-500">
-            Sign in to manage your MikroTik network and payments.
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+            Establish a secure link to your MikroTik orchestration dashboard.
           </p>
         </div>
 
         {error && (
-          <div className="mb-6 rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600 border border-red-100 flex items-center gap-3 animate-shake">
+          <div className="mb-8 rounded-2xl bg-red-500/10 p-4 text-[10px] font-black uppercase tracking-widest text-red-600 dark:text-red-400 border border-red-500/20 flex items-center gap-3 italic animate-in fade-in zoom-in duration-300">
             <ShieldCheckIcon className="w-5 h-5" />
             {error}
           </div>
@@ -85,14 +92,16 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Email Field */}
-          <div className="space-y-1">
-            <label className="text-xs font-bold uppercase tracking-wider text-gray-500 ml-1">Email Address</label>
-            <div className="relative">
-              <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 ml-1 italic">
+              Credential_Identifier
+            </label>
+            <div className="relative group">
+              <EnvelopeIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
               <input
                 type="email"
-                placeholder="admin@yourisp.com"
-                className="w-full rounded-xl border border-gray-200 py-3.5 pl-10 pr-4 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all"
+                placeholder="admin@isp_node.net"
+                className="w-full bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 py-4 pl-12 pr-4 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all placeholder:opacity-30"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -101,19 +110,21 @@ export default function Login() {
           </div>
 
           {/* Password Field */}
-          <div className="space-y-1">
+          <div className="space-y-2">
             <div className="flex justify-between items-center px-1">
-              <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Password</label>
-              <Link to="/forgot-password" size-sm className="text-xs font-semibold text-blue-600 hover:text-blue-700">
-                Forgot Password?
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 italic">
+                Secret_Key
+              </label>
+              <Link to="/forgot-password" size-sm className="text-[10px] font-black uppercase tracking-[0.1em] text-blue-600 hover:text-blue-500 italic">
+                Reset_Key?
               </Link>
             </div>
-            <div className="relative">
-              <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <div className="relative group">
+              <LockClosedIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
               <input
                 type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                className="w-full rounded-xl border border-gray-200 py-3.5 pl-10 pr-12 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50/50 transition-all"
+                placeholder="••••••••••••"
+                className="w-full bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 py-4 pl-12 pr-12 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all placeholder:opacity-30"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -121,7 +132,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors"
               >
                 {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
               </button>
@@ -131,53 +142,82 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-blue-600 py-4 font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-[0.98] transition-all disabled:bg-blue-300 disabled:shadow-none flex items-center justify-center gap-2"
+            className="w-full rounded-2xl bg-blue-600 py-5 text-[11px] font-black uppercase tracking-[0.3em] text-white shadow-2xl shadow-blue-500/30 hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 italic"
           >
             {loading ? (
               <>
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Signing in...
+                Validating_Access...
               </>
             ) : (
-              "Sign In to Dashboard"
+              <>
+                Initialize_Dashboard <ArrowRightIcon className="w-4 h-4" />
+              </>
             )}
           </button>
         </form>
 
-        <p className="mt-10 text-center text-sm text-gray-500 lg:hidden">
-          Don't have an account?{" "}
-          <Link to="/signup" className="font-bold text-blue-600 hover:underline">Sign up</Link>
+        <p className="mt-12 text-center text-[10px] font-black uppercase tracking-widest text-slate-400 lg:hidden italic">
+          New_Vendor?{" "}
+          <Link to="/signup" className="text-blue-600 hover:text-blue-500">Register_here</Link>
         </p>
       </div>
 
-      {/* RIGHT SIDE: Visual/Marketing */}
-      <div className="hidden lg:flex lg:w-1/2 bg-slate-900 items-center justify-center relative overflow-hidden p-12">
-        {/* Decorative Grid Pattern */}
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#3b82f6 1px, transparent 1px)', size: '20px 20px', backgroundSize: '40px 40px' }} />
+      {/* 2. RIGHT SIDE: THE INFRASTRUCTURE VIEW */}
+      <div className="hidden lg:flex lg:w-[55%] bg-slate-900 dark:bg-black items-center justify-center relative overflow-hidden p-12">
+        {/* Background Tech Grid Layer */}
+        <div className="absolute inset-0 z-0 opacity-20" 
+             style={{ backgroundImage: 'radial-gradient(#3b82f6 0.5px, transparent 0.5px)', backgroundSize: '30px 30px' }} />
         
-        <div className="relative z-10 max-w-md text-center">
-          <div className="inline-flex p-4 rounded-3xl bg-blue-600/20 border border-blue-500/30 mb-8 backdrop-blur-sm">
-            <KeyIcon className="h-12 w-12 text-blue-500" />
+        {/* Animated Scanning Line */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-500/5 to-transparent h-40 w-full -top-40 animate-scan pointer-events-none" />
+
+        <div className="relative z-10 max-w-lg">
+          <div className="inline-flex p-5 rounded-[2.5rem] bg-blue-600/10 border border-blue-500/20 mb-10 backdrop-blur-xl shadow-2xl">
+            <KeyIcon className="h-14 w-14 text-blue-500" />
           </div>
-          <h2 className="text-4xl font-bold text-white leading-tight mb-6">
-            Secure Access to your Infrastructure.
-          </h2>
-          <p className="text-slate-400 text-lg">
-            Monitor traffic, manage M-Pesa callbacks, and update service plans with enterprise-grade security.
-          </p>
           
-          <div className="mt-12 flex justify-center gap-4">
-             <div className="flex -space-x-2">
-                {[1,2,3,4].map(i => (
-                  <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-700 flex items-center justify-center text-[10px] text-white font-bold">
-                    V{i}
-                  </div>
-                ))}
-             </div>
-             <p className="text-slate-400 text-sm flex items-center">Joined by 500+ ISP Vendors</p>
+          <h2 className="text-5xl font-black text-white leading-[0.9] mb-8 uppercase italic tracking-tighter">
+            System_Link <br/>
+            <span className="text-blue-600">Established.</span>
+          </h2>
+          
+          <div className="space-y-6">
+            <div className="flex items-start gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/5 backdrop-blur-sm">
+              <BoltIcon className="w-6 h-6 text-blue-500 shrink-0" />
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-widest leading-relaxed italic">
+                Monitor global traffic, manage M-Pesa automated callbacks, and update service plans in real-time.
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-6 mt-12 p-1">
+               <div className="flex -space-x-3">
+                  {[1,2,3,4].map(i => (
+                    <div key={i} className="w-12 h-12 rounded-full border-4 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] text-blue-500 font-black italic shadow-xl">
+                      ID_{i}
+                    </div>
+                  ))}
+               </div>
+               <div className="space-y-1">
+                  <p className="text-white text-[10px] font-black uppercase tracking-widest italic">500+_active_nodes</p>
+                  <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest italic flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Live_Telemetry_Active
+                  </p>
+               </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes scan {
+          from { top: -10% }
+          to { top: 110% }
+        }
+        .animate-scan {
+          animation: scan 8s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }

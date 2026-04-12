@@ -1,25 +1,25 @@
 import { apiFetch } from "./client";
 
 export function listMikrotikConnections() {
-  return apiFetch("/mikrotik/connections/");
+  return apiFetch("/devices/connections/");
 }
 
 export function createMikrotikConnection(data: any) {
-  return apiFetch("/mikrotik/connections/", {
+  return apiFetch("/devices/connections/", {
     method: "POST",
     body: JSON.stringify(data),
   });
 }
 
 export function updateMikrotikConnection(id: string, data: any) {
-  return apiFetch(`/mikrotik/connections/${id}/`, {
+  return apiFetch(`/devices/connections/${id}/`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
 }
 
 export function deleteMikrotikConnection(id: string) {
-  return apiFetch(`/mikrotik/connections/${id}/`, {
+  return apiFetch(`/devices/connections/${id}/`, {
     method: "DELETE",
   });
 }

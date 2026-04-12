@@ -27,20 +27,20 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={() => setDarkMode(!darkMode)}
-      className="group relative p-2.5 rounded-xl transition-all duration-500 
-        bg-gray-900 dark:bg-white/5 
+      className="group relative p-2 rounded-[11px] transition-all duration-500 
+        bg-gray-500/20 dark:bg-slate-500/20
         text-gray-400 hover:text-white
-        border border-white/10 shadow-2xl hover:bg-gray-800 dark:hover:bg-white/10"
+        border border-white/10 shadow-2xl hover:bg-gray-800 dark:hover:bg-white/5"
       aria-label="Toggle Dark Mode"
     >
       {/* Subtle glow effect on hover */}
-      <div className="absolute inset-0 rounded-xl bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity blur-md" />
+      <div className="absolute inset-0 rounded-lg bg-blue-500/2 opacity-0 group-hover:opacity-100 transition-opacity blur-md" />
       
       <div className="relative">
         {darkMode ? (
-          <SunIcon className="w-5 h-5 text-yellow-400 animate-in zoom-in spin-in-90 duration-500" />
+          <SunIcon className="w-7 h-3 text-yellow-400 animate-in zoom-in spin-in-90 duration-500" />
         ) : (
-          <MoonIcon className="w-5 h-5 text-blue-400 animate-in zoom-in spin-in-45 duration-500" />
+          <MoonIcon className="w-7 h-3 text-blue-400 animate-in zoom-in spin-in-45 duration-500" />
         )}
       </div>
     </button>

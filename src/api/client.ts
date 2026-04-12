@@ -1,9 +1,9 @@
 const API_BASE = import.meta.env.VITE_API_BASE || "http://192.168.100.88:8000/api";
 
 export async function apiFetch(endpoint: string, options: RequestInit = {}) {
-  const token = localStorage.getItem("access_token"); // Ensure this matches your login save key
+  const token = localStorage.getItem("access_token");
 
-  console.log("LocalStorage 'access_token' value:", token); 
+  //console.log("LocalStorage 'access_token' value:", token); 
 
   if (!token) {
     console.error("No token found! Redirecting to login...");
