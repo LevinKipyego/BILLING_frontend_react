@@ -13,12 +13,17 @@ import {
   XCircleIcon,
   ArrowsUpDownIcon,
   UserCircleIcon,
-  ClockIcon
+  ClockIcon,
+ 
 } from "@heroicons/react/24/outline";
 
 interface FormState {
   plan: number | "";
   user: number;
+  user_name: string;
+  credential_password: string;
+  plan_name:string;
+  transaction_code: string;
   credential: number;
   start_at: string;
   end_at: string;
@@ -40,8 +45,8 @@ export default function PPPoESubscriptionPage() {
   const itemsPerPage = 8;
 
   const [form, setForm] = useState<FormState>({
-    plan: "", user: 0, credential: 0, start_at: "", end_at: "",
-    active: true, created_by_transaction: 0,
+    plan: "", user: 0, user_name: "", credential_password: "", plan_name: "", transaction_code: "", credential: 0, start_at: "", end_at: "",
+    active: true, created_by_transaction: "",
   });
 
   async function loadData() {
@@ -98,7 +103,7 @@ export default function PPPoESubscriptionPage() {
 
   function resetForm() {
     setEditingId(null);
-    setForm({ plan: "", user: 0, credential: 0, start_at: "", end_at: "", active: true, created_by_transaction: 0 });
+    setForm({ plan: "", user: 0, user_name: "", credential_password: "", plan_name: "", transaction_code: "", credential: 0, start_at: "", end_at: "", active: true, created_by_transaction: "" });
   }
 
   const formatDateTime = (dateStr: string) => {
@@ -197,15 +202,15 @@ export default function PPPoESubscriptionPage() {
                          <UserCircleIcon className="w-5 h-5" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-900 dark:text-white">UID: {item.user}</span>
-                        <span className="text-[11px] text-gray-500 font-medium tracking-tight uppercase">Cred: {item.credential}</span>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">User: {item.user_name}</span>
+                        <span className="text-[11px] text-gray-500 font-medium tracking-tight uppercase">Cred: {item.credential_password}</span>
                       </div>
                     </div>
                   </td>
                   <td className="p-5">
                     <div className="flex items-center gap-2">
                       <WifiIcon className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Plan #{item.plan}</span>
+                      <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Plan #{item.plan_name}</span>
                     </div>
                   </td>
                   <td className="p-5">
@@ -247,9 +252,13 @@ export default function PPPoESubscriptionPage() {
             <div key={item.id} onClick={() => handleEdit(item)} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl p-5 shadow-sm">
               <div className="flex justify-between items-center mb-4">
                 <StatusBadge active={item.active} />
-                <span className="text-xs font-bold text-blue-600">Plan #{item.plan}</span>
+                <span className="text-xs font-bold text-blue-600">Plan #{item.plan_name}</span>
               </div>
-              <p className="text-sm font-bold text-gray-900 dark:text-white">Subscriber ID: {item.user}</p>
+              <div>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">Subscriber ID: {item.user_name}</p>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Credential: {item.credential_password}</span>
+              </div>
+              
               <div className="flex items-center gap-2 mt-2 text-gray-500">
                 <ClockIcon className="w-3.5 h-3.5" />
                 <p className="text-xs font-medium">Expires: {end.date} at {end.time}</p>
