@@ -37,3 +37,32 @@ export default interface Transaction {
   plan: number;
   mikrotik: string;  // UUID
 }
+
+
+export interface MpesaC2BTransaction {
+  id: number;
+
+  user: number | null;
+  user_name?: string;
+
+  plan: number | null;
+  plan_name?: string;
+
+  vendor: number | null;
+  vendor_name?: string;
+
+  transaction_id: string;
+  shortcode: string;
+  bill_ref_number: string;
+  reference: string;
+  phone: string;
+
+  amount: string;
+
+  status: string;
+
+  raw_payload: any;
+
+  created_at: string;
+  updated_at: string;
+}

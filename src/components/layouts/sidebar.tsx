@@ -24,6 +24,7 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
     { to: "/dashboard/mpesa", label: "M-Pesa Config", icon: CardSimIcon },
 
     { to: "/dashboard/transactions", label: "Transactions", icon: CreditCardIcon },
+    { to: "/dashboard/transactions/c2b", label: "M-Pesa C2B", icon: CreditCardIcon },
 
     { to: "/dashboard/pppoe/credentials/list", label: "Credentials", icon: ServerIcon },
     { to: "/dashboard/pppoe/subscriptions/list", label: "Subscriptions", icon: TicketIcon },
