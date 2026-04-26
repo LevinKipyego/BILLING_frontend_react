@@ -1,4 +1,5 @@
 // src/api/mpesa.ts
+import type { MpesaC2BConfig } from "../types/mpesa";
 import { apiFetch } from "./client";
 
 export type MpesaConfigPayload = {
@@ -11,7 +12,7 @@ export type MpesaConfigPayload = {
 };
 
 export async function getMpesaConfig() {
-  return apiFetch("");
+  return apiFetch("/stk_config/list/");
 }
 
 export async function createMpesaConfig(data: MpesaConfigPayload) {
@@ -31,5 +32,28 @@ export async function updateMpesaConfig(data: MpesaConfigPayload) {
 export async function deleteMpesaConfig() {
   return apiFetch("/payments/mpesa/", {
     method: "DELETE",
+  });
+}
+
+
+
+//mpesaC2B config
+
+
+  
+ export function getMpesaC2BConfig(): Promise<MpesaC2BConfig[]> {
+  return apiFetch("/mpesaC2Bconfig/me/");
+}
+
+export function saveMpesaC2BConfig(data: any) {
+  return apiFetch("/mpesaC2Bconfig/me/", {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export function testMpesaConnection() {
+  return apiFetch("/mpesaC2Bconfig/test/", {
+    method: "POST",
   });
 }

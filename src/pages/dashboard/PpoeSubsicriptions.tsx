@@ -2,6 +2,10 @@ import { useEffect, useState, useMemo } from "react";
 import fetchPppoeSubscriptions from "../../api/subscriptions";
 import { apiFetch } from "../../api/client";
 import type { PPPoESubscription } from "../../types/subscriptions";
+
+import { listPlans } from "../../api/plans";
+import type { Plan } from "../../types/plan";
+
 import { 
   MagnifyingGlassIcon, 
   PlusIcon,
@@ -33,6 +37,7 @@ interface FormState {
 
 export default function PPPoESubscriptionPage() {
   const [data, setData] = useState<PPPoESubscription[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -52,8 +57,12 @@ export default function PPPoESubscriptionPage() {
   async function loadData() {
     setLoading(true);
     try {
-      const res = await fetchPppoeSubscriptions();
+      const [res, planRes] = await Promise.all([
+        fetchPppoeSubscriptions(),
+        listPlans()
+      ]);
       setData(res);
+      setPlans(planRes);
     } finally {
       setLoading(false);
     }
@@ -87,7 +96,7 @@ export default function PPPoESubscriptionPage() {
     e.preventDefault();
     try {
       const method = editingId ? "PUT" : "POST";
-      const url = editingId ? `/services/pppoe/subscriptions/${editingId}/` : `/services/pppoe/subscriptions/`;
+      const url = editingId ? `/subscriptions/${editingId}/` : `/subscriptions/`;
       await apiFetch(url, { method, body: JSON.stringify(form) });
       setIsFormOpen(false);
       resetForm();
@@ -315,17 +324,28 @@ export default function PPPoESubscriptionPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Plan ID</label>
-                  <input name="plan" type="number" value={form.plan} onChange={handleChange} className="w-full bg-slate-50 dark:bg-gray-900 border-none rounded-2xl p-3 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20" required />
+                  <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Select Plan</label>
+                  <select 
+                    name="plan" 
+                    value={form.plan} 
+                    onChange={handleChange} 
+                    className="w-full bg-slate-50 dark:bg-gray-900 border-none rounded-2xl p-3 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20" 
+                    required
+                  >
+                    <option value="">Select Plan</option>
+                    {plans.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">User ID</label>
-                  <input name="user" value={form.user} onChange={handleChange} className="w-full bg-slate-50 dark:bg-gray-900 border-none rounded-2xl p-3 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20" required />
+                  <input name="user" value={form.user} readOnly className="w-full bg-slate-100 dark:bg-gray-950 border-none rounded-2xl p-3 text-sm text-gray-500 cursor-not-allowed outline-none" required />
                 </div>
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Credential ID</label>
-                <input name="credential" value={form.credential} onChange={handleChange} className="w-full bg-slate-50 dark:bg-gray-900 border-none rounded-2xl p-3 text-sm dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20" required />
+                <input name="credential" value={form.credential} readOnly className="w-full bg-slate-100 dark:bg-gray-950 border-none rounded-2xl p-3 text-sm text-gray-500 cursor-not-allowed outline-none" required />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Start Date & Time</label>

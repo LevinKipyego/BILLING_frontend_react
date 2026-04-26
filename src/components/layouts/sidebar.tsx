@@ -21,7 +21,9 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
     { to: "/dashboard/nas", label: "NAS Management", icon: ServerIcon },
     { to: "/dashboard/mikrotik", label: "MikroTik Devices", icon: CpuChipIcon },
     { to: "/dashboard/mikrotik/configurations", label: "Configurations", icon: CpuChipIcon }, 
+
     { to: "/dashboard/mpesa", label: "M-Pesa Config", icon: CardSimIcon },
+    { to: "/dashboard/mpesa/c2b", label: "C2B Config", icon: CardSimIcon },
 
     { to: "/dashboard/transactions", label: "Transactions", icon: CreditCardIcon },
     { to: "/dashboard/transactions/c2b", label: "M-Pesa C2B", icon: CreditCardIcon },

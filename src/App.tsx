@@ -18,6 +18,7 @@ import StkTransactions from "./pages/dashboard/StkTransactions";
 import PPPoESubscriptionPage from "./pages/dashboard/PpoeSubsicriptions";
 import PppoeCredentialPage from "./pages/dashboard/PppoeCredentials";
 import C2bTransactions from "./pages/dashboard/C2bTransactions";
+import C2BConfig from "./pages/dashboard/C2BConfig";
 
 export default function App() {
   return (
@@ -36,7 +37,10 @@ export default function App() {
           <Route path="nas" element={<Nas />} />
           <Route path="mikrotik" element={<Mikrotiks />} />
           <Route path="mikrotik/configurations" element={<MikrotikConfig />} />
+
           <Route path="mpesa" element={<Mpesa />} />
+          <Route path="mpesa/c2b" element={<C2BConfig />} /> {/* Reusing MpesaConfig component for C2B config for now */}
+
           <Route path="transactions" element={<StkTransactions />} /> {/* Placeholder for Transactions page */}
           <Route path="transactions/c2b" element={<C2bTransactions />} /> {/* Placeholder for M-Pesa C2B Transactions page */}
 

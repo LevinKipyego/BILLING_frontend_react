@@ -45,7 +45,7 @@ export interface MpesaC2BTransaction {
   user: number | null;
   user_name?: string;
 
-  plan: number | null;
+  plan: string | null;
   plan_name?: string;
 
   vendor: number | null;
