@@ -35,6 +35,15 @@ interface FormState {
   created_by_transaction: number | "";
 }
 
+// --- HELPER FUNCTION FOR DATE CONVERSION ---
+const toLocalISO = (isoStr: string) => {
+  if (!isoStr) return "";
+  const date = new Date(isoStr);
+  const offset = date.getTimezoneOffset();
+  const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
+  return adjustedDate.toISOString().substring(0, 16);
+};
+
 export default function HotspotSubscriptionPage() {
   const [data, setData] = useState<HotspotSubscription[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -97,7 +106,15 @@ export default function HotspotSubscriptionPage() {
     try {
       const method = editingId ? "PUT" : "POST";
       const url = editingId ? `/hotspot/subscriptions/${editingId}/` : `/hotspot/subscriptions/`;
-      await apiFetch(url, { method, body: JSON.stringify(form) });
+      
+      // Convert local input back to UTC ISO string before sending
+      const payload = {
+        ...form,
+        start_at: new Date(form.start_at).toISOString(),
+        end_at: new Date(form.end_at).toISOString()
+      };
+
+      await apiFetch(url, { method, body: JSON.stringify(payload) });
       setIsFormOpen(false);
       resetForm();
       loadData();
@@ -106,7 +123,12 @@ export default function HotspotSubscriptionPage() {
 
   function handleEdit(item: HotspotSubscription) {
     setEditingId(item.id);
-    setForm({ ...item });
+    // Convert UTC timestamps to local format for the inputs
+    setForm({ 
+      ...item, 
+      start_at: toLocalISO(item.start_at),
+      end_at: toLocalISO(item.end_at) 
+    });
     setIsFormOpen(true);
   }
 
