@@ -30,6 +30,10 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
 
     { to: "/dashboard/pppoe/credentials/list", label: "Credentials", icon: ServerIcon },
     { to: "/dashboard/pppoe/subscriptions/list", label: "Subscriptions", icon: TicketIcon },
+
+    { to : "/dashboard/hotspot/credentials/list", label: "Hotspot Creds", icon: ServerIcon },
+    { to : "/dashboard/hotspot/subscriptions/list", label: "Hotspot Subs", icon: TicketIcon },
+    
     
     { to: "/dashboard/users", label: "Users", icon: UserIcon },
     { to: "/dashboard/network", label: "Network", icon: CpuChipIcon },

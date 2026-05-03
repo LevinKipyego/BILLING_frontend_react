@@ -60,11 +60,11 @@ export default function DashboardLayout() {
           <div className={`h-16 flex items-center border-b border-gray-100 dark:border-slate-800 transition-all ${sidebarOpen ? "px-6 justify-between" : "justify-center"}`}>
             <div className="flex items-center min-w-max">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
-                <span className="text-white font-bold text-xl">M</span>
+                <span className="text-white font-bold text-xl">K</span>
               </div>
               {sidebarOpen && (
                 <span className="ml-3 font-bold text-xl text-gray-800 dark:text-slate-100 tracking-tight whitespace-nowrap">
-                  Mikro<span className="text-blue-600">Dash</span>
+                  Kayo<span className="text-blue-600">Net</span>
                 </span>
               )}
             </div>

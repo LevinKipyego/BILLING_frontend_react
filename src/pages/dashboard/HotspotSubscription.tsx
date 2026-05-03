@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
-import fetchPppoeSubscriptions from "../../api/subscriptions";
+import { fetchHotspotSubscriptions } from "../../api/hotspotsubscription";
 import { apiFetch } from "../../api/client";
-import type { PPPoESubscription } from "../../types/subscriptions";
+import type { HotspotSubscription } from "../../types/subscriptions";
 
 import { listPlans } from "../../api/plans";
 import type { Plan } from "../../types/plan";
@@ -35,17 +35,8 @@ interface FormState {
   created_by_transaction: number | "";
 }
 
-// --- HELPER FUNCTIONS FOR DATE CONVERSION ---
-const toLocalISO = (isoStr: string) => {
-  if (!isoStr) return "";
-  const date = new Date(isoStr);
-  const offset = date.getTimezoneOffset();
-  const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
-  return adjustedDate.toISOString().substring(0, 16);
-};
-
-export default function PPPoESubscriptionPage() {
-  const [data, setData] = useState<PPPoESubscription[]>([]);
+export default function HotspotSubscriptionPage() {
+  const [data, setData] = useState<HotspotSubscription[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -67,7 +58,7 @@ export default function PPPoESubscriptionPage() {
     setLoading(true);
     try {
       const [res, planRes] = await Promise.all([
-        fetchPppoeSubscriptions(),
+        fetchHotspotSubscriptions(),
         listPlans()
       ]);
       setData(res);
@@ -105,30 +96,17 @@ export default function PPPoESubscriptionPage() {
     e.preventDefault();
     try {
       const method = editingId ? "PUT" : "POST";
-      const url = editingId ? `/pppoe/subscriptions/${editingId}/` : `/pppoe/subscriptions/`;
-      
-      // Convert local input back to UTC ISO string before sending
-      const payload = {
-        ...form,
-        start_at: new Date(form.start_at).toISOString(),
-        end_at: new Date(form.end_at).toISOString()
-      };
-
-      await apiFetch(url, { method, body: JSON.stringify(payload) });
+      const url = editingId ? `/hotspot/subscriptions/${editingId}/` : `/hotspot/subscriptions/`;
+      await apiFetch(url, { method, body: JSON.stringify(form) });
       setIsFormOpen(false);
       resetForm();
       loadData();
     } catch (err) { console.error(err); }
   }
 
-  function handleEdit(item: PPPoESubscription) {
+  function handleEdit(item: HotspotSubscription) {
     setEditingId(item.id);
-    // Convert UTC timestamps to local format for the inputs
-    setForm({ 
-      ...item, 
-      start_at: toLocalISO(item.start_at),
-      end_at: toLocalISO(item.end_at) 
-    });
+    setForm({ ...item });
     setIsFormOpen(true);
   }
 
@@ -159,9 +137,9 @@ export default function PPPoESubscriptionPage() {
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
-            PPPoE <span className="text-blue-600">Subscriptions</span>
+            Hotspot <span className="text-blue-600">Subscriptions</span>
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">Manage active fiber user sessions and plan assignments.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">Manage active hotspot user sessions and plan assignments.</p>
         </div>
         
         <button 

@@ -39,3 +39,10 @@ export function deletePPPoECredential(id: number): Promise<void> {
     method: "DELETE",
   });
 }
+
+
+//list hotspot credentials
+export function listHotspotCredentials(): Promise<PPPoECredential[]> {
+  return apiFetch("/hotspot/credentials/");
+}
+

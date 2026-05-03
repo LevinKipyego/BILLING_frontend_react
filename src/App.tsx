@@ -19,6 +19,8 @@ import PPPoESubscriptionPage from "./pages/dashboard/PpoeSubsicriptions";
 import PppoeCredentialPage from "./pages/dashboard/PppoeCredentials";
 import C2bTransactions from "./pages/dashboard/C2bTransactions";
 import C2BConfig from "./pages/dashboard/C2BConfig";
+import HotspotSubscriptionPage from "./pages/dashboard/HotspotSubscription";
+import HotspotCredentialPage from "./pages/dashboard/HotspotCredentials";
 
 export default function App() {
   return (
@@ -47,6 +49,9 @@ export default function App() {
           <Route path="pppoe/credentials/list" element={<PppoeCredentialPage />} /> {/* Placeholder for Credentials page */}  
           <Route path="pppoe/subscriptions/list" element={<PPPoESubscriptionPage />} /> {/* Placeholder for Subscriptions page */}
 
+          <Route path="hotspot/credentials/list" element={<HotspotCredentialPage />} /> {/* Placeholder for Hotspot Credentials page */}
+          <Route path="hotspot/subscriptions/list" element={<HotspotSubscriptionPage />} /> {/* Placeholder for Hotspot Subscriptions page */}
+          
           <Route path="users" element={<UsersPage />} />
           <Route path="network" element={<NetworkHealth />} />
           <Route path="routers/:id" element={<NetworkDetailed />} />
