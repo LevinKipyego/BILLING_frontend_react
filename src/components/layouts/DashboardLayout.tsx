@@ -1,3 +1,4 @@
+import logo from "../../assets/veego3.png";
 import { useState, useRef, useEffect } from "react";
 import { Outlet, Link, useNavigate } from "react-router-dom";
 import { 
@@ -50,38 +51,48 @@ export default function DashboardLayout() {
 
       {/* 2. DYNAMIC SIDEBAR */}
       <aside 
-        className={`
-          fixed inset-y-0 left-0 z-50 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800
-          transition-all duration-300 ease-in-out
-          ${sidebarOpen ? "w-72 translate-x-0" : "w-20 lg:translate-x-0 -translate-x-full"}
-        `}
-      >
-        <div className="flex flex-col h-full overflow-hidden">
-          <div className={`h-16 flex items-center border-b border-gray-100 dark:border-slate-800 transition-all ${sidebarOpen ? "px-6 justify-between" : "justify-center"}`}>
-            <div className="flex items-center min-w-max">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
-                <span className="text-white font-bold text-xl">K</span>
-              </div>
-              {sidebarOpen && (
-                <span className="ml-3 font-bold text-xl text-gray-800 dark:text-slate-100 tracking-tight whitespace-nowrap">
-                  Kayo<span className="text-blue-600">Net</span>
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto overflow-x-hidden">
-            <Sidebar isOpen={sidebarOpen} closeMobile={() => setSidebarOpen(false)} />
-          </div>
-
-          <button 
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hidden lg:flex items-center justify-center h-12 border-t border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-400 transition-colors"
-          >
-            <ChevronLeftIcon className={`w-5 h-5 transition-transform duration-300 ${!sidebarOpen ? "rotate-180" : ""}`} />
-          </button>
+  className={`
+    fixed inset-y-0 left-0 z-50 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800
+    transition-all duration-300 ease-in-out
+    ${sidebarOpen ? "w-72 translate-x-0" : "w-20 lg:translate-x-0 -translate-x-full"}
+  `}
+>
+  <div className="flex flex-col h-full overflow-hidden">
+    {/* Header Section */}
+    <div className={`h-16 flex items-center border-b border-gray-100 dark:border-slate-800 transition-all ${sidebarOpen ? "px-6 justify-between" : "justify-center"}`}>
+      <div className="flex items-center min-w-max">
+        {/* Logo Container */}
+        <div className="w-8 h-8 flex items-center justify-center shrink-0">
+          <img 
+            src={logo} 
+            alt="VeeGoStems Logo" 
+            className="h-full w-full object-contain" 
+          />
         </div>
-      </aside>
+        
+        {/* Brand Name */}
+        {sidebarOpen && (
+          <span className="ml-3 font-bold text-xl text-gray-800 dark:text-slate-100 tracking-tight whitespace-nowrap">
+            VeeGo<span className="text-blue-600">Stems</span>
+          </span>
+        )}
+      </div>
+    </div>
+
+    {/* Sidebar Navigation */}
+    <div className="flex-1 overflow-y-auto overflow-x-hidden">
+      <Sidebar isOpen={sidebarOpen} closeMobile={() => setSidebarOpen(false)} />
+    </div>
+
+    {/* Collapse Toggle */}
+    <button 
+      onClick={() => setSidebarOpen(!sidebarOpen)}
+      className="hidden lg:flex items-center justify-center h-12 border-t border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-400 transition-colors"
+    >
+      <ChevronLeftIcon className={`w-5 h-5 transition-transform duration-300 ${!sidebarOpen ? "rotate-180" : ""}`} />
+    </button>
+  </div>
+</aside>
 
       {/* 3. MAIN CONTENT AREA */}
       <div 
