@@ -21,43 +21,50 @@ import C2bTransactions from "./pages/dashboard/C2bTransactions";
 import C2BConfig from "./pages/dashboard/C2BConfig";
 import HotspotSubscriptionPage from "./pages/dashboard/HotspotSubscription";
 import HotspotCredentialPage from "./pages/dashboard/HotspotCredentials";
+import ProtectedRoute from "../ProtectedRoute";
+import AuthWatcher from "./AuthWatcher";
+import NotFound from './pages/NotFound';
 
 export default function App() {
   return (
     <Router>
+      <AuthWatcher />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/login" element={<Login />} />
+        <Route path="*" element={<NotFound />} />
         
 
-        {/* Dashboard (protected later) */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<DashboardHome />} />
-          <Route path="plans" element={<Plans />} />
-          <Route path="nas" element={<Nas />} />
-          <Route path="mikrotik" element={<Mikrotiks />} />
-          <Route path="mikrotik/configurations" element={<MikrotikConfig />} />
+        {/* (protected  */}
+        <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<DashboardLayout />}>
+              <Route index element={<DashboardHome />} />
+              <Route path="plans" element={<Plans />} />
+              <Route path="nas" element={<Nas />} />
+              <Route path="mikrotik" element={<Mikrotiks />} />
+              <Route path="mikrotik/configurations" element={<MikrotikConfig />} />
 
-          <Route path="mpesa" element={<Mpesa />} />
-          <Route path="mpesa/c2b" element={<C2BConfig />} /> {/* Reusing MpesaConfig component for C2B config for now */}
+              <Route path="mpesa" element={<Mpesa />} />
+              <Route path="mpesa/c2b" element={<C2BConfig />} /> {/* Reusing MpesaConfig component for C2B config for now */}
 
-          <Route path="transactions" element={<StkTransactions />} /> {/* Placeholder for Transactions page */}
-          <Route path="transactions/c2b" element={<C2bTransactions />} /> {/* Placeholder for M-Pesa C2B Transactions page */}
+              <Route path="transactions" element={<StkTransactions />} /> {/* Placeholder for Transactions page */}
+              <Route path="transactions/c2b" element={<C2bTransactions />} /> {/* Placeholder for M-Pesa C2B Transactions page */}
 
-          <Route path="pppoe/credentials/list" element={<PppoeCredentialPage />} /> {/* Placeholder for Credentials page */}  
-          <Route path="pppoe/subscriptions/list" element={<PPPoESubscriptionPage />} /> {/* Placeholder for Subscriptions page */}
+              <Route path="pppoe/credentials/list" element={<PppoeCredentialPage />} /> {/* Placeholder for Credentials page */}  
+              <Route path="pppoe/subscriptions/list" element={<PPPoESubscriptionPage />} /> {/* Placeholder for Subscriptions page */}
 
-          <Route path="hotspot/credentials/list" element={<HotspotCredentialPage />} /> {/* Placeholder for Hotspot Credentials page */}
-          <Route path="hotspot/subscriptions/list" element={<HotspotSubscriptionPage />} /> {/* Placeholder for Hotspot Subscriptions page */}
-          
-          <Route path="users" element={<UsersPage />} />
-          <Route path="network" element={<NetworkHealth />} />
-          <Route path="routers/:id" element={<NetworkDetailed />} />
+              <Route path="hotspot/credentials/list" element={<HotspotCredentialPage />} /> {/* Placeholder for Hotspot Credentials page */}
+              <Route path="hotspot/subscriptions/list" element={<HotspotSubscriptionPage />} /> {/* Placeholder for Hotspot Subscriptions page */}
+              
+              <Route path="users" element={<UsersPage />} />
+              <Route path="network" element={<NetworkHealth />} />
+              <Route path="routers/:id" element={<NetworkDetailed />} />
 
-          <Route path="sessions/dashboard" element={<SessionsPage />} />
-          <Route path="sessions/:id" element={<SessionDetail />} />
+              <Route path="sessions/dashboard" element={<SessionsPage />} />
+              <Route path="sessions/:id" element={<SessionDetail />} />
+            </Route>
         </Route>
 
         {/* Fallback */}
