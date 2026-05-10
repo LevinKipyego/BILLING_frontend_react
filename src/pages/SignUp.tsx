@@ -29,7 +29,7 @@ const Signup = () => {
     setError("");
 
     try {
-      const response = await fetch("http://192.168.100.88:8000/api/vendors/signup", {
+      const response = await fetch("http://192.168.100.88:8000/api/vendors/signup/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, phone, email, location, password }),

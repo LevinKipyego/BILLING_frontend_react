@@ -25,32 +25,49 @@ export default function Login() {
   const authRequired = searchParams.get("message") === "authentication-required";
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  e.preventDefault();
+  setError(null);
+  setLoading(true);
 
-    try {
-      const response = await fetch("http://192.168.100.88:8000/api/vendors/login/", {
+  try {
+    const response = await fetch(
+      "http://192.168.100.88:8000/api/vendors/login/",
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Invalid email or password");
       }
+    );
 
-      const data = await response.json();
-      localStorage.setItem("access_token", data.access);
-      localStorage.setItem("vendor_id", data.vendor_id);
-
-      navigate("/dashboard", { replace: true });
-    } catch (err: any) {
-      setError(err.message || "Unable to connect to server");
-    } finally {
-      setLoading(false);
+    if (!response.ok) {
+      throw new Error("Invalid email or password");
     }
-  };
+
+    const data = await response.json();
+
+    // ✅ SINGLE SOURCE OF TRUTH = JWT ONLY
+    localStorage.setItem("access_token", data.access);
+    localStorage.setItem(
+      "access_token",
+      data.tokens.access
+    );
+
+    localStorage.setItem(
+      "refresh_token",
+      data.tokens.refresh
+    );
+
+
+    // optional flag for UI stability
+    localStorage.setItem("auth_ready", "true");
+
+    navigate("/dashboard", { replace: true });
+  } catch (err: any) {
+    setError(err.message || "Unable to connect to server");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50 dark:bg-[#0b0f19]">

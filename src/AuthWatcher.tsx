@@ -5,64 +5,100 @@ type JwtPayload = {
   exp: number;
 };
 
+const API_BASE =
+  import.meta.env.VITE_API_BASE ||
+  "http://192.168.100.88:8000/api";
+
 const AuthWatcher = () => {
-
   useEffect(() => {
-
     let timer: ReturnType<typeof setTimeout>;
 
-    const setupWatcher = () => {
-
+    const logout = async () => {
       const token = localStorage.getItem("access_token");
 
-      // No token → nothing to watch
+      try {
+        if (token) {
+          await fetch(`${API_BASE}/logout/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+        }
+      } catch (err) {
+        console.warn("Logout API failed:", err);
+      }
+
+      // ✅ CLEAR AUTH STATE
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("auth_ready");
+
+      // ✅ SAFE REDIRECT
+      if (!window.location.pathname.includes("/login")) {
+        window.location.href =
+          "/login?message=session-expired";
+      }
+    };
+
+    const setupWatcher = () => {
+      const token = localStorage.getItem("access_token");
+
       if (!token) return;
 
       try {
-
         const decoded = jwtDecode<JwtPayload>(token);
 
-        // Convert exp to milliseconds
         const expirationTime = decoded.exp * 1000;
+        const now = Date.now();
 
-        // Remaining lifetime
-        const timeout = expirationTime - Date.now();
+        const timeLeft = expirationTime - now;
 
-        // Already expired
-        if (timeout <= 0) {
-          logout();
+        // =====================================
+        // IMPORTANT:
+        // DO NOT AUTO LOGOUT ON EXPIRY
+        // apiFetch handles token refresh
+        // =====================================
+        if (timeLeft <= 0) {
           return;
         }
 
-        // Auto logout exactly when token expires
-        timer = setTimeout(() => {
-          logout();
-        }, timeout);
+        // =====================================
+        // OPTIONAL WARNING BEFORE EXPIRY
+        // =====================================
+        const warningTime = timeLeft - 60 * 1000;
+
+        if (warningTime > 0) {
+          timer = setTimeout(() => {
+            console.warn("Session expiring soon...");
+          }, warningTime);
+        }
 
       } catch {
         logout();
       }
     };
 
-    // Start watcher
+    // =====================================
+    // INITIAL CHECK
+    // =====================================
     setupWatcher();
 
-    // Listen for token changes across tabs/windows
+    // =====================================
+    // SYNC ACROSS TABS
+    // =====================================
     const handleStorageChange = () => {
-
-      // Clear previous timer
       if (timer) {
         clearTimeout(timer);
       }
 
-      // Recreate watcher with new token
       setupWatcher();
     };
 
     window.addEventListener("storage", handleStorageChange);
 
     return () => {
-
       if (timer) {
         clearTimeout(timer);
       }
@@ -72,23 +108,9 @@ const AuthWatcher = () => {
         handleStorageChange
       );
     };
-
   }, []);
 
   return null;
 };
-
-function logout() {
-
-  localStorage.removeItem("access_token");
-  localStorage.removeItem("refresh_token");
-
-  // Prevent redirect loop
-  if (window.location.pathname !== "/login") {
-
-    window.location.href =
-      "/login?message=session-expired";
-  }
-}
 
 export default AuthWatcher;

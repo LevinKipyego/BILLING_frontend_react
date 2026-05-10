@@ -5,22 +5,18 @@ const API_BASE =
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
 
-// Helper to notify all waiting requests once token is refreshed
 function onTokenRefreshed(token: string) {
-  refreshSubscribers.map((callback) => callback(token));
+  refreshSubscribers.forEach((cb) => cb(token));
   refreshSubscribers = [];
 }
 
-// Helper to add a request to the waitlist
-function addRefreshSubscriber(callback: (token: string) => void) {
-  refreshSubscribers.push(callback);
+function addRefreshSubscriber(cb: (token: string) => void) {
+  refreshSubscribers.push(cb);
 }
 
-export async function apiFetch(
-  endpoint: string,
-  options: RequestInit = {}
-) {
+export async function apiFetch(endpoint: string, options: RequestInit = {}) {
   let token = localStorage.getItem("access_token");
+
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
 
@@ -28,18 +24,17 @@ export async function apiFetch(
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  let res = await fetch(`${API_BASE}${endpoint}`, {
     ...options,
     headers,
   });
 
-  // Handle 401 Unauthorized
   if (res.status === 401) {
     const refresh = localStorage.getItem("refresh_token");
 
     if (!refresh) {
       logout();
-      return Promise.reject("No refresh token");
+      return Promise.reject("Missing refresh token");
     }
 
     if (!isRefreshing) {
@@ -56,13 +51,12 @@ export async function apiFetch(
           throw new Error("Refresh failed");
         }
 
-        const refreshData = await refreshRes.json();
-        const newToken = refreshData.access;
+        const data = await refreshRes.json();
+        const newToken = data.access;
 
         localStorage.setItem("access_token", newToken);
+
         isRefreshing = false;
-        
-        // Notify all requests waiting for this token
         onTokenRefreshed(newToken);
       } catch (err) {
         isRefreshing = false;
@@ -71,7 +65,6 @@ export async function apiFetch(
       }
     }
 
-    // This part handles the "Instant" wait for the ongoing refresh
     return new Promise((resolve, reject) => {
       addRefreshSubscriber(async (newToken: string) => {
         try {
@@ -84,13 +77,13 @@ export async function apiFetch(
             headers: retryHeaders,
           });
 
-          if (!retryRes.ok) {
-            // If the retry also fails with 401, clear everything
-            if (retryRes.status === 401) logout();
-            return reject("Retry failed");
+          if (retryRes.status === 401) {
+            logout();
+            return reject("Unauthorized after retry");
           }
 
-          resolve(await retryRes.json());
+          const data = await retryRes.json().catch(() => ({}));
+          resolve(data);
         } catch (error) {
           reject(error);
         }
@@ -98,22 +91,20 @@ export async function apiFetch(
     });
   }
 
-  // Standard response handling
+  const data = await res.json().catch(() => ({}));
+
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || `Error ${res.status}: Request failed`);
+    throw new Error(data.message || `Error ${res.status}`);
   }
 
-  return res.json();
+  return data;
 }
 
 function logout() {
-  // Clear all auth data
   localStorage.removeItem("access_token");
   localStorage.removeItem("refresh_token");
-  localStorage.removeItem("vendor_id"); // Clear vendor info too
+  localStorage.removeItem("auth_ready");
 
-  // Redirect to login with the message your UI is expecting
   if (!window.location.pathname.includes("/login")) {
     window.location.href = "/login?message=session-expired";
   }
