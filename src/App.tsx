@@ -24,9 +24,12 @@ import HotspotCredentialPage from "./pages/dashboard/HotspotCredentials";
 import ProtectedRoute from "../ProtectedRoute";
 import AuthWatcher from "./AuthWatcher";
 import NotFound from './pages/NotFound';
+import AppPortal from "./portal/AppPortal";
 
 export default function App() {
   return (
+
+    
     <Router>
       <AuthWatcher />
       <Routes>
@@ -36,6 +39,9 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="*" element={<NotFound />} />
         
+
+          {/* PPPoE Portal */}
+        <Route path="/portal/*" element={<AppPortal />} />
 
         {/* (protected  */}
         <Route element={<ProtectedRoute />}>

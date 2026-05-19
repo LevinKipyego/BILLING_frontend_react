@@ -28,7 +28,7 @@ export default interface Transaction {
   link_login: string;
   code_6char: string;
 
-  mikrotik_identity_name: string;
+  mikrotik_name: string;
 
   created_at: string;
   updated_at: string;

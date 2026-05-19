@@ -205,7 +205,7 @@ export default function StkTransactions() {
                 </td>
                 <td className="p-5">
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{tx.mikrotik_identity_name}</span>
+                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{tx.mikrotik_name}</span>
                     <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase">{tx.service_type}</span>
                   </div>
                 </td>

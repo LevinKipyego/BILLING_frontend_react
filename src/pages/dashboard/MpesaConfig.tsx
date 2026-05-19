@@ -288,8 +288,8 @@ export default function Mpesa() {
                   value={form.environment}
                   onChange={(e) => setForm({ ...form, environment: e.target.value as MpesaEnvironment })}
                 >
-                  <option value="sandbox">SANDBOX (TESTING)</option>
-                  <option value="production">PRODUCTION (LIVE)</option>
+                  <option value="SANDBOX">SANDBOX (TESTING)</option>
+                  <option value="PRODUCTION">PRODUCTION (LIVE)</option>
                 </select>
               </div>
             </div>
