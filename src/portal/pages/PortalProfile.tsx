@@ -187,7 +187,7 @@ export default function PortalProfile(): React.JSX.Element {
                   </h4>
                 </div>
                 <div className="mt-4 pt-2 border-t border-zinc-100/70 dark:border-zinc-800/50 flex justify-between items-center">
-                  <span className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 ">
                     {copiedField === "pppoe_user" ? "Copied string!" : "Copy parameter"}
                   </span>
                   <button
@@ -208,7 +208,7 @@ export default function PortalProfile(): React.JSX.Element {
                   </p>
                   <div className="flex items-center justify-between gap-4 mt-1.5">
                     <span className="font-mono text-sm font-bold tracking-wide text-zinc-800 dark:text-zinc-200 break-all">
-                      {showPassword ? profile.pppoe.password : "••••••••••••"}
+                      {showPassword ? profile.pppoe.password : "**********"}
                     </span>
                     <button
                       onClick={() => setShowPassword(!showPassword)}
@@ -219,7 +219,7 @@ export default function PortalProfile(): React.JSX.Element {
                   </div>
                 </div>
                 <div className="mt-4 pt-2 border-t border-zinc-100/70 dark:border-zinc-800/50 flex justify-between items-center">
-                  <span className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500">
                     {copiedField === "pppoe_pass" ? "Copied pass!" : "Copy password"}
                   </span>
                   <button

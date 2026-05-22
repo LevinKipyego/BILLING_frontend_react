@@ -242,13 +242,13 @@ export default function MikrotikConnectionsPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                   {filteredConnections.map((c) => (
-                    <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-gray-900/40 transition-colors group">
+                    <tr key={c.mikrotik} className="hover:bg-slate-50/50 dark:hover:bg-gray-900/40 transition-colors group">
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-4">
                           <div className="p-2.5 bg-slate-100 dark:bg-gray-700 rounded-lg group-hover:scale-110 transition-all shadow-inner">
                             <ServerIcon className="w-5 h-5 text-slate-500 dark:text-slate-400 group-hover:text-blue-600" />
                           </div>
-                          <span className="font-black text-slate-800 dark:text-white text-xs tracking-tight italic uppercase">{c.mikrotik}</span>
+                          <span className="font-black text-slate-800 dark:text-white text-xs tracking-tight italic ">{c.mikrotik}</span>
                         </div>
                       </td>
                       <td className="px-6 py-5">

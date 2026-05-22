@@ -15,7 +15,6 @@ import {
   KeyIcon, 
   ChevronLeftIcon, 
   ChevronRightIcon,
-  ShieldCheckIcon,
   NoSymbolIcon,
   CheckCircleIcon,
   XCircleIcon,
@@ -213,7 +212,7 @@ export default function PppoeCredentialPage() {
                     <UserCircleIcon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{item.username}</h4>
+                    <h4 className="text-xs font-black text-gray-900 dark:text-white  tracking-tight">{item.username}</h4>
                     <p className="text-[9px] font-bold text-gray-400">ID: #{item.user}</p>
                   </div>
                 </div>

@@ -44,7 +44,7 @@ export default function AppPortal() {
 
           <Route path="faq" element={<PortalDashboardFaq />} />
 
-          <Route path="notice" element={<PortalNoticeBanner daysRemaining={0} accountStatus="active" />} />
+          <Route path="notice" element={<PortalNoticeBanner daysRemaining={1} accountStatus="Active" />} />
 
           <Route path="reboot" element={<PortalRouterControl />} />
 

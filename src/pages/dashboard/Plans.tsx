@@ -1,7 +1,8 @@
+
 import { useEffect, useState, useMemo } from "react";
 import type { Plan } from "../../types/plan";
 import { listMikrotiks, type MikrotikDevice } from "../../types/device";
-import { listPlans, createPlan, deletePlan } from "../../api/plans";
+import { listPlans, createPlan, updatePlan,deletePlan } from "../../api/plans";
 
 import { 
   PlusIcon, 
@@ -14,10 +15,17 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   XMarkIcon,
-  PencilSquareIcon
+  PencilSquareIcon,
+  
 } from "@heroicons/react/24/outline";
 
 const COMMON_SPEEDS = ["1M/1M", "2M/2M", "3M/3M", "5M/5M", "8M/8M", "10M/10M", "15M/15M", "20M/20M"];
+const SERVICE_TYPES = [
+  { id: "pppoe", label: "PPPoE Broadband Connection" },
+  { id: "hotspot", label: "Hotspot Captive Portal" },
+  { id: "ipoe", label: "IPoE / Static Allocation" }
+];
+type TimeUnit = "minutes" | "hours" | "days";
 
 export default function Plans() {
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -26,17 +34,22 @@ export default function Plans() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 7;
 
+  // Custom Time Conversion & State Form Fields
+  const [timeUnit, setTimeUnit] = useState<TimeUnit>("days");
+  const [durationInput, setDurationInput] = useState("");
+  
   const [form, setForm] = useState({
     name: "",
     price: "",
-    duration_minutes: "",
     rate_limit: "5M/5M",
     mikrotik: "",
+    service_type: "pppoe"
   });
 
   async function loadData() {
@@ -71,31 +84,75 @@ export default function Plans() {
     currentPage * itemsPerPage
   );
 
+  // Compute live duration feedback helper calculation context 
+  const calculatedMinutesFeedback = useMemo(() => {
+    const value = parseFloat(durationInput);
+    if (isNaN(value) || value <= 0) return 0;
+    if (timeUnit === "hours") return Math.round(value * 60);
+    if (timeUnit === "days") return Math.round(value * 1440);
+    return Math.round(value);
+  }, [durationInput, timeUnit]);
+
   function handleEdit(p: Plan) {
+    setEditingId(p.id);
+    
+    // Automatically parse raw minutes backward to deduce best UX representation
+    const mins = p.duration_minutes || 0;
+    if (mins % 1440 === 0 && mins > 0) {
+      setTimeUnit("days");
+      setDurationInput(String(mins / 1440));
+    } else if (mins % 60 === 0 && mins > 0) {
+      setTimeUnit("hours");
+      setDurationInput(String(mins / 60));
+    } else {
+      setTimeUnit("minutes");
+      setDurationInput(String(mins));
+    }
+
     setForm({
       name: p.name,
       price: String(p.price),
-      duration_minutes: String(p.duration_minutes),
       rate_limit: p.rate_limit || "5M/5M",
       mikrotik: String(p.mikrotik_profile || ""),
+      service_type: (p as any).service_type || "pppoe"
     });
     setShowForm(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function closeFormModal() {
+    setEditingId(null);
+    setDurationInput("");
+    setTimeUnit("days");
+    setForm({ name: "", price: "", rate_limit: "5M/5M", mikrotik: "", service_type: "pppoe" });
+    setShowForm(false);
   }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    if (calculatedMinutesFeedback <= 0) {
+      setError("Please designate a viable duration period parameter value.");
+      return;
+    }
+
     try {
-      await createPlan({
+      const payload = {
         name: form.name,
         price: Number(form.price),
-        duration_minutes: Number(form.duration_minutes),
+        duration_minutes: calculatedMinutesFeedback,
         rate_limit: form.rate_limit,
         mikrotik_profile: form.mikrotik,
-      });
-      setForm({ name: "", price: "", duration_minutes: "", rate_limit: "5M/5M", mikrotik: "" });
-      setShowForm(false);
+        service_type: form.service_type
+      };
+
+      // Handle conditional API creation or patch routes depending on scope context
+      if (editingId) {
+        await updatePlan(editingId, payload);
+      } else {
+        await createPlan(payload);
+      }
+      closeFormModal();
       loadData();
     } catch (e: any) {
       setError(e.message);
@@ -109,202 +166,318 @@ export default function Plans() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-fadeIn dark:bg-gray-900 min-h-screen transition-colors">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div className="max-w-6xl mx-auto p-3 md:p-8 space-y-4 md:space-y-6 animate-fadeIn dark:bg-gray-900 min-h-screen transition-colors">
+      
+      {/* Header Container */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Service Plans</h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Configure and deploy automated billing packages.</p>
+          <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+            Service Plans
+          </h1>
+          <p className="text-[10px] md:text-sm text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tight">
+            Configure and deploy automated billing packages.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between md:justify-end gap-3">
           <button 
             onClick={loadData}
-            className="p-2.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
-            title="Refresh Data"
+            className="p-2.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all border border-transparent dark:border-gray-800"
           >
             <ArrowPathIcon className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <button 
-            onClick={() => {
-              setShowForm(!showForm);
-              if(showForm) setForm({ name: "", price: "", duration_minutes: "", rate_limit: "5M/5M", mikrotik: "" });
-            }}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-200 dark:shadow-none transition-all"
+            onClick={() => setShowForm(true)}
+            className="flex-1 md:flex-initial flex items-center justify-center gap-2 bg-blue-600 hover:bg-black text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest shadow-md transition-all outline-none"
           >
-            {showForm ? <XMarkIcon className="w-4 h-4 stroke-[3]" /> : <PlusIcon className="w-4 h-4 stroke-[3]" />}
-            {showForm ? "Cancel" : "New Package"}
+            <PlusIcon className="w-4 h-4 stroke-[3]" />
+            <span>New Package</span>
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="bg-rose-50 dark:bg-rose-900/20 border-l-4 border-rose-500 p-4 rounded-xl flex items-center gap-3 animate-shake">
+        <div className="bg-rose-50 dark:bg-rose-900/20 border-l-4 border-rose-500 p-4 rounded-lg flex items-center gap-3 animate-shake mx-1">
           <p className="text-rose-700 dark:text-rose-400 text-[10px] font-black uppercase">{error}</p>
         </div>
       )}
 
-      {/* Toggleable Form Card */}
+      {/* DETACHED OUTSIDE SEARCH SEPARATION TERMINAL */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
+        <div className="relative w-full sm:max-w-xs">
+          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input 
+            type="text" 
+            placeholder="Search service parameters..." 
+            className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700/80 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-2xs"
+            value={searchTerm}
+            onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}}
+          />
+        </div>
+        <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center sm:text-right w-full sm:w-auto">
+          {filteredPlans.length} Packages Configured
+        </div>
+      </div>
+
+      {/* FIXED POSITION OVERLAY DIALOG MODAL LAYOUT */}
       {showForm && (
-        <section className="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden animate-slideDown">
-          <div className="p-6 border-b border-slate-50 dark:border-slate-700 bg-slate-50/30 dark:bg-gray-800/50">
-            <h2 className="text-[10px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2 italic">
-              <SignalIcon className="w-5 h-5 text-blue-600 stroke-[3]" />
-              Manual Configuration Override
-            </h2>
-          </div>
-          
-          <form onSubmit={handleCreate} className="p-6 md:p-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Plan Identity</label>
-                <input
-                  className="w-full bg-slate-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-blue-500 p-4 rounded-lg text-sm font-black dark:text-white transition-all outline-none italic uppercase"
-                  placeholder="e.g. ULTRA_FIBER_10M"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Tariff (KES)</label>
-                <div className="relative">
-                  <BanknotesIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-                  <input
-                    className="w-full bg-slate-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-blue-500 pl-12 p-4 rounded-lg text-sm font-black dark:text-white outline-none italic"
-                    placeholder="0.00"
-                    type="number"
-                    value={form.price}
-                    onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Time Limit (Mins)</label>
-                <div className="relative">
-                  <ClockIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-                  <input
-                    className="w-full bg-slate-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-blue-500 pl-12 p-4 rounded-lg text-sm font-black dark:text-white outline-none italic"
-                    placeholder="1440"
-                    type="number"
-                    value={form.duration_minutes}
-                    onChange={(e) => setForm({ ...form, duration_minutes: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Bandwidth Cap</label>
-                <select
-                  className="w-full bg-slate-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-blue-500 p-4 rounded-lg text-sm font-black dark:text-white outline-none cursor-pointer appearance-none italic"
-                  value={form.rate_limit}
-                  onChange={(e) => setForm({ ...form, rate_limit: e.target.value })}
-                >
-                  {COMMON_SPEEDS.map(speed => (
-                    <option key={speed} value={speed}>{speed} (Sync)</option>
-                  ))}
-                  <option value="">Unlimited / Manual</option>
-                </select>
-              </div>
-
-              <div className="space-y-2 lg:col-span-2">
-                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Assigned Router</label>
-                <select
-                  className="w-full bg-slate-50 dark:bg-gray-900/50 border-none focus:ring-2 focus:ring-blue-500 p-4 rounded-lg text-sm font-black dark:text-white outline-none cursor-pointer italic"
-                  value={form.mikrotik}
-                  onChange={(e) => setForm({ ...form, mikrotik: e.target.value })}
-                  required
-                >
-                  <option value="">Select Target MikroTik...</option>
-                  {mikrotiks.map((mt) => (
-                    <option key={mt.id} value={mt.id}>{mt.identity_name} ({mt.api_ip || mt.api_ip})</option>
-                  ))}
-                </select>
-              </div>
-
-              <button
-                disabled={!form.mikrotik || loading}
-                className="lg:col-span-3 bg-slate-900 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-700 disabled:bg-slate-200 dark:disabled:bg-slate-800 text-white font-black py-4 rounded-lg shadow-xl transition-all flex items-center justify-center gap-3 uppercase text-xs tracking-[0.2em]"
-              >
-                {loading ? <ArrowPathIcon className="w-5 h-5 animate-spin" /> : <PlusIcon className="w-5 h-5 stroke-[3]" />}
-                Push Configuration to NAS
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/70 backdrop-blur-xs animate-fadeIn">
+          <section className="bg-white dark:bg-gray-800 w-full max-w-3xl rounded-xl shadow-2xl border border-slate-200 dark:border-gray-700/80 overflow-hidden animate-scaleUp max-h-[92vh] flex flex-col">
+            
+            <div className="p-4 md:p-5 border-b border-slate-100 dark:border-gray-700/60 bg-slate-50/50 dark:bg-gray-800/80 flex items-center justify-between sticky top-0 z-10">
+              <h2 className="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                <SignalIcon className="w-5 h-5 text-blue-600 stroke-[2.5]" />
+                {editingId ? "Modify Configuration Directives" : "Provision New Network Bandwidth Module"}
+              </h2>
+              <button onClick={closeFormModal} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-md">
+                <XMarkIcon className="w-5 h-5 stroke-[2.5]" />
               </button>
             </div>
-          </form>
-        </section>
+            
+            <form onSubmit={handleCreate} className="p-4 md:p-6 space-y-5 overflow-y-auto flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Plan Identity</label>
+                  <input
+                    required
+                    className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none"
+                    placeholder="e.g. ULTRA_FIBER_10M"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Tariff (KES)</label>
+                  <div className="relative">
+                    <BanknotesIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      required
+                      type="number"
+                      className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 pl-11 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none"
+                      placeholder="0.00"
+                      value={form.price}
+                      onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Service Provisioning Type</label>
+                  <select
+                    className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none cursor-pointer"
+                    value={form.service_type}
+                    onChange={(e) => setForm({ ...form, service_type: e.target.value })}
+                  >
+                    {SERVICE_TYPES.map(srv => (
+                      <option key={srv.id} value={srv.id}>{srv.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* ADVANCED DURATION CONVERSION UTILITY INTERFACE BLOCK */}
+                <div className="space-y-1.5 sm:col-span-2 bg-slate-50/60 dark:bg-gray-900/40 p-3 rounded-xl border border-slate-150 dark:border-gray-700/50 flex flex-col justify-between gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">
+                      Billing Validity Window
+                    </label>
+                    {calculatedMinutesFeedback > 0 && (
+                      <span className="text-[9px] font-black text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded uppercase font-mono border border-blue-100 dark:border-blue-900/20">
+                        Evaluates to: {calculatedMinutesFeedback.toLocaleString()} total minutes
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <ClockIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        required
+                        type="number"
+                        step="any"
+                        placeholder={timeUnit === "days" ? "e.g. 30" : timeUnit === "hours" ? "e.g. 24" : "e.g. 60"}
+                        className="w-full bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 pl-11 p-2.5 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none"
+                        value={durationInput}
+                        onChange={(e) => setDurationInput(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="flex bg-white dark:bg-gray-900 p-1 border border-slate-200 dark:border-gray-700 rounded-lg gap-1">
+                      {(["minutes", "hours", "days"] as TimeUnit[]).map((unit) => (
+                        <button
+                          key={unit}
+                          type="button"
+                          onClick={() => setTimeUnit(unit)}
+                          className={`px-2.5 py-1.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-all ${
+                            timeUnit === unit 
+                              ? "bg-slate-900 dark:bg-blue-600 text-white shadow-xs" 
+                              : "text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                          }`}
+                        >
+                          {unit}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Bandwidth Cap</label>
+                  <select
+                    className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none cursor-pointer appearance-none"
+                    value={form.rate_limit}
+                    onChange={(e) => setForm({ ...form, rate_limit: e.target.value })}
+                  >
+                    {COMMON_SPEEDS.map(speed => (
+                      <option key={speed} value={speed}>{speed} (Sync Traffic)</option>
+                    ))}
+                    <option value="">Unlimited / Manual</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-3">
+                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Assigned Router Gateway Target</label>
+                  <select
+                    required
+                    className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none cursor-pointer"
+                    value={form.mikrotik}
+                    onChange={(e) => setForm({ ...form, mikrotik: e.target.value })}
+                  >
+                    <option value="">Select Target Edge Router Node...</option>
+                    {mikrotiks.map((mt) => (
+                      <option key={mt.id} value={mt.id}>{mt.identity_name} ({mt.api_ip})</option>
+                    ))}
+                  </select>
+                </div>
+
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 dark:border-gray-700/60 flex items-center justify-end gap-3 bg-white dark:bg-gray-800 sticky bottom-0">
+                <button
+                  type="button"
+                  onClick={closeFormModal}
+                  className="px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-700/60 transition-all outline-none"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  disabled={!form.mikrotik || loading}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-black disabled:bg-slate-200 dark:disabled:bg-slate-800 text-white font-black rounded-lg shadow-md transition-all uppercase text-xs tracking-widest flex items-center gap-2 outline-none"
+                >
+                  {loading ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <PlusIcon className="w-4 h-4 stroke-[2.5]" />}
+                  <span>{editingId ? "Update" : "add Package"}</span>
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
       )}
 
-      {/* Table Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-        
-        {/* Search Integration */}
-        <div className="p-4 border-b border-slate-50 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/20 dark:bg-gray-800/40">
-           <div className="relative w-full max-w-xs">
-              <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Search Profiles..." 
-                className="w-full pl-11 pr-4 py-2 bg-white dark:bg-gray-900 border border-slate-100 dark:border-slate-700 rounded-lg text-[10px] font-black uppercase tracking-widest dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20"
-                value={searchTerm}
-                onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}}
-              />
-           </div>
-           <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4">
-              {filteredPlans.length} records found
-           </div>
-        </div>
+      {/* 1. INDEPENDENT RESPONSIVE CARD SHELLS (MOBILE BREAK) */}
+      <div className="block md:hidden space-y-3 mx-1">
+        {paginatedPlans.map((p) => (
+          <div 
+            key={p.id}
+            className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700/80 rounded-xl p-4 space-y-3.5 shadow-2xs hover:border-slate-300 dark:hover:border-gray-600 transition-colors"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-0.5">
+                <span className="block font-bold text-sm text-slate-900 dark:text-slate-100 antialiased tracking-normal">
+                  {p.name}
+                </span>
+                <span className="inline-block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider bg-slate-50 dark:bg-gray-900/50 border border-slate-150 dark:border-gray-700 px-1.5 py-0.5 rounded">
+                  {(p as any).service_type || "pppoe"}
+                </span>
+              </div>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                <span className="text-xs font-black text-slate-900 dark:text-white">
+                  {p.price} KES
+                </span>
+                <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 font-bold uppercase">
+                  Window: {p.duration_minutes}m
+                </span>
+              </div>
+            </div>
 
+            <div className="flex items-center justify-between gap-4 pt-2 border-t border-slate-100 dark:border-gray-700/50">
+              <div>
+                <span className="text-[10px] font-black bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-900/30 px-2 py-0.5 rounded-md uppercase tracking-normal">
+                  Rate: {p.rate_limit || "MAX PIPELINE"}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => handleEdit(p)} 
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-md"
+                >
+                  <PencilSquareIcon className="w-3.5 h-3.5" />
+                  <span>Edit</span>
+                </button>
+                <button 
+                  onClick={() => handleDelete(p.id)} 
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-black uppercase text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 rounded-md"
+                >
+                  <TrashIcon className="w-3.5 h-3.5" />
+                  <span>Drop</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 2. DESKTOP VIEW COMPONENT WORKSPACE HOUSING */}
+      <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-slate-100 dark:border-slate-700 overflow-hidden mx-1">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-50/50 dark:bg-gray-900/50 text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-[0.2em] font-black italic">
-                <th className="px-6 py-5">Profile</th>
-                <th className="px-4 py-5 hidden md:table-cell text-center">Cost</th>
-                <th className="px-4 py-5 hidden md:table-cell text-center">Expiry</th>
-                <th className="px-6 py-5 text-center">Limit</th>
-                <th className="px-6 py-5 text-right">Actions</th>
+              <tr className="bg-slate-50/50 dark:bg-gray-900/50 text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-[0.2em] font-black border-b border-slate-100 dark:border-slate-700/50">
+                <th className="px-6 py-4.5">Profile Definition Matrix</th>
+                <th className="px-4 py-4.5 text-center">Service Method</th>
+                <th className="px-4 py-4.5 text-center">Cost Tariff</th>
+                <th className="px-4 py-4.5 text-center">Expiry Matrix</th>
+                <th className="px-6 py-4.5 text-center">Bandwidth Pipeline</th>
+                <th className="px-8 py-4.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
               {paginatedPlans.map((p) => (
                 <tr key={p.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors group">
-                  <td className="px-6 py-5">
+                  <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <span className="font-black text-[12px] text-slate-600 dark:text-slate-200 tracking-tight">{p.name}</span>
-                      <span className="text-[10px] text-slate-400 md:hidden flex items-center gap-1 mt-1 font-bold">
-                         {p.price} KES • {p.duration_minutes}m
-                      </span>
+                      <span className="font-bold text-[13px] text-slate-800 dark:text-slate-200 tracking-normal">{p.name}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-5 hidden md:table-cell text-center font-black text-slate-600 dark:text-slate-400 text-xs">
-                    {p.price}
+                  <td className="px-4 py-4 text-center">
+                    <span className="text-[10px] font-black tracking-wider text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-slate-900/60 px-2.5 py-1 rounded-md border border-slate-200 dark:border-gray-700">
+                      {(p as any).service_type || "pppoe"}
+                    </span>
                   </td>
-                  <td className="px-4 py-5 hidden md:table-cell text-center">
-                    <div className="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-lg text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase italic">
+                  <td className="px-4 py-4 text-center font-bold text-slate-700 dark:text-slate-300 text-xs">
+                    {p.price} KES
+                  </td>
+                  <td className="px-4 py-4 text-center">
+                    <div className="inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-lg text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">
                       {p.duration_minutes}m
                     </div>
                   </td>
-                  <td className="px-6 py-5 text-center">
-                    <span className="text-[10px] font-black bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg uppercase tracking-tighter">
-                      {p.rate_limit || "MAX"}
+                  <td className="px-6 py-4 text-center">
+                    <span className="text-[10px] font-black bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg uppercase">
+                      {p.rate_limit || "MAX PIPELINE"}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-right">
+                  <td className="px-8 py-4 text-right">
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => handleEdit(p)}
                         className="p-2 text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
-                        title="Edit Plan"
                       >
                         <PencilSquareIcon className="w-4 h-4 stroke-[2]" />
                       </button>
                       <button
                         onClick={() => handleDelete(p.id)}
                         className="p-2 text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
-                        title="Delete Plan"
                       >
                         <TrashIcon className="w-4 h-4 stroke-[2]" />
                       </button>
@@ -314,37 +487,38 @@ export default function Plans() {
               ))}
             </tbody>
           </table>
-          
-          {!paginatedPlans.length && (
-            <div className="py-20 text-center space-y-3 dark:bg-gray-800">
-              <SignalIcon className="w-10 h-10 text-slate-200 dark:text-slate-700 mx-auto" />
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">No matching records.</p>
-            </div>
-          )}
         </div>
+      </div>
 
-        {/* Pagination Controls */}
-        <div className="px-8 py-5 border-t border-slate-50 dark:border-slate-700 flex items-center justify-between bg-white dark:bg-gray-800">
-           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-             {currentPage} / {totalPages || 1}
-           </span>
-           <div className="flex gap-2">
-              <button 
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage(c => c - 1)}
-                className="p-2 border border-slate-100 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900 disabled:opacity-20 transition-all dark:text-white"
-              >
-                <ChevronLeftIcon className="w-4 h-4 stroke-[3]" />
-              </button>
-              <button 
-                disabled={currentPage >= totalPages}
-                onClick={() => setCurrentPage(c => c + 1)}
-                className="p-2 border border-slate-100 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900 disabled:opacity-20 transition-all dark:text-white"
-              >
-                <ChevronRightIcon className="w-4 h-4 stroke-[3]" />
-              </button>
-           </div>
+      {/* VACANT STATE DATASET FEEDBACK NOTIFICATION BOX */}
+      {!paginatedPlans.length && (
+        <div className="py-20 text-center space-y-3 bg-white dark:bg-gray-800 rounded-lg border border-slate-100 dark:border-slate-700/80 mx-1">
+          <SignalIcon className="w-10 h-10 text-slate-200 dark:text-slate-700 mx-auto" />
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No matching profiles matching search query parameters discovered.</p>
         </div>
+      )}
+
+      {/* Pagination Infrastructure Housing Controls */}
+      <div className="px-5 md:px-8 py-4 border border-slate-150 dark:border-slate-700 rounded-lg flex items-center justify-between bg-white dark:bg-gray-800 mx-1">
+         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+           {currentPage} / {totalPages || 1}
+         </span>
+         <div className="flex gap-2">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(c => c - 1)}
+              className="p-2 border border-slate-200 dark:border-gray-700 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-900 disabled:opacity-20 transition-all dark:text-white outline-none"
+            >
+              <ChevronLeftIcon className="w-4 h-4 stroke-[3]" />
+            </button>
+            <button 
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage(c => c + 1)}
+              className="p-2 border border-slate-200 dark:border-gray-700 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-900 disabled:opacity-20 transition-all dark:text-white outline-none"
+            >
+              <ChevronRightIcon className="w-4 h-4 stroke-[3]" />
+            </button>
+         </div>
       </div>
     </div>
   );

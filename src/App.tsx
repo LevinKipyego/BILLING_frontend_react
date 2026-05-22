@@ -25,6 +25,7 @@ import ProtectedRoute from "../ProtectedRoute";
 import AuthWatcher from "./AuthWatcher";
 import NotFound from './pages/NotFound';
 import AppPortal from "./portal/AppPortal";
+import VendorProfilePage from "./pages/dashboard/VendorProfile";
 
 export default function App() {
   return (
@@ -47,6 +48,9 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route index element={<DashboardHome />} />
+
+              <Route path="profile" element={<VendorProfilePage />} /> 
+
               <Route path="plans" element={<Plans />} />
               <Route path="nas" element={<Nas />} />
               <Route path="mikrotik" element={<Mikrotiks />} />

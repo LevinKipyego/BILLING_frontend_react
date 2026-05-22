@@ -39,7 +39,7 @@ export default function RouterRow({ router }: RouterRowProps) {
             <CpuChipIcon className="w-4 h-4" />
           </div>
           <div>
-            <div className="text-[11px] md:text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight leading-none mb-1">
+            <div className="text-[11px] md:text-sm font-black text-slate-800 dark:text-white  tracking-tight leading-none mb-1">
               {router.router_name || "Unknown Node"}
             </div>
             <div className="flex items-center gap-1 text-[9px] font-bold text-blue-500/80">

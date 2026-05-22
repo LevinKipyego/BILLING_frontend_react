@@ -145,7 +145,7 @@ export default function NetworkHealth() {
   );
 
   if (error) return (
-    <div className="m-6 p-4 bg-red-500/10 border border-red-500/20 text-red-600 rounded-md font-black text-xs uppercase italic flex items-center gap-3">
+    <div className="m-6 p-4 bg-red-500/10 border border-red-500/20 text-red-600 rounded-md font-black text-xs uppercase  flex items-center gap-3">
       <ExclamationCircleIcon className="w-5 h-5" />
       {error}
     </div>
@@ -157,7 +157,7 @@ export default function NetworkHealth() {
       {/* 1. SMART HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
         <div>
-          <h1 className="text-xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase italic">Network Command</h1>
+          <h1 className="text-xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tighter uppercase ">Network Command</h1>
           <div className="flex items-center gap-2 mt-1">
             <div className="flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
@@ -208,7 +208,7 @@ export default function NetworkHealth() {
               <card.icon className={`w-5 h-5 ${card.color}`} />
             </div>
             <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{card.label}</p>
-            <p className="text-xl md:text-2xl font-black text-slate-900 dark:text-white italic">{card.val || 0}</p>
+            <p className="text-xl md:text-2xl font-black text-slate-900 dark:text-white ">{card.val || 0}</p>
           </div>
         ))}
       </div>

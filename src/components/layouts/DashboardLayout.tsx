@@ -1,3 +1,4 @@
+
 import logo from "../../assets/veego3.png";
 import { useState, useRef, useEffect } from "react";
 import { Outlet, Link, useNavigate } from "react-router-dom";
@@ -149,8 +150,11 @@ export default function DashboardLayout() {
               </button>
               {userMenuOpen && (
                 <div className="absolute right-0 mt-3 w-48 bg-white dark:bg-slate-900 rounded-lg shadow-2xl border border-gray-100 dark:border-slate-800 py-2 z-50">
-                  <DropdownLink to="/profile" icon={UserIcon} label="My Profile" />
-                  <DropdownLink to="/settings" icon={Cog6ToothIcon} label="Settings" />
+                 
+                  <DropdownLink to="/dashboard/profile" icon={UserIcon} label="My Profile" />
+                  
+                  <DropdownLink to="/dashboard/settings" icon={Cog6ToothIcon} label="Settings" />
+                 
                   <hr className="my-2 border-gray-50 dark:border-slate-800" />
                   <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors">
                     <ArrowRightOnRectangleIcon className="w-5 h-5" />
