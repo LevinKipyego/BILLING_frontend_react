@@ -20,6 +20,8 @@ import {
 } from "@heroicons/react/24/outline"
 import { fetchSessionDetail } from "../../api/sessions"
 import type { SessionDetailResponse } from "../../types/sessions"
+import { formatBytes} from "../../helpers/ByteHelper"
+import { humanizeDuration } from "../../helpers/timeCalculator"
 
 const SessionDetail = () => {
   const { id } = useParams<{ id: string }>()
@@ -41,19 +43,20 @@ const SessionDetail = () => {
       try {
         const res = await fetchSessionDetail(sessionId!)
         setData(res)
-      } catch (err: any) {
-        setError(err.message || "Failed to load session")
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err)
+        setError(message || "Failed to load session")
       } finally {
         setLoading(false)
       }
     }
     load();
-  }, [id])
+  }, [id, sessionId])
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-gray-900 text-slate-400">
       <SparklesIcon className="w-8 h-8 animate-spin mb-4 text-blue-500" />
-      <p className="font-black text-[10px] tracking-widest uppercase italic">Syncing Data...</p>
+      <p className="font-black text-[10px] tracking-widest uppercase ">Syncing Data...</p>
     </div>
   )
 
@@ -72,25 +75,31 @@ const SessionDetail = () => {
     return true;
   });
 
+
+
+
   const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
   const paginatedHistory = filteredHistory.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+ 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-1 md:p-8 space-y-4 md:space-y-6 animate-fadeIn w-full transition-colors duration-500">
       
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row md:items-center gap-3 justify-between border-b border-slate-200 dark:border-white/5 pb-4 px-2 mt-2">
         <div className="flex items-center gap-3">
-          <button 
+          <button name="Back Button" aria-label="Go Back"
             onClick={() => navigate(-1)}
             className="p-2 md:p-3 hover:bg-white dark:hover:bg-white/10 rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-slate-600 dark:text-white shadow-sm transition-all"
           >
             <ArrowLeftIcon className="w-4 h-4 md:w-5 md:h-5" />
+            
           </button>
+          
           <div>
-            <h1 className="text-lg md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase italic leading-none">{data.user}</h1>
+            <h1 className="text-lg md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter   leading-none">{data.user}</h1>
             <div className="flex items-center gap-1.5 mt-1">
-              <span className={`h-2 w-2 rounded-full ${s.is_online ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-gray-600'}`}></span>
+              <span className={`h-2 w-2 rounded-full ${s.is_online ? 'bg-emerald-500 animate-bounce': 'bg-slate-300 dark:bg-gray-600'}`}></span>
               <span className="text-[9px] font-Regular text-gray-900 dark:text-gray-400 uppercase tracking-widest">
                 {s.is_online ? 'Live Connection' : 'User Offline'}
               </span>
@@ -117,7 +126,7 @@ const SessionDetail = () => {
             </div>
             <div>
               <p className="text-[8px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-widest leading-none mb-1">Multi-Login Intelligence</p>
-              <h3 className={`text-sm font-black uppercase italic ${data.intelligence.multi_login ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
+              <h3 className={`text-sm font-black uppercase  ${data.intelligence.multi_login ? 'text-red-500' : 'text-slate-900 dark:text-white'}`}>
                 {data.intelligence.multi_login ? "Multiple IPs Detected" : "Unique Session Lock"}
               </h3>
             </div>
@@ -132,7 +141,7 @@ const SessionDetail = () => {
             </div>
             <div>
               <p className="text-[8px] font-black text-slate-400 dark:text-gray-500 uppercase tracking-widest leading-none mb-1">Active Tunnels</p>
-              <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase italic">
+              <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase ">
                 {data.intelligence.active_sessions} Session(s) Currently Live
               </h3>
             </div>
@@ -159,14 +168,16 @@ const SessionDetail = () => {
             <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-md shrink-0"><ClockIcon className="w-4 h-4 text-emerald-600" /></div>
             <div>
               <p className="text-[8px] font-black text-slate-400 dark:text-gray-500 uppercase mb-1">Uptime</p>
-              <p className="text-sm font-black text-slate-900 dark:text-white">{s.duration_seconds ? Math.floor(s.duration_seconds / 60) + "m" : "0m"}</p>
+              <p className="text-[12px] font-black text-slate-500 dark:text-white">
+                {s.duration_seconds ? humanizeDuration(s.duration_seconds).formatted : "0s"}
+             </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-md shrink-0"><CpuChipIcon className="w-4 h-4 text-indigo-600" /></div>
             <div>
               <p className="text-[8px] font-black text-slate-400 dark:text-gray-500 uppercase mb-1">Rate</p>
-              <p className="text-sm font-black text-indigo-600 dark:text-indigo-400 italic">{s.estimated_rate_mbps} Mbps</p>
+              <p className="text-sm font-black text-indigo-600 dark:text-indigo-400 ">{s.estimated_rate_mbps} Mbps</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -183,20 +194,65 @@ const SessionDetail = () => {
         </div>
       </div>
 
+     
       {/* AGGREGATE STATS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         {[
-          { label: 'Total Download', val: (data.totals.total_in / 1e9).toFixed(2), icon: ArrowDownTrayIcon, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10' },
-          { label: 'Total Upload', val: (data.totals.total_out / 1e9).toFixed(2), icon: ArrowUpTrayIcon, color: 'text-slate-400', bg: 'bg-slate-100 dark:bg-white/5' },
-          { label: 'Network Volume', val: ((data.totals.total_in + data.totals.total_out) / 1e9).toFixed(2), icon: CircleStackIcon, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10', special: true }
+          {
+            label: "Total Download",
+            val: formatBytes(data.totals.total_out),
+            icon: ArrowDownTrayIcon,
+            color: "text-blue-500",
+            bg: "bg-blue-50 dark:bg-blue-500/10",
+          },
+          {
+            label: "Total Upload",
+            val: formatBytes(data.totals.total_in),
+            icon: ArrowUpTrayIcon,
+            color: "text-slate-400",
+            bg: "bg-slate-100 dark:bg-white/5",
+          },
+          {
+            label: "Network Volume",
+            val: formatBytes(
+              data.totals.total_in + data.totals.total_out
+            ),
+            icon: CircleStackIcon,
+            color: "text-emerald-500",
+            bg: "bg-emerald-50 dark:bg-emerald-500/10",
+            special: true,
+          },
         ].map((card, i) => (
-          <div key={i} className={`${card.special ? 'border-emerald-100 dark:border-emerald-500/20' : 'bg-white dark:bg-white/5 border-slate-200 dark:border-white/5'} p-4 md:p-6 rounded-md border flex justify-between items-center shadow-sm relative overflow-hidden transition-transform hover:scale-[1.01]`}>
+          <div
+            key={i}
+            className={`${
+              card.special
+                ? "border-emerald-100 dark:border-emerald-500/20"
+                : "bg-white dark:bg-white/5 border-slate-200 dark:border-white/5"
+            } p-4 md:p-6 rounded-md border flex justify-between items-center shadow-sm relative overflow-hidden transition-transform hover:scale-[1.01]`}
+          >
             <div className="relative z-10">
-              <p className={`text-[8px] font-black uppercase mb-1 ${card.special ? 'text-emerald-600' : 'text-slate-400 dark:text-gray-500'}`}>{card.label}</p>
-              <p className={`text-2xl md:text-3xl font-black italic ${card.special ? 'text-emerald-600' : 'text-slate-900 dark:text-white'}`}>
-                {card.val} <span className="text-[10px] not-italic opacity-50">GB</span>
+              <p
+                className={`text-[8px] font-black uppercase mb-1 ${
+                  card.special
+                    ? "text-emerald-600"
+                    : "text-slate-400 dark:text-gray-500"
+                }`}
+              >
+                {card.label}
+              </p>
+
+              <p
+                className={`text-2xl md:text-3xl font-black  ${
+                  card.special
+                    ? "text-emerald-600"
+                    : "text-slate-900 dark:text-white"
+                }`}
+              >
+                {card.val}
               </p>
             </div>
+
             <div className={`${card.bg} p-3 rounded-md relative z-10`}>
               <card.icon className={`w-6 h-6 ${card.color}`} />
             </div>
@@ -214,7 +270,7 @@ const SessionDetail = () => {
             <div className="px-2.5 py-1.5 border-r border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-gray-800">
               <FunnelIcon className="w-3.5 h-3.5 text-slate-400" />
             </div>
-            <select 
+            <select title="select"
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
               className="bg-transparent text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 px-3 outline-none cursor-pointer min-w-[120px]"
@@ -259,10 +315,11 @@ const SessionDetail = () => {
                     )}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <span className="text-xs md:text-sm font-black text-slate-900 dark:text-white italic group-hover:text-blue-500 transition-colors">
-                      {((h.in_bytes + h.out_bytes) / 1e9).toFixed(2)}
+                    <span className="text-xs md:text-xsm  text-slate-90 dark:text-white  group-hover:text-blue-500 transition-colors">
+                      {(formatBytes(h.in_bytes + h.out_bytes) )}
+                      
                     </span>
-                    <span className="ml-1 text-[8px] font-black text-slate-400 uppercase">GB</span>
+            
                   </td>
                 </tr>
               )) : (
@@ -280,14 +337,14 @@ const SessionDetail = () => {
             Page {currentPage} of {totalPages || 1}
           </p>
           <div className="flex gap-2">
-            <button 
+            <button title ="Page navigation - Previous" aria-label="Previous Page"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(prev => prev - 1)}
               className="p-1.5 rounded border border-slate-200 dark:border-white/10 disabled:opacity-20 hover:bg-white dark:hover:bg-white/10 text-slate-600 dark:text-white transition-all shadow-sm"
             >
               <ChevronLeftIcon className="w-4 h-4" />
             </button>
-            <button 
+            <button title="Page navigation - Next" aria-label="Next Page"
               disabled={currentPage === totalPages || totalPages === 0}
               onClick={() => setCurrentPage(prev => prev + 1)}
               className="p-1.5 rounded border border-slate-200 dark:border-white/10 disabled:opacity-20 hover:bg-white dark:hover:bg-white/10 text-slate-600 dark:text-white transition-all shadow-sm"

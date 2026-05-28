@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   AlertCircle, // Added for the session message
 } from "lucide-react";
+import { BaseUrl } from "../../BaseUrl";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function Login() {
 
   try {
     const response = await fetch(
-      "http://192.168.100.88:8000/api/vendors/login/",
+      `${BaseUrl}/api/vendors/login/`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -61,7 +62,7 @@ export default function Login() {
     // optional flag for UI stability
     localStorage.setItem("auth_ready", "true");
 
-    navigate("/dashboard", { replace: true });
+    navigate("/vendor/dashboard", { replace: true });
   } catch (err: any) {
     setError(err.message || "Unable to connect to server");
   } finally {
@@ -137,7 +138,7 @@ export default function Login() {
                     <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Password
                     </label>
-                    <Link to="/forgot-password" hidden={true} className="text-xs text-blue-600 hover:underline">
+                    <Link to="/vendor/forgot-password" hidden={true} className="text-xs text-blue-600 hover:underline">
                       Forgot?
                     </Link>
                   </div>
@@ -180,7 +181,7 @@ export default function Login() {
 
           <p className="mt-6 text-sm text-center text-gray-500 dark:text-gray-400">
             Don’t have an account?{" "}
-            <Link to="/signup" className="text-blue-600 font-semibold hover:underline">
+            <Link to="/vendor/signup" className="text-blue-600 font-semibold hover:underline">
               Create one
             </Link>
           </p>

@@ -10,6 +10,7 @@ import {
   EyeOff,
   ArrowRight,
 } from "lucide-react";
+import { BaseUrl } from "../../BaseUrl";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const Signup = () => {
     setError("");
 
     try {
-      const response = await fetch("http://192.168.100.88:8000/api/vendors/signup/", {
+      const response = await fetch(`${BaseUrl}/api/vendors/signup/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, phone, email, location, password }),
@@ -40,7 +41,7 @@ const Signup = () => {
         throw new Error(data.message || "Signup failed");
       }
 
-      navigate("/login", { replace: true });
+      navigate("/vendor/login", { replace: true });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -163,7 +164,7 @@ const Signup = () => {
           {/* Footer */}
           <p className="mt-6 text-sm text-center text-gray-500">
             Already have an account?{" "}
-            <Link to="/login" className="text-blue-600 hover:underline">
+            <Link to="/vendor/login" className="text-blue-600 hover:underline">
               Sign in
             </Link>
           </p>

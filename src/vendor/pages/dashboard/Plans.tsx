@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useMemo } from "react";
 import type { Plan } from "../../types/plan";
 import { listMikrotiks, type MikrotikDevice } from "../../types/device";
@@ -31,6 +30,7 @@ export default function Plans() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [mikrotiks, setMikrotiks] = useState<MikrotikDevice[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -66,6 +66,7 @@ export default function Plans() {
       setError(e.message);
     } finally {
       setLoading(false);
+      setInitialLoading(false);
     }
   }
 
@@ -163,6 +164,22 @@ export default function Plans() {
     if (!confirm("Delete this plan?")) return;
     await deletePlan(id);
     loadData();
+  }
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white dark:bg-gray-900 transition-colors duration-300">
+        <div className="relative flex items-center justify-center w-24 h-24">
+          <div className="absolute w-16 h-16 rounded-full border-4 border-blue-500/10 dark:border-blue-400/10 border-t-blue-600 dark:border-t-blue-400 animate-spin" />
+          <div className="absolute w-24 h-24 rounded-full border border-dashed border-slate-200 dark:border-slate-800 animate-[spin_20s_linear_infinite]" />
+          <SignalIcon className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-pulse" />
+        </div>
+        <div className="mt-6 text-center space-y-1.5">
+          <h2 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-[0.2em]">Synchronizing Registry</h2>
+          <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-widest animate-pulse">Compiling Profile Matrix Blueprints...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

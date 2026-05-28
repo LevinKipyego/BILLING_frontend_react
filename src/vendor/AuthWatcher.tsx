@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import { BaseUrl } from "../BaseUrl";
 
 type JwtPayload = {
   exp: number;
@@ -7,7 +8,7 @@ type JwtPayload = {
 
 const API_BASE =
   import.meta.env.VITE_API_BASE ||
-  "http://192.168.100.88:8000/api";
+  `${BaseUrl}/api`;
 
 const AuthWatcher = () => {
   useEffect(() => {
@@ -36,9 +37,9 @@ const AuthWatcher = () => {
       localStorage.removeItem("auth_ready");
 
       // ✅ SAFE REDIRECT
-      if (!window.location.pathname.includes("/login")) {
+      if (!window.location.pathname.includes("/vendor/login")) {
         window.location.href =
-          "/login?message=session-expired";
+          "/vendor/login?message=session-expired";
       }
     };
 

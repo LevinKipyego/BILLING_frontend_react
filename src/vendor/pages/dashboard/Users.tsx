@@ -44,6 +44,7 @@ export default function UsersPage() {
   const [plans, setPlans] = useState<Plan[]>([]); 
   const [devices, setDevices] = useState<MikrotikDevice[]>([]); 
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   
@@ -87,6 +88,7 @@ export default function UsersPage() {
       console.error("Fetch pipeline operation failure:", err);
     } finally {
       setLoading(false);
+      setInitialLoading(false);
     }
   }
 
@@ -132,17 +134,17 @@ export default function UsersPage() {
   async function handleSubmit() {
     try {
       if (editingId) {
-        const updatedUser = await updateUser(editingId, form as any);
+        const updatedUser = await updateUser(editingId, form as ExtendedCreateUserPayload);
         setUsers((prev) => prev.map(u => u.id === editingId ? updatedUser : u));
         setEditingId(null);
       } else {
-        const user = await createUser(form as any);
+        const user = await createUser(form as ExtendedCreateUserPayload);
         setUsers((prev) => [user, ...prev]);
       }
       setForm(initialForm);
       setIsFormOpen(false);
-    } catch (err) { 
-      alert("Action failed. Check network layer values."); 
+    } catch {
+      alert("Action failed. Check network layer values.");
     }
   }
 
@@ -151,7 +153,7 @@ export default function UsersPage() {
     try {
       await deleteUser(id);
       setUsers((prev) => prev.filter((u) => u.id !== id));
-    } catch (err) {
+    } catch {
       alert("Could not delete client validation assets.");
     }
   }
@@ -163,7 +165,7 @@ export default function UsersPage() {
       setUsers((prev) =>
         prev.map((u) => u.id === user.id ? { ...u, pppoe_created: true } : u)
       );
-    } catch (err) {
+    } catch {
       alert("PPPoE target creation engine failure.");
     } finally {
       setLoading(false);
@@ -180,11 +182,23 @@ export default function UsersPage() {
       location: user.location,
       plan: user.plan,
       service_type: user.service_type,
-      address: (user as any).address || '', 
-      mikrotik: (user as any).mikrotik?.identity_name || '',
-      mikrotik_identity_name: (user as any).mikrotik?.identity_name || '',
+      address: user.address || '',
+      mikrotik: '',
+      mikrotik_identity_name: user.mikrotik_identity_name || '',
     });
   }
+
+  const textFields: Array<{
+    label: string;
+    key: 'full_name' | 'email' | 'phone' | 'location' | 'address';
+    type: string;
+  }> = [
+    { label: 'Full Name', key: 'full_name', type: 'text' },
+    { label: 'Email Address', key: 'email', type: 'email' },
+    { label: 'Phone Connection', key: 'phone', type: 'text' },
+    { label: 'General Location', key: 'location', type: 'text' },
+    { label: 'Physical Street Address', key: 'address', type: 'text' },
+  ];
 
   // Reactive user evaluation dataset mapper
   const filteredUsers = useMemo(() => {
@@ -210,6 +224,22 @@ export default function UsersPage() {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredUsers.slice(start, start + itemsPerPage);
   }, [filteredUsers, currentPage]);
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-white dark:bg-gray-900 transition-colors duration-300">
+        <div className="relative flex items-center justify-center w-24 h-24">
+          <div className="absolute w-16 h-16 rounded-full border-4 border-blue-500/10 dark:border-blue-400/10 border-t-blue-600 dark:border-t-blue-400 animate-spin" />
+          <div className="absolute w-24 h-24 rounded-full border border-dashed border-slate-200 dark:border-slate-800 animate-[spin_20s_linear_infinite]" />
+          <SignalIcon className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-pulse" />
+        </div>
+        <div className="mt-6 text-center space-y-1.5">
+          <h2 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-[0.2em]">Synchronizing Registry</h2>
+          <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-widest animate-pulse">Querying Network Access Nodes...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300 -m-4 md:m-0">
@@ -248,7 +278,7 @@ export default function UsersPage() {
             {/* Service Type Selection Selector */}
             <div className="flex-1 sm:flex-initial flex items-center gap-2 bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-lg">
               <FunnelIcon className="w-3.5 h-3.5 text-slate-400" />
-              <select 
+              <select title="select"
                 className="bg-transparent text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
                 value={serviceFilter}
                 onChange={(e) => setServiceFilter(e.target.value)}
@@ -262,7 +292,7 @@ export default function UsersPage() {
             {/* RADIUS Account System Status Selector */}
             <div className="flex-1 sm:flex-initial flex items-center gap-2 bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-lg">
               <ShieldCheckIcon className="w-3.5 h-3.5 text-slate-400" />
-              <select 
+              <select title='select'
                 className="bg-transparent text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 outline-none cursor-pointer"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
@@ -285,7 +315,7 @@ export default function UsersPage() {
                   {editingId ? <PencilSquareIcon className="w-4.5 h-4.5" /> : <UserPlusIcon className="w-4.5 h-4.5" />}
                   {editingId ? `Modify Client Profile Parameters: ${form.full_name}` : 'Provision Operational Client Profile'}
                 </h3>
-                <button 
+                <button title='button'
                   onClick={() => { setIsFormOpen(false); setEditingId(null); }}
                   className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-md transition-colors"
                 >
@@ -294,18 +324,15 @@ export default function UsersPage() {
               </div>
 
               <div className="p-5 md:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto flex-1">
-                {[
-                  { label: 'Full Name', key: 'full_name', type: 'text' },
-                  { label: 'Email Address', key: 'email', type: 'email' },
-                  { label: 'Phone Connection', key: 'phone', type: 'text' },
-                  { label: 'General Location', key: 'location', type: 'text' },
-                  { label: 'Physical Street Address', key: 'address', type: 'text' }, // Address String Parameter
-                ].map((field) => (
+                {textFields.map((field) => (
                   <div key={field.key} className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{field.label}</label>
+                    <label htmlFor={field.key} className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{field.label}</label>
                     <input 
+                      id={field.key}
                       type={field.type}
                       value={(form as any)[field.key]} 
+                      placeholder={`Enter ${field.label.toLowerCase()}`}
+                      title={field.label}
                       className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-slate-700/60 p-2.5 rounded-lg text-xs font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 transition-all" 
                       onChange={(e) => setForm({ ...form, [field.key]: e.target.value })} 
                     />
@@ -314,8 +341,10 @@ export default function UsersPage() {
 
                 {/* Backend NAS MikroTik Selection Dropdown */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Target Network NAS (MikroTik)</label>
+                  <label htmlFor="mikrotik" className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Target Network NAS (MikroTik)</label>
                   <select 
+                    id="mikrotik"
+                    title="Target Network NAS (MikroTik)"
                     className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-slate-700/60 p-2.5 rounded-lg text-xs font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 cursor-pointer"
                     value={form.mikrotik}
                     onChange={(e) => setForm({ ...form, mikrotik: e.target.value })}
@@ -531,7 +560,7 @@ export default function UsersPage() {
               Showing {paginatedUsers.length} of {filteredUsers.length} entries
             </p>
             <div className="flex items-center gap-2">
-              <button 
+              <button title='button'
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                 className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 disabled:opacity-30 hover:bg-white dark:hover:bg-slate-800 transition-all"
@@ -553,7 +582,7 @@ export default function UsersPage() {
                   </button>
                 ))}
               </div>
-              <button 
+              <button title="Button"
                 disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 disabled:opacity-30 hover:bg-white dark:hover:bg-slate-800 transition-all"

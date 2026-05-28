@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { 
   PlusIcon, 
@@ -12,7 +11,9 @@ import {
   ArrowPathIcon,
   MagnifyingGlassIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  ServerIcon,
+  //RadioIcon
 } from "@heroicons/react/24/outline";
 import type { NAS } from "../../types/nas";
 import { listNAS, createNAS, updateNAS, deleteNAS } from "../../api/nas";
@@ -20,10 +21,12 @@ import { listNAS, createNAS, updateNAS, deleteNAS } from "../../api/nas";
 export default function NASPage() {
   const [items, setItems] = useState<NAS[]>([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,18 +54,32 @@ export default function NASPage() {
       setError(e.message || "Failed to fetch NAS entries from RADIUS.");
     } finally {
       setLoading(false);
+      setInitialLoading(false);
     }
   }, []);
 
   useEffect(() => { loadNAS(); }, [loadNAS]);
 
-  // Search & Pagination Logic
+  // Compute Available Categories dynamically based on data state
+  const categories = useMemo(() => {
+    const types = new Set(items.map(item => (item.type || "other").toUpperCase()));
+    return ["ALL", ...Array.from(types)];
+  }, [items]);
+
+  // Mixed Search & Category Evaluation Loop
   const filteredItems = useMemo(() => {
-    return items.filter(n => 
-      (n.nasname?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-      (n.shortname?.toLowerCase() || "").includes(searchTerm.toLowerCase())
-    );
-  }, [items, searchTerm]);
+    return items.filter(n => {
+      const matchesSearch = 
+        (n.nasname?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+        (n.shortname?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = 
+        selectedCategory === "ALL" || 
+        (n.type || "other").toUpperCase() === selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [items, searchTerm, selectedCategory]);
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const paginatedItems = filteredItems.slice(
@@ -112,6 +129,31 @@ export default function NASPage() {
     setShowForm(false);
   }
 
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 dark:bg-gray-950 transition-colors duration-300">
+        <div className="relative flex items-center justify-center w-32 h-32">
+          {/* Radial Pulse Waves */}
+          <div className="absolute inset-0 rounded-full bg-indigo-500/5 animate-ping duration-1000" />
+          <div className="absolute w-24 h-24 rounded-full bg-blue-500/10 dark:bg-blue-400/5 animate-pulse" />
+          
+          {/* Outer Rotating Target Interceptor */}
+          <div className="absolute w-28 h-28 rounded-full border-2 border-dashed border-indigo-500/30 dark:border-indigo-400/20 animate-[spin_12s_linear_infinite]" />
+          
+          {/* Main Core Loading Node */}
+          <div className="absolute w-16 h-16 rounded-full border-2 border-slate-200 dark:border-gray-800 border-t-indigo-600 dark:border-t-blue-400 animate-[spin_1.5s_cubic-bezier(0.5,0,0.5,1)_infinite]" />
+          <ServerIcon className="w-6 h-6 text-indigo-600 dark:text-blue-400 relative z-10" />
+        </div>
+        <div className="mt-8 text-center space-y-2">
+          <h2 className="text-xs font-black text-slate-800 dark:text-slate-100 uppercase tracking-[0.25em]">Polling Radius Grid</h2>
+          <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-black tracking-widest max-w-[200px] mx-auto leading-relaxed">
+            Mapping Active Access Server Gateways...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-3 md:p-8 space-y-4 md:space-y-6 animate-fadeIn dark:bg-gray-900 min-h-screen transition-colors">
       
@@ -119,7 +161,7 @@ export default function NASPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase  flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase flex items-center gap-2">
               NAS Infrastructure
             </h1>
             <span className="relative flex h-2 w-2">
@@ -156,20 +198,44 @@ export default function NASPage() {
         </div>
       )}
 
-      {/* EXTERNAL SEARCH CONTROLS FRAMEWORK */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
-        <div className="relative w-full sm:max-w-xs">
-          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Search NAS by identity..." 
-            className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700/80 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-2xs"
-            value={searchTerm}
-            onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}}
-          />
+      {/* FILTER TERMINAL, CATEGORY CHIPS & SEARCH CONTROLS */}
+      <div className="bg-slate-50 dark:bg-gray-800/40 p-3 rounded-xl border border-slate-200/60 dark:border-gray-800/80 space-y-3.5 mx-1">
+        
+        {/* Category Filtration Track */}
+        <div className="flex items-center justify-between gap-4 border-b border-slate-200/50 dark:border-gray-800/60 pb-2.5 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => { setSelectedCategory(cat); setCurrentPage(1); }}
+                className={`px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                  selectedCategory === cat 
+                    ? "bg-slate-900 dark:bg-blue-600 text-white shadow-xs" 
+                    : "text-slate-400 hover:text-slate-600 dark:hover:text-white bg-white dark:bg-gray-900 border border-slate-200/60 dark:border-gray-800"
+                }`}
+              >
+                {cat === "ALL" ? "All Equipment Nodes" : `${cat} Clusters`}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest text-center sm:text-right w-full sm:w-auto">
-          {filteredItems.length} Nodes Populated
+
+        {/* Search Parameter Inputs */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="relative w-full sm:max-w-xs">
+            <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Filter NAS nodes by identity or address..." 
+              className="w-full pl-11 pr-4 py-2 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-2xs"
+              value={searchTerm}
+              onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}}
+            />
+          </div>
+          <div className="text-[9px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest text-center sm:text-right w-full sm:w-auto font-mono">
+            Filtered Data: {filteredItems.length} of {items.length} Modules Online
+          </div>
         </div>
       </div>
 
@@ -402,7 +468,7 @@ export default function NASPage() {
       {!paginatedItems.length && (
         <div className="py-20 text-center space-y-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700/80 mx-1">
           <GlobeAltIcon className="w-10 h-10 text-gray-200 dark:text-gray-700 mx-auto" />
-          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No NAS servers found.</p>
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">No NAS servers found matching conditions.</p>
         </div>
       )}
 

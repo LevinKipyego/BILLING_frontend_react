@@ -10,6 +10,7 @@ export interface MikrotikConnection {
   use_ssl: boolean;
   enabled: boolean;
   created_at: string;
+  hotspot_login_url?: string | null; 
 }
 
 export interface MikrotikConnectionCreate {
@@ -21,4 +22,5 @@ export interface MikrotikConnectionCreate {
   hotspot_server?: string;
   use_ssl?: boolean;
   enabled?: boolean;
+  hotspot_login_url?: string;
 }

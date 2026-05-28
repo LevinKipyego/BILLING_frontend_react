@@ -4,9 +4,9 @@ import {
   UsersIcon, 
   BanknotesIcon,
   HeartIcon,
-  CircleStackIcon,
+  
   SignalIcon,
-  ArrowPathIcon,
+
   ArrowUpRightIcon
 } from "@heroicons/react/24/outline";
 import { DotIcon } from "lucide-react";

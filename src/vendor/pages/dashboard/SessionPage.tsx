@@ -17,6 +17,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { fetchSessions } from "../../api/sessions";
 import type { SessionDashboardResponse, SessionRow } from "../../types/sessions";
+import { formatBytes } from "../../helpers/ByteHelper"
 
 const SessionsPage = () => {
   const [data, setData] = useState<SessionDashboardResponse | null>(null);
@@ -34,8 +35,12 @@ const SessionsPage = () => {
       try {
         const res = await fetchSessions();
         setData(res);
-      } catch (err: any) {
-        setError(err.toString());
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError(String(err));
+        }
       } finally {
         setLoading(false);
       }
@@ -122,7 +127,7 @@ const SessionsPage = () => {
 
   {/* Select Input with Custom Chevron */}
   <div className="relative flex-1">
-    <select 
+    <select title = "service type"
       value={serviceFilter}
       className="w-full bg-transparent appearance-none pl-3 pr-8 py-2 text-[10px] font-black uppercase text-slate-500 dark:text-slate-300 outline-none cursor-pointer"
       onChange={(e) => { setServiceFilter(e.target.value); setCurrentPage(1); }}
@@ -147,8 +152,8 @@ const SessionsPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {[
           { label: 'Users', val: data?.summary.total_active_users, icon: SignalIcon, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-          { label: 'Down', val: `${(data?.summary.total_in_bytes! / 1e9).toFixed(2)} GB`, icon: ArrowDownIcon, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-          { label: 'Up', val: `${(data?.summary.total_out_bytes! / 1e9).toFixed(2)} GB`, icon: ArrowUpIcon, color: 'text-amber-500', bg: 'bg-amber-500/10' }
+          { label: 'Down', val: formatBytes(data?.summary.total_out_bytes), icon: ArrowDownIcon, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+          { label: 'Up', val: formatBytes(data?.summary.total_in_bytes), icon: ArrowUpIcon, color: 'text-amber-500', bg: 'bg-amber-500/10' }
         ].map((card, i) => (
           <div key={i} className="bg-white dark:bg-gray-800 p-3 rounded-md border border-slate-100 dark:border-gray-700 shadow-sm flex items-center gap-3">
             <div className={`${card.bg} p-2 rounded-md`}>
@@ -156,7 +161,7 @@ const SessionsPage = () => {
             </div>
             <div>
               <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none mb-1">{card.label}</p>
-              <p className="text-sm md:text-xl font-black text-slate-900 dark:text-white italic">{card.val}</p>
+              <p className="text-sm md:text-xl font-black text-slate-900 dark:text-white ">{card.val}</p>
             </div>
           </div>
         ))}
@@ -179,7 +184,7 @@ const SessionsPage = () => {
                 paginatedSessions.map((s: SessionRow) => (
                   <tr
                     key={s.id}
-                    onClick={() => navigate(`/dashboard/sessions/${s.id}`)}
+                    onClick={() => navigate(`/vendor/dashboard/sessions/${s.id}`)}
                     className="hover:bg-blue-50/50 dark:hover:bg-white/[0.02] cursor-pointer transition-all group"
                   >
                     <td className="px-3 md:px-8 py-3">
@@ -189,7 +194,7 @@ const SessionsPage = () => {
                             <ComputerDesktopIcon className="w-4 h-4" />
                           </div>
                           <div className="max-w-[100px] md:max-w-none">
-                            <p className="text-[11px] md:text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-tight truncate">
+                            <p className="text-[11px] md:text-sm font-black text-slate-800 dark:text-slate-200  tracking-tight truncate">
                               {highlightText(s.username, searchTerm)}
                             </p>
                             <p className="text-[9px] font-bold text-blue-500 flex items-center gap-1 mt-0.5">
@@ -216,9 +221,9 @@ const SessionsPage = () => {
                     <td className="px-3 md:px-8 py-3">
                       <div className="flex flex-col">
                         <span className="text-[8px] text-slate-400 font-black uppercase mb-0.5">Vol</span>
-                        <span className="text-[11px] md:text-sm font-black text-slate-700 dark:text-slate-300 italic flex items-center gap-1">
+                        <span className="text-[9px] md:text-sm font-black-800 text-slate-700 dark:text-slate-300  flex items-center gap-1">
                           <ArrowsRightLeftIcon className="w-2.5 h-2.5 text-slate-400" />
-                          {((s.in_bytes + s.out_bytes) / 1e9).toFixed(2)} <span className="text-[8px] uppercase font-normal opacity-60">GB</span>
+                          {(formatBytes(s.in_bytes + s.out_bytes))} 
                         </span>
                       </div>
                     </td>
@@ -249,14 +254,14 @@ const SessionsPage = () => {
         <div className="px-4 py-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/30 dark:bg-transparent">
           <p className="text-[9px] font-black text-slate-400 uppercase">Page {currentPage} of {totalPages || 1}</p>
           <div className="flex gap-1">
-            <button 
+            <button title = "pages navigation buttons"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(prev => prev - 1)}
               className="p-1.5 rounded border border-slate-200 dark:border-white/10 disabled:opacity-30 hover:bg-white dark:hover:bg-white/10 transition-all"
             >
               <ChevronLeftIcon className="w-4 h-4 text-slate-600 dark:text-white" />
             </button>
-            <button 
+            <button title="pages navigation buttons"
               disabled={currentPage === totalPages || totalPages === 0}
               onClick={() => setCurrentPage(prev => prev + 1)}
               className="p-1.5 rounded border border-slate-200 dark:border-white/10 disabled:opacity-30 hover:bg-white dark:hover:bg-white/10 transition-all"

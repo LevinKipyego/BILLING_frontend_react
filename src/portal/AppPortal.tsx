@@ -11,7 +11,7 @@ import PortalSessions from "./pages/PortalSessions";
 
 import PortalProtectedRoute from "./components/PortalProtectRoute";
 import PortalLanding from "./pages/PortalLanding";
-import NotFound from "../pages/NotFound";
+import NotFound from "../vendor/pages/NotFound";
 import PortalSupport from "./pages/PortalSupport";
 import PortalDashboardFaq from "./pages/PortalDashboardFaq";
 import PortalNoticeBanner from "./pages/PortalNoticeBurner";
@@ -25,8 +25,8 @@ export default function AppPortal() {
 
     <Route path="*" element={<NotFound />} />
 
-      <Route path="/home" element={<PortalLanding />} />
-      <Route path="/login" element={<PortalLogin />} />
+      <Route path="home" element={<PortalLanding />} />
+      <Route path="login" element={<PortalLogin />} />
 
       <Route element={<PortalProtectedRoute />}>
         <Route element={<PortalLayout />}>

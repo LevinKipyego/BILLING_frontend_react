@@ -15,37 +15,37 @@ const navSections = [
   {
     title: "General",
     items: [
-      { to: "/dashboard", label: "Overview", icon: Squares2X2Icon },
-      { to: "/dashboard/users", label: "Users", icon: UserIcon },
+      { to: "/vendor/dashboard", label: "Overview", icon: Squares2X2Icon },
+      { to: "/vendor/dashboard/users", label: "Users", icon: UserIcon },
     ]
   },
   {
     title: "Network & Infrastructure",
     items: [
-      { to: "/dashboard/nas", label: "NAS Management", icon: ServerIcon },
-      { to: "/dashboard/mikrotik", label: "MikroTik Devices", icon: CpuChipIcon },
-      { to: "/dashboard/mikrotik/configurations", label: "Configurations", icon: CpuChipIcon },
-      { to: "/dashboard/network", label: "Network", icon: CpuChipIcon },
+      { to: "/vendor/dashboard/nas", label: "NAS Management", icon: ServerIcon },
+      { to: "/vendor/dashboard/mikrotik", label: "MikroTik Devices", icon: CpuChipIcon },
+      { to: "/vendor/dashboard/mikrotik/configurations", label: "Configurations", icon: CpuChipIcon },
+      { to: "/vendor/dashboard/network", label: "Network", icon: CpuChipIcon },
     ]
   },
   {
     title: "ISP Services",
     items: [
-      { to: "/dashboard/pppoe/credentials/list", label: "PPPoE Credentials", icon: ServerIcon },
-      { to: "/dashboard/pppoe/subscriptions/list", label: "PPPoE Subscriptions", icon: TicketIcon },
-      { to: "/dashboard/hotspot/credentials/list", label: "Hotspot Credentials", icon: ServerIcon },
-      { to: "/dashboard/hotspot/subscriptions/list", label: "Hotspot Subscriptions", icon: TicketIcon },
-      { to: "/dashboard/sessions/dashboard", label: "Active Sessions", icon: Squares2X2Icon },
+      { to: "/vendor/dashboard/pppoe/credentials/list", label: "PPPoE Credentials", icon: ServerIcon },
+      { to: "/vendor/dashboard/pppoe/subscriptions/list", label: "PPPoE Subscriptions", icon: TicketIcon },
+      { to: "/vendor/dashboard/hotspot/credentials/list", label: "Hotspot Credentials", icon: ServerIcon },
+      { to: "/vendor/dashboard/hotspot/subscriptions/list", label: "Hotspot Subscriptions", icon: TicketIcon },
+      { to: "/vendor/dashboard/sessions/dashboard", label: "Active Sessions", icon: Squares2X2Icon },
     ]
   },
   {
     title: "Billing",
     items: [
-      { to: "/dashboard/plans", label: "Service Plans", icon: TicketIcon },
-      { to: "/dashboard/mpesa", label: "M-Pesa Config", icon: CardSimIcon },
-      { to: "/dashboard/mpesa/c2b", label: "C2B Config", icon: CardSimIcon },
-      { to: "/dashboard/transactions", label: "Transactions", icon: CreditCardIcon },
-      { to: "/dashboard/transactions/c2b", label: "M-Pesa C2B Trans", icon: CreditCardIcon },
+      { to: "/vendor/dashboard/plans", label: "Service Plans", icon: TicketIcon },
+      { to: "/vendor/dashboard/mpesa", label: "M-Pesa Config", icon: CardSimIcon },
+      { to: "/vendor/dashboard/mpesa/c2b", label: "C2B Config", icon: CardSimIcon },
+      { to: "/vendor/dashboard/transactions", label: "Transactions", icon: CreditCardIcon },
+      { to: "/vendor/dashboard/transactions/c2b", label: "M-Pesa C2B Trans", icon: CreditCardIcon },
     ]
   }
 ];
@@ -67,7 +67,7 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === "/dashboard"}
+              end={item.to === "/vendor/dashboard"}
               onClick={() => {
                 if (window.innerWidth < 1024 && closeMobile) closeMobile();
               }}

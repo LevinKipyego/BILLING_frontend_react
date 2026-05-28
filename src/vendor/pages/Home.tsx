@@ -12,7 +12,7 @@ import {
 
 const Home: React.FC = () => {
   const location = useLocation();
-  const isRoot = location.pathname === "/";
+  const isRoot = location.pathname === "/vendor" || location.pathname === "/vendor/";
   const [open, setOpen] = useState(false);
 
   return (
@@ -36,9 +36,9 @@ const Home: React.FC = () => {
           <nav className="hidden md:flex items-center gap-8 text-sm text-gray-600 dark:text-gray-300">
             <a href="#features" className="hover:text-blue-600">Features</a>
             <a href="#security" className="hover:text-blue-600">Security</a>
-            <Link to="/login" className="hover:text-blue-600">Login</Link>
+            <Link to="/vendor/login" className="hover:text-blue-600">Login</Link>
             <Link
-              to="/signup"
+              to="/vendor/signup"
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
             >
               Get Started
@@ -54,11 +54,11 @@ const Home: React.FC = () => {
         {/* Mobile Menu */}
         {open && (
           <div className="md:hidden px-4 pb-4 space-y-3">
-            <Link to="/login" className="block text-gray-600 dark:text-gray-300">
+            <Link to="/vendor/login" className="block text-gray-600 dark:text-gray-300">
               Login
             </Link>
             <Link
-              to="/signup"
+              to="/vendor/signup"
               className="block text-center bg-blue-600 text-white py-3 rounded-lg"
             >
               Get Started
@@ -85,14 +85,14 @@ const Home: React.FC = () => {
 
                 <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
                   <Link
-                    to="/signup"
+                    to="/vendor/signup"
                     className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
                   >
                     Get Started <ArrowRight size={16} />
                   </Link>
 
                   <Link
-                    to="/onboarding"
+                    to="/vendor/onboarding"
                     className="px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
                   >
                     View Demo
