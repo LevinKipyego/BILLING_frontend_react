@@ -18,7 +18,6 @@ import {
   ArrowsUpDownIcon,
   UserCircleIcon,
   ClockIcon,
- 
 } from "@heroicons/react/24/outline";
 
 interface FormState {
@@ -26,7 +25,7 @@ interface FormState {
   user: number;
   user_name: string;
   credential_password: string;
-  plan_name:string;
+  plan_name: string;
   transaction_code: string;
   credential: number;
   start_at: string;
@@ -35,7 +34,6 @@ interface FormState {
   created_by_transaction: number | "";
 }
 
-// --- HELPER FUNCTIONS FOR DATE CONVERSION ---
 const toLocalISO = (isoStr: string) => {
   if (!isoStr) return "";
   const date = new Date(isoStr);
@@ -79,9 +77,24 @@ export default function PPPoESubscriptionPage() {
 
   useEffect(() => { loadData(); }, []);
 
+  // Jump to first page whenever user inputs context variations
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
+  // Comprehensive Multi-page Filtering Mechanism
   const processedData = useMemo(() => {
     const filtered = data.filter(sub => {
-      const matchesSearch = sub.user.toString().includes(search) || sub.plan.toString().includes(search);
+      const searchLower = search.toLowerCase().trim();
+      
+      const matchesSearch = 
+        !searchLower ||
+        String(sub.user).includes(searchLower) ||
+        String(sub.plan).includes(searchLower) ||
+        String(sub.user_name || '').toLowerCase().includes(searchLower) ||
+        String(sub.plan_name || '').toLowerCase().includes(searchLower) ||
+        String(sub.credential_password || '').toLowerCase().includes(searchLower);
+
       const matchesStatus = statusFilter === "all" || (statusFilter === "active" ? sub.active : !sub.active);
       return matchesSearch && matchesStatus;
     });
@@ -107,7 +120,6 @@ export default function PPPoESubscriptionPage() {
       const method = editingId ? "PUT" : "POST";
       const url = editingId ? `/pppoe/subscriptions/${editingId}/` : `/pppoe/subscriptions/`;
       
-      // Convert local input back to UTC ISO string before sending
       const payload = {
         ...form,
         start_at: new Date(form.start_at).toISOString(),
@@ -123,7 +135,6 @@ export default function PPPoESubscriptionPage() {
 
   function handleEdit(item: PPPoESubscription) {
     setEditingId(item.id);
-    // Convert UTC timestamps to local format for the inputs
     setForm({ 
       ...item, 
       start_at: toLocalISO(item.start_at),
@@ -275,12 +286,16 @@ export default function PPPoESubscriptionPage() {
         </table>
       </div>
 
-      {/* MOBILE CARDS */}
+      {/* MOBILE CARDS WITH ENLARGED TOUCH TARGET CLUE ACCENT */}
       <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
         {paginatedData.map((item) => {
           const end = formatDateTime(item.end_at);
           return (
-            <div key={item.id} onClick={() => handleEdit(item)} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl p-5 shadow-sm">
+            <div 
+              key={item.id} 
+              onClick={() => handleEdit(item)} 
+              className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-3xl p-5 pr-14 shadow-sm cursor-pointer hover:border-blue-500/40 dark:hover:border-blue-500/40 transition-all duration-200 active:scale-[0.99]"
+            >
               <div className="flex justify-between items-center mb-4">
                 <StatusBadge active={item.active} />
                 <span className="text-xs font-bold text-blue-600">Plan #{item.plan_name}</span>
@@ -294,42 +309,77 @@ export default function PPPoESubscriptionPage() {
                 <ClockIcon className="w-3.5 h-3.5" />
                 <p className="text-xs font-medium">Expires: {end.date} at {end.time}</p>
               </div>
+
+              {/* Enlarged Right Side Plus Target Clue */}
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-xl bg-gray-50 dark:bg-gray-900 text-gray-400 border border-gray-100 dark:border-gray-700 group-hover:text-blue-500 group-hover:border-blue-500/20 group-hover:bg-blue-50 dark:group-hover:bg-blue-500/10 transition-all duration-200">
+                <PlusIcon className="w-5 h-5 transform group-hover:translate-x-0.5 transition-transform" />
+              </div>
             </div>
           );
         })}
       </div>
 
-      {/* PAGINATION PANEL */}
-      <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-6">
-        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-          Showing {Math.min(processedData.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(processedData.length, currentPage * itemsPerPage)} of {processedData.length}
+      {/* COMPACT FLOATING PAGINATION CONTAINER */}
+      <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest text-center sm:text-left">
+          Showing {processedData.length === 0 ? 0 : Math.min(processedData.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(processedData.length, currentPage * itemsPerPage)} of {processedData.length}
         </p>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 max-w-full justify-center">
           <button 
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(p => p - 1)}
-            className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-white disabled:opacity-30 hover:bg-gray-50 transition-all shadow-sm"
+            className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-white disabled:opacity-30 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm shrink-0"
           >
             <ChevronLeftIcon className="w-5 h-5" />
           </button>
           
-          <div className="flex gap-1">
-            {[...Array(totalPages)].map((_, i) => (
-              <button 
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`w-10 h-10 rounded-xl text-xs font-bold transition-all ${currentPage === i + 1 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50'}`}
-              >
-                {i + 1}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-1 justify-center max-w-full">
+            {(() => {
+              const pages = [];
+              const range = 1; 
+
+              for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - range && i <= currentPage + range)) {
+                  pages.push(
+                    <button 
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                        currentPage === i 
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
+                          : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {i}
+                    </button>
+                  );
+                } 
+                else if (i === 2 && currentPage - range > 2) {
+                  pages.push(
+                    <span key="left-dots" className="px-1 text-gray-400 dark:text-gray-500 text-xs font-bold select-none">
+                      ...
+                    </span>
+                  );
+                  i = currentPage - range - 1;
+                } 
+                else if (i === currentPage + range + 1 && currentPage + range < totalPages - 1) {
+                  pages.push(
+                    <span key="right-dots" className="px-1 text-gray-400 dark:text-gray-500 text-xs font-bold select-none">
+                      ...
+                    </span>
+                  );
+                  i = totalPages - 1;
+                }
+              }
+              return pages;
+            })()}
           </div>
 
           <button 
             disabled={currentPage === totalPages || totalPages === 0}
             onClick={() => setCurrentPage(p => p + 1)}
-            className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-white disabled:opacity-30 hover:bg-gray-50 transition-all shadow-sm"
+            className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-white disabled:opacity-30 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm shrink-0"
           >
             <ChevronRightIcon className="w-5 h-5" />
           </button>

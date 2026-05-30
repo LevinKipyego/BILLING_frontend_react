@@ -9,7 +9,6 @@ import {
   ChevronRightIcon,
   BanknotesIcon,
   SignalIcon,
-  //DevicePhoneMobileIcon,
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
@@ -43,14 +42,22 @@ export default function StkTransactions() {
     loadTransactions();
   }, []);
 
+  // Reset pagination to page 1 whenever any filter configuration changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter, serviceFilter]);
+
   // Combined Filtering and Sorting Logic
   const processedData = useMemo(() => {
     // 1. Filter
     const filtered = transactions.filter(tx => {
+      const searchLower = search.toLowerCase().trim();
+      
       const matchesSearch = 
-        tx.client_phone.includes(search) || 
-        tx.username.toLowerCase().includes(search.toLowerCase()) ||
-        tx.mpesa_receipt?.toLowerCase().includes(search.toLowerCase());
+        !searchLower ||
+        String(tx.client_phone).includes(searchLower) || 
+        String(tx.username || '').toLowerCase().includes(searchLower) ||
+        String(tx.mpesa_receipt || '').toLowerCase().includes(searchLower);
       
       const matchesStatus = statusFilter === "all" || tx.status.toLowerCase() === statusFilter.toLowerCase();
       const matchesService = serviceFilter === "all" || tx.service_type === serviceFilter;
@@ -146,9 +153,7 @@ export default function StkTransactions() {
           <div className="relative">
             <SignalIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <select 
-              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg
-              
-            py-3 pl-11 pr-10 text-sm font-semibold text-gray-700 dark:text-gray-300 appearance-none outline-none focus:ring-2 focus:ring-blue-500/20 shadow-sm"
+              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg py-3 pl-11 pr-10 text-sm font-semibold text-gray-700 dark:text-gray-300 appearance-none outline-none focus:ring-2 focus:ring-blue-500/20 shadow-sm"
               value={serviceFilter}
               onChange={(e) => setServiceFilter(e.target.value)}
             >
@@ -187,7 +192,6 @@ export default function StkTransactions() {
                 </td>
                 <td className="p-5">
                   <div className="flex flex-col">
-                       
                     <span className="text-sm font-bold text-gray-900 dark:text-white">{tx.username}</span>
                     <span className="text-xs text-gray-500 font-medium">{tx.client_phone}</span>
                   </div>
@@ -246,36 +250,66 @@ export default function StkTransactions() {
       </div>
 
       {/* PAGINATION SECTION */}
-      <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-6">
-        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-          Results: {Math.min(processedData.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(processedData.length, currentPage * itemsPerPage)} of {processedData.length}
+      <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest text-center sm:text-left">
+          Results: {processedData.length === 0 ? 0 : Math.min(processedData.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(processedData.length, currentPage * itemsPerPage)} of {processedData.length}
         </p>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 max-w-full justify-center">
           <button 
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(p => p - 1)}
-            className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-white disabled:opacity-30 hover:bg-gray-50 transition-all shadow-sm"
+            className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-white disabled:opacity-30 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm shrink-0"
           >
             <ChevronLeftIcon className="w-5 h-5" />
           </button>
           
-          <div className="flex gap-1">
-            {[...Array(totalPages)].map((_, i) => (
-              <button 
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`w-10 h-10 rounded-xl text-xs font-bold transition-all ${currentPage === i + 1 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50'}`}
-              >
-                {i + 1}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-1 justify-center max-w-full">
+            {(() => {
+              const pages = [];
+              const range = 1; 
+
+              for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - range && i <= currentPage + range)) {
+                  pages.push(
+                    <button 
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                        currentPage === i 
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
+                          : 'bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {i}
+                    </button>
+                  );
+                } 
+                else if (i === 2 && currentPage - range > 2) {
+                  pages.push(
+                    <span key="left-dots" className="px-1 text-gray-400 dark:text-gray-500 text-xs font-bold select-none">
+                      ...
+                    </span>
+                  );
+                  i = currentPage - range - 1;
+                } 
+                else if (i === currentPage + range + 1 && currentPage + range < totalPages - 1) {
+                  pages.push(
+                    <span key="right-dots" className="px-1 text-gray-400 dark:text-gray-500 text-xs font-bold select-none">
+                      ...
+                    </span>
+                  );
+                  i = totalPages - 1;
+                }
+              }
+              return pages;
+            })()}
           </div>
 
           <button 
-            disabled={currentPage === totalPages}
+            disabled={currentPage === totalPages || totalPages === 0}
             onClick={() => setCurrentPage(p => p + 1)}
-            className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-white disabled:opacity-30 hover:bg-gray-50 transition-all shadow-sm"
+            className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-white disabled:opacity-30 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm shrink-0"
           >
             <ChevronRightIcon className="w-5 h-5" />
           </button>

@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
 import {
-  
   listHotspotCredentials,
   createPPPoECredential,
   updatePPPoECredential,
@@ -16,7 +15,6 @@ import {
   KeyIcon, 
   ChevronLeftIcon, 
   ChevronRightIcon,
-  //ShieldCheckIcon,
   NoSymbolIcon,
   CheckCircleIcon,
   XCircleIcon,
@@ -61,10 +59,20 @@ export default function HotspotCredentialPage() {
 
   useEffect(() => { loadData(); }, []);
 
+  // Drop back to step one whenever a context variation is typed or assigned
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
   const processedData = useMemo(() => {
     const filtered = data.filter(cred => {
-      const matchesSearch = cred.username.toLowerCase().includes(search.toLowerCase()) || 
-                           cred.user.toString().includes(search);
+      const searchLower = search.toLowerCase().trim();
+      
+      const matchesSearch = 
+        !searchLower ||
+        String(cred.username || '').toLowerCase().includes(searchLower) || 
+        String(cred.user).includes(searchLower);
+
       const matchesStatus = statusFilter === "all" || 
                            (statusFilter === "active" ? cred.active : !cred.active);
       return matchesSearch && matchesStatus;
@@ -150,7 +158,6 @@ export default function HotspotCredentialPage() {
       {/* HEADER */}
       <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-3">
-            
           <div>
             <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none">
               Hotspot <span className="text-blue-600">Credentials</span>
@@ -167,7 +174,7 @@ export default function HotspotCredentialPage() {
         </button>
       </div>
 
-    {/* FILTERS SECTION */}
+      {/* FILTERS SECTION */}
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-5 mb-10">
         <div className="xl:col-span-2 relative">
           <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -180,7 +187,6 @@ export default function HotspotCredentialPage() {
           />
         </div>
         
-        {/* Increased gap here for the two smaller buttons on mobile */}
         <div className="grid grid-cols-2 xl:contents gap-4">
           <button 
             onClick={() => setSortOrder(prev => prev === "desc" ? "asc" : "desc")}
@@ -202,7 +208,7 @@ export default function HotspotCredentialPage() {
         </div>
       </div>
 
-      {/* MOBILE LIST - Increased gap between cards (space-y-5) */}
+      {/* MOBILE LIST */}
       <div className="lg:hidden space-y-5">
         {paginatedData.map((item) => {
           const trial = formatTrial(item.trial_expires_at);
@@ -214,7 +220,7 @@ export default function HotspotCredentialPage() {
                     <UserCircleIcon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-tight">{item.username}</h4>
+                    <h4 className="text-xs font-black text-gray-900 dark:text-white tracking-tight">{item.username}</h4>
                     <p className="text-[9px] font-bold text-gray-400">ID: #{item.user}</p>
                   </div>
                 </div>
@@ -320,17 +326,68 @@ export default function HotspotCredentialPage() {
         </table>
       </div>
 
-      {/* PAGINATION SECTION */}
-      <div className="mt-10 flex flex-col md:flex-row items-center justify-between gap-6 px-2">
-        <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">
-           PAGE {currentPage} OF {totalPages || 1}
+      {/* UPDATED SCANNABLE PAGINATION SECTION */}
+      <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+        <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] text-center sm:text-left">
+           Showing {processedData.length === 0 ? 0 : Math.min(processedData.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(processedData.length, currentPage * itemsPerPage)} of {processedData.length}
         </p>
         
-        <div className="flex items-center gap-2">
-          <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 disabled:opacity-20 transition-all">
+        <div className="flex items-center gap-1.5 max-w-full justify-center">
+          <button 
+            disabled={currentPage === 1} 
+            onClick={() => setCurrentPage(p => p - 1)} 
+            className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-20 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm shrink-0"
+          >
             <ChevronLeftIcon className="w-4 h-4 stroke-[2.5]" />
           </button>
-          <button disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage(p => p + 1)} className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 disabled:opacity-20 transition-all">
+
+          <div className="flex flex-wrap items-center gap-1 justify-center max-w-full">
+            {(() => {
+              const pages = [];
+              const range = 1;
+
+              for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - range && i <= currentPage + range)) {
+                  pages.push(
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                        currentPage === i
+                          ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20 border border-transparent"
+                          : "bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      }`}
+                    >
+                      {i}
+                    </button>
+                  );
+                } 
+                else if (i === 2 && currentPage - range > 2) {
+                  pages.push(
+                    <span key="left-dots" className="px-1 text-gray-400 dark:text-gray-500 text-xs font-bold select-none">
+                      ...
+                    </span>
+                  );
+                  i = currentPage - range - 1;
+                } 
+                else if (i === currentPage + range + 1 && currentPage + range < totalPages - 1) {
+                  pages.push(
+                    <span key="right-dots" className="px-1 text-gray-400 dark:text-gray-500 text-xs font-bold select-none">
+                      ...
+                    </span>
+                  );
+                  i = totalPages - 1;
+                }
+              }
+              return pages;
+            })()}
+          </div>
+
+          <button 
+            disabled={currentPage === totalPages || totalPages === 0} 
+            onClick={() => setCurrentPage(p => p + 1)} 
+            className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-20 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all shadow-sm shrink-0"
+          >
             <ChevronRightIcon className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>

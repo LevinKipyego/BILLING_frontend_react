@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { 
   UserPlusIcon, 
   TrashIcon, 
@@ -32,7 +32,6 @@ import { fetchMikrotiks } from '../../api/devices';
 import type { Plan } from '../../types/plan';
 import type { MikrotikDevice } from '../../types/device';
 
-// Extended payload structure inline to account for new custom variables
 type ExtendedCreateUserPayload = CreateUserPayload & {
   address?: string;
   mikrotik?: string;
@@ -79,7 +78,7 @@ export default function UsersPage() {
       const [userData, planData, deviceData] = await Promise.all([
         fetchUsers(),
         listPlans(),
-        fetchMikrotiks() // Hydrating network edge target assets concurrently
+        fetchMikrotiks()
       ]);
       setUsers(userData);
       setPlans(planData);
@@ -99,7 +98,6 @@ export default function UsersPage() {
     setCurrentPage(1);
   }, [searchTerm, serviceFilter, statusFilter]);
 
-  // Programmatic fallback routine allowing text copying over unencrypted HTTP
   const handleCopyToClipboard = (text: string, identifier: string) => {
     if (!text) return;
     
@@ -109,7 +107,6 @@ export default function UsersPage() {
         setTimeout(() => setCopiedField(null), 1500);
       });
     } else {
-      // Manual fallback field generation for HTTP endpoints
       const textArea = document.createElement("textarea");
       textArea.value = text;
       textArea.style.position = "fixed"; 
@@ -200,14 +197,14 @@ export default function UsersPage() {
     { label: 'Physical Street Address', key: 'address', type: 'text' },
   ];
 
-  // Reactive user evaluation dataset mapper
   const filteredUsers = useMemo(() => {
     return users.filter(u => {
-      const matchesSearch = !searchTerm || 
-                            u.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            u.mac?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            u.client_ip?.includes(searchTerm);
+      const searchLower = searchTerm.toLowerCase().trim();
+      const matchesSearch = !searchLower || 
+                            String(u.full_name || '').toLowerCase().includes(searchLower) ||
+                            String(u.username || '').toLowerCase().includes(searchLower) ||
+                            String(u.mac || '').toLowerCase().includes(searchLower) ||
+                            String(u.client_ip || '').includes(searchLower);
                             
       const matchesService = serviceFilter === "ALL" || u.service_type === serviceFilter;
       
@@ -220,6 +217,7 @@ export default function UsersPage() {
   }, [users, searchTerm, serviceFilter, statusFilter]);
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  
   const paginatedUsers = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredUsers.slice(start, start + itemsPerPage);
@@ -275,7 +273,6 @@ export default function UsersPage() {
           </div>
           
           <div className="w-full sm:w-auto flex items-center gap-3 shrink-0">
-            {/* Service Type Selection Selector */}
             <div className="flex-1 sm:flex-initial flex items-center gap-2 bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-lg">
               <FunnelIcon className="w-3.5 h-3.5 text-slate-400" />
               <select title="select"
@@ -289,7 +286,6 @@ export default function UsersPage() {
               </select>
             </div>
 
-            {/* RADIUS Account System Status Selector */}
             <div className="flex-1 sm:flex-initial flex items-center gap-2 bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-700 px-3 py-2 rounded-lg">
               <ShieldCheckIcon className="w-3.5 h-3.5 text-slate-400" />
               <select title='select'
@@ -339,7 +335,6 @@ export default function UsersPage() {
                   </div>
                 ))}
 
-                {/* Backend NAS MikroTik Selection Dropdown */}
                 <div className="space-y-1.5">
                   <label htmlFor="mikrotik" className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Target Network NAS (MikroTik)</label>
                   <select 
@@ -554,38 +549,67 @@ export default function UsersPage() {
             </table>
           </div>
 
-          {/* TABLE FOOTER PAGINATION MODULE */}
-          <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-gray-900/30 flex items-center justify-between">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Showing {paginatedUsers.length} of {filteredUsers.length} entries
+          {/* SLIDING-WINDOW TRUNCATED PAGINATION SELECTION MODULE */}
+          <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/30 dark:bg-gray-900/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center sm:text-left">
+              Showing {filteredUsers.length === 0 ? 0 : Math.min(filteredUsers.length, (currentPage - 1) * itemsPerPage + 1)}-{Math.min(filteredUsers.length, currentPage * itemsPerPage)} of {filteredUsers.length} entries
             </p>
-            <div className="flex items-center gap-2">
+            
+            <div className="flex items-center gap-1.5 max-w-full justify-center">
               <button title='button'
                 disabled={currentPage === 1}
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 disabled:opacity-30 hover:bg-white dark:hover:bg-slate-800 transition-all"
+                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-20 hover:bg-white dark:hover:bg-slate-800 transition-all shrink-0"
               >
                 <ChevronLeftIcon className="w-4 h-4" />
               </button>
-              <div className="flex items-center gap-1">
-                {[...Array(totalPages)].map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`w-7 h-7 rounded-lg text-[10px] font-black transition-all ${
-                      currentPage === i + 1 
-                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
-                      : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-              </div>
+
+              <div className="flex flex-wrap items-center gap-1 justify-center max-w-full">
+                {(() => {
+                  const pages = [];
+                  const range = 1; // Determines adjacent numbers on either side of active frame
+
+                  for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - range && i <= currentPage + range)) {
+                      pages.push(
+                        <button
+                          key={i}
+                          onClick={() => setCurrentPage(i)}
+                          className={`w-7 h-7 rounded-lg text-[10px] font-black transition-all shrink-0 ${
+                            currentPage === i 
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
+                            : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          {i}
+                        </button>
+                      );
+                    } 
+                    else if (i === 2 && currentPage - range > 2) {
+                      pages.push(
+                        <span key="left-dots" className="px-1 text-slate-400 dark:text-slate-500 text-[10px] font-bold select-none">
+                          ...
+                        </span>
+                  );
+                  i = currentPage - range - 1;
+                } 
+                else if (i === currentPage + range + 1 && currentPage + range < totalPages - 1) {
+                  pages.push(
+                    <span key="right-dots" className="px-1 text-slate-400 dark:text-slate-500 text-[10px] font-bold select-none">
+                      ...
+                    </span>
+                  );
+                  i = totalPages - 1;
+                }
+              }
+              return pages;
+            })()}
+          </div>
+
               <button title="Button"
                 disabled={currentPage === totalPages || totalPages === 0}
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 disabled:opacity-30 hover:bg-white dark:hover:bg-slate-800 transition-all"
+                className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-20 hover:bg-white dark:hover:bg-slate-800 transition-all shrink-0"
               >
                 <ChevronRightIcon className="w-4 h-4" />
               </button>

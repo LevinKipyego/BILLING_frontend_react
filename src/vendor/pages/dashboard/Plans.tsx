@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import type { Plan } from "../../types/plan";
 import { listMikrotiks, type MikrotikDevice } from "../../types/device";
-import { listPlans, createPlan, updatePlan,deletePlan } from "../../api/plans";
+import { listPlans, createPlan, updatePlan, deletePlan } from "../../api/plans";
 
 import { 
   PlusIcon, 
@@ -15,7 +15,6 @@ import {
   ChevronRightIcon,
   XMarkIcon,
   PencilSquareIcon,
-  
 } from "@heroicons/react/24/outline";
 
 const COMMON_SPEEDS = ["1M/1M", "2M/2M", "3M/3M", "5M/5M", "8M/8M", "10M/10M", "15M/15M", "20M/20M"];
@@ -72,6 +71,11 @@ export default function Plans() {
 
   useEffect(() => { loadData(); }, []);
 
+  // Reset pagination index upon configuration filter modification
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const filteredPlans = useMemo(() => {
     return plans.filter(p => 
       (p.name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
@@ -80,10 +84,11 @@ export default function Plans() {
   }, [plans, searchTerm]);
 
   const totalPages = Math.ceil(filteredPlans.length / itemsPerPage);
-  const paginatedPlans = filteredPlans.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  
+  const paginatedPlans = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredPlans.slice(start, start + itemsPerPage);
+  }, [filteredPlans, currentPage]);
 
   // Compute live duration feedback helper calculation context 
   const calculatedMinutesFeedback = useMemo(() => {
@@ -97,7 +102,6 @@ export default function Plans() {
   function handleEdit(p: Plan) {
     setEditingId(p.id);
     
-    // Automatically parse raw minutes backward to deduce best UX representation
     const mins = p.duration_minutes || 0;
     if (mins % 1440 === 0 && mins > 0) {
       setTimeUnit("days");
@@ -147,7 +151,6 @@ export default function Plans() {
         service_type: form.service_type
       };
 
-      // Handle conditional API creation or patch routes depending on scope context
       if (editingId) {
         await updatePlan(editingId, payload);
       } else {
@@ -218,7 +221,7 @@ export default function Plans() {
         </div>
       )}
 
-      {/* DETACHED OUTSIDE SEARCH SEPARATION TERMINAL */}
+      {/* SEARCH PANEL BAR */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
         <div className="relative w-full sm:max-w-xs">
           <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -227,7 +230,7 @@ export default function Plans() {
             placeholder="Search service parameters..." 
             className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700/80 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-2xs"
             value={searchTerm}
-            onChange={(e) => {setSearchTerm(e.target.value); setCurrentPage(1);}}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center sm:text-right w-full sm:w-auto">
@@ -235,7 +238,7 @@ export default function Plans() {
         </div>
       </div>
 
-      {/* FIXED POSITION OVERLAY DIALOG MODAL LAYOUT */}
+      {/* MODAL DIALOG CONTAINER */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/70 backdrop-blur-xs animate-fadeIn">
           <section className="bg-white dark:bg-gray-800 w-full max-w-3xl rounded-xl shadow-2xl border border-slate-200 dark:border-gray-700/80 overflow-hidden animate-scaleUp max-h-[92vh] flex flex-col">
@@ -292,7 +295,7 @@ export default function Plans() {
                   </select>
                 </div>
 
-                {/* ADVANCED DURATION CONVERSION UTILITY INTERFACE BLOCK */}
+                {/* ADVANCED DURATION CONVERSION INTERFACE BLOCK */}
                 <div className="space-y-1.5 sm:col-span-2 bg-slate-50/60 dark:bg-gray-900/40 p-3 rounded-xl border border-slate-150 dark:border-gray-700/50 flex flex-col justify-between gap-2">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">
@@ -391,7 +394,7 @@ export default function Plans() {
         </div>
       )}
 
-      {/* 1. INDEPENDENT RESPONSIVE CARD SHELLS (MOBILE BREAK) */}
+      {/* RESPONSIVE MOBILE VIEWPORTS SHELLS CONTAINER */}
       <div className="block md:hidden space-y-3 mx-1">
         {paginatedPlans.map((p) => (
           <div 
@@ -444,7 +447,7 @@ export default function Plans() {
         ))}
       </div>
 
-      {/* 2. DESKTOP VIEW COMPONENT WORKSPACE HOUSING */}
+      {/* CORE DESKTOP GRID WORKSPACE MATRIX */}
       <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-slate-100 dark:border-slate-700 overflow-hidden mx-1">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -507,36 +510,81 @@ export default function Plans() {
         </div>
       </div>
 
-      {/* VACANT STATE DATASET FEEDBACK NOTIFICATION BOX */}
+      {/* VACANT DATASET NOTIFICATION BOX */}
       {!paginatedPlans.length && (
         <div className="py-20 text-center space-y-3 bg-white dark:bg-gray-800 rounded-lg border border-slate-100 dark:border-slate-700/80 mx-1">
           <SignalIcon className="w-10 h-10 text-slate-200 dark:text-slate-700 mx-auto" />
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No matching profiles matching search query parameters discovered.</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No matching profiles found.</p>
         </div>
       )}
 
-      {/* Pagination Infrastructure Housing Controls */}
-      <div className="px-5 md:px-8 py-4 border border-slate-150 dark:border-slate-700 rounded-lg flex items-center justify-between bg-white dark:bg-gray-800 mx-1">
-         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-           {currentPage} / {totalPages || 1}
-         </span>
-         <div className="flex gap-2">
-            <button 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(c => c - 1)}
-              className="p-2 border border-slate-200 dark:border-gray-700 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-900 disabled:opacity-20 transition-all dark:text-white outline-none"
-            >
-              <ChevronLeftIcon className="w-4 h-4 stroke-[3]" />
-            </button>
-            <button 
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage(c => c + 1)}
-              className="p-2 border border-slate-200 dark:border-gray-700 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-900 disabled:opacity-20 transition-all dark:text-white outline-none"
-            >
-              <ChevronRightIcon className="w-4 h-4 stroke-[3]" />
-            </button>
-         </div>
+      {/* SLIDING WINDOW TRUNCATED PAGINATION CONTROLS PANEL */}
+      <div className="p-4 border border-slate-150 dark:border-slate-700 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 bg-white dark:bg-gray-800 mx-1">
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center sm:text-left">
+          Showing {filteredPlans.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}-{Math.min(filteredPlans.length, currentPage * itemsPerPage)} of {filteredPlans.length} plans
+        </p>
+        
+        <div className="flex items-center gap-1.5 max-w-full justify-center">
+          <button title='button'
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-20 hover:bg-slate-50 dark:hover:bg-gray-900 transition-all shrink-0 animate-none"
+          >
+            <ChevronLeftIcon className="w-4 h-4 stroke-[2.5]" />
+          </button>
+
+          <div className="flex flex-wrap items-center gap-1 justify-center max-w-full">
+            {(() => {
+              const pages = [];
+              const range = 1; // Number of page numbers to print out on either side of selected frame
+
+              for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - range && i <= currentPage + range)) {
+                  pages.push(
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`w-7 h-7 rounded-lg text-[10px] font-black transition-all shrink-0 ${
+                        currentPage === i 
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
+                        : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900'
+                      }`}
+                    >
+                      {i}
+                    </button>
+                  );
+                } 
+                else if (i === 2 && currentPage - range > 2) {
+                  pages.push(
+                    <span key="left-dots" className="px-1 text-slate-400 dark:text-slate-500 text-[10px] font-bold select-none">
+                      ...
+                    </span>
+                  );
+                  i = currentPage - range - 1;
+                } 
+                else if (i === currentPage + range + 1 && currentPage + range < totalPages - 1) {
+                  pages.push(
+                    <span key="right-dots" className="px-1 text-slate-400 dark:text-slate-500 text-[10px] font-bold select-none">
+                      ...
+                    </span>
+                  );
+                  i = totalPages - 1;
+                }
+              }
+              return pages;
+            })()}
+          </div>
+
+          <button title="Button"
+            disabled={currentPage === totalPages || totalPages === 0}
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 disabled:opacity-20 hover:bg-slate-50 dark:hover:bg-gray-900 transition-all shrink-0 animate-none"
+          >
+            <ChevronRightIcon className="w-4 h-4 stroke-[2.5]" />
+          </button>
+        </div>
       </div>
+
     </div>
   );
 }
