@@ -7,7 +7,7 @@ import {
   EyeOff,
   ArrowRight,
   ShieldCheck,
-  AlertCircle, // Added for the session message
+  AlertCircle,
 } from "lucide-react";
 import { BaseUrl } from "../../BaseUrl";
 
@@ -26,177 +26,185 @@ export default function Login() {
   const authRequired = searchParams.get("message") === "authentication-required";
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setError(null);
-  setLoading(true);
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
 
-  try {
-    const response = await fetch(
-      `${BaseUrl}/api/vendors/login/`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+    try {
+      const response = await fetch(
+        `${BaseUrl}/api/vendors/login/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Invalid email or password");
       }
-    );
 
-    if (!response.ok) {
-      throw new Error("Invalid email or password");
+      const data = await response.json();
+
+      // ✅ SINGLE SOURCE OF TRUTH = JWT ONLY
+      localStorage.setItem("access_token", data.access);
+      localStorage.setItem(
+        "access_token",
+        data.tokens.access
+      );
+
+      localStorage.setItem(
+        "refresh_token",
+        data.tokens.refresh
+      );
+
+      // optional flag for UI stability
+      localStorage.setItem("auth_ready", "true");
+
+      navigate("/vendor/dashboard", { replace: true });
+    } catch (err: any) {
+      setError(err.message || "Unable to connect to server");
+    } finally {
+      setLoading(false);
     }
-
-    const data = await response.json();
-
-    // ✅ SINGLE SOURCE OF TRUTH = JWT ONLY
-    localStorage.setItem("access_token", data.access);
-    localStorage.setItem(
-      "access_token",
-      data.tokens.access
-    );
-
-    localStorage.setItem(
-      "refresh_token",
-      data.tokens.refresh
-    );
-
-
-    // optional flag for UI stability
-    localStorage.setItem("auth_ready", "true");
-
-    navigate("/vendor/dashboard", { replace: true });
-  } catch (err: any) {
-    setError(err.message || "Unable to connect to server");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50 dark:bg-[#0b0f19]">
+    <div className="min-h-screen flex bg-slate-50 dark:bg-[#090d16] font-['Figtree']">
       
-      {/* LEFT SIDE - Centered Form */}
-      <div className="flex flex-1 items-center justify-center px-6 py-10">
-        <div className="w-full max-w-md">
+      {/* LEFT SIDE - Centered Form Card */}
+      <div className="flex flex-1 items-center justify-center px-6 py-12 lg:px-16 xl:px-24 z-10">
+        <div className="w-full max-w-md bg-white dark:bg-[#111827]/40 p-8 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800/60 backdrop-blur-md">
           
-          {/* THE CARD CONTAINER */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden">
-            
-            {/* Django-Style Header */}
-            <div className="bg-gray-50 dark:bg-gray-900 px-8 py-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2">
-              <ShieldCheck className="w-6 h-6 text-blue-600" />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white uppercase tracking-wider">
-                Admin Login
-              </h1>
+          {/* Header */}
+          <div className="mb-8">
+            <div className="h-10 w-10 bg-indigo-600/10 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center mb-4 border border-indigo-500/20">
+              <ShieldCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             </div>
-
-            <div className="p-8">
-              
-              {/* SESSION EXPIRED MESSAGE */}
-              {sessionExpired && !error && (
-                <div className="mb-6 flex items-center gap-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-sm p-4 dark:bg-amber-900/20 dark:border-amber-900/30 dark:text-amber-400">
-                  <AlertCircle size={18} />
-                  <span>Your session has expired. Please log in again to continue.</span>
-                </div>
-              )}
-
-              {/* AUTHENTICATION REQUIRED MESSAGE */}
-              {authRequired && !error && (
-                <div className="mb-6 flex items-center gap-3 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm p-4 dark:bg-yellow-900/20 dark:border-yellow-900/30 dark:text-yellow-400">
-                  <AlertCircle size={18} />
-                  <span>Authentication required.</span>
-                </div>
-              )}
-
-              {/* Error Message */}
-              {error && (
-                <div className="mb-6 flex items-center gap-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm p-4 dark:bg-red-900/20 dark:border-red-900/30 dark:text-red-400">
-                  <AlertCircle size={18} />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              {/* FORM */}
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Email
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="email"
-                      placeholder="you@example.com"
-                      className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#111827] text-gray-900 dark:text-white pl-10 pr-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Password
-                    </label>
-                    <Link to="/vendor/forgot-password" hidden={true} className="text-xs text-blue-600 hover:underline">
-                      Forgot?
-                    </Link>
-                  </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#111827] text-gray-900 dark:text-white pl-10 pr-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-3 rounded-lg transition disabled:opacity-50 mt-4"
-                >
-                  {loading ? (
-                    <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      Log in <ArrowRight size={16} />
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+              Admin Gateway
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
+              Securely access your core dashboard manager.
+            </p>
           </div>
 
-          <p className="mt-6 text-sm text-center text-gray-500 dark:text-gray-400">
+          {/* SESSION EXPIRED MESSAGE */}
+          {sessionExpired && !error && (
+            <div className="mb-5 flex items-center gap-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 text-amber-700 dark:text-amber-400 text-sm p-4">
+              <AlertCircle size={18} className="shrink-0" />
+              <span>Your session has expired. Please log in again to continue.</span>
+            </div>
+          )}
+
+          {/* AUTHENTICATION REQUIRED MESSAGE */}
+          {authRequired && !error && (
+            <div className="mb-5 flex items-center gap-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 text-amber-700 dark:text-amber-400 text-sm p-4">
+              <AlertCircle size={18} className="shrink-0" />
+              <span>Authentication required.</span>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-5 flex items-center gap-3 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 text-sm p-4">
+              <AlertCircle size={18} className="shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* FORM */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            
+            {/* Email Field */}
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                Email Address
+              </label>
+              <div className="flex items-center bg-slate-50 dark:bg-[#111827]/60 border border-slate-200 dark:border-slate-800 rounded-xl focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all duration-200 px-3.5 group">
+                <Mail className="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors mr-3" />
+                <input
+                  type="email"
+                  placeholder="you@example.com"
+                  className="w-full bg-transparent py-3 text-sm outline-none text-slate-900 dark:text-white placeholder-slate-400"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Password
+                </label>
+                <Link to="/vendor/forgot-password" hidden={true} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                  Forgot?
+                </Link>
+              </div>
+              <div className="flex items-center bg-slate-50 dark:bg-[#111827]/60 border border-slate-200 dark:border-slate-800 rounded-xl focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all duration-200 px-3.5 group">
+                <Lock className="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors mr-3" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  className="w-full bg-transparent py-3 text-sm outline-none text-slate-900 dark:text-white placeholder-slate-400"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors ml-2"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-medium py-3 rounded-xl shadow-lg shadow-indigo-600/20 dark:shadow-none transition-all duration-150 disabled:opacity-50"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  Log in <ArrowRight size={16} className="ml-1" />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer Link */}
+          <p className="mt-8 text-sm text-center text-slate-500 dark:text-slate-400">
             Don’t have an account?{" "}
-            <Link to="/vendor/signup" className="text-blue-600 font-semibold hover:underline">
+            <Link to="/vendor/signup" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
               Create one
             </Link>
           </p>
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
-      <div className="hidden lg:flex flex-1 items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-600 text-white p-12">
-        <div className="max-w-md">
-          <h2 className="text-3xl font-semibold mb-4">
+      {/* RIGHT SIDE - DECORATIVE HERO BRANDING */}
+      <div className="hidden lg:flex flex-1 relative items-center justify-center bg-[#060913] text-white p-16 overflow-hidden">
+        {/* Ambient background blur circles */}
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]" />
+        
+        <div className="max-w-md relative z-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 text-xs font-medium mb-6 backdrop-blur-md">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> Live ISP Orchestration
+          </div>
+          <h2 className="text-4xl font-extrabold tracking-tight mb-4 leading-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
             Manage your network effortlessly
           </h2>
-          <p className="text-blue-100 text-sm leading-relaxed">
-            Monitor MikroTik devices, automate billing, and control your ISP
-            infrastructure — all in one place.
+          <p className="text-slate-400 text-base leading-relaxed">
+            Monitor client MikroTik authentications, run automated billing hooks, and supervise active GenieACS server parameters inside a single interface.
           </p>
         </div>
       </div>

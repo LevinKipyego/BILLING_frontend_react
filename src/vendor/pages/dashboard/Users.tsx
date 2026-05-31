@@ -342,7 +342,15 @@ export default function UsersPage() {
                     title="Target Network NAS (MikroTik)"
                     className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-slate-700/60 p-2.5 rounded-lg text-xs font-bold text-slate-800 dark:text-white outline-none focus:border-blue-500 cursor-pointer"
                     value={form.mikrotik}
-                    onChange={(e) => setForm({ ...form, mikrotik: e.target.value })}
+                    onChange={(e) => {
+                      const selectedId = e.target.value;
+                      const matchedDevice = devices.find(d => String(d.id) === selectedId);
+                      setForm({ 
+                        ...form, 
+                        mikrotik: selectedId,
+                        mikrotik_identity_name: matchedDevice ? matchedDevice.identity_name : ''
+                      });
+                    }}
                   >
                     <option value="">Select Target Access Device...</option>
                     {devices.map(d => (
@@ -567,7 +575,7 @@ export default function UsersPage() {
               <div className="flex flex-wrap items-center gap-1 justify-center max-w-full">
                 {(() => {
                   const pages = [];
-                  const range = 1; // Determines adjacent numbers on either side of active frame
+                  const range = 1; 
 
                   for (let i = 1; i <= totalPages; i++) {
                     if (i === 1 || i === totalPages || (i >= currentPage - range && i <= currentPage + range)) {
@@ -617,14 +625,6 @@ export default function UsersPage() {
           </div>
         </div>
       </div>
-
-      {/* FIXED OPERATION RUNTIME SYNC BLOCK */}
-      {loading && (
-        <div className="fixed bottom-6 right-6 bg-slate-900 dark:bg-blue-600 text-white px-5 py-2.5 rounded-lg flex items-center gap-3 shadow-2xl z-50 border border-white/10">
-          <div className="w-2 h-2 bg-white rounded-full animate-ping" />
-          <span className="text-[9px] font-black uppercase tracking-[0.2em]">Radius Syncing...</span>
-        </div>
-      )}
     </div>
   );
 }
