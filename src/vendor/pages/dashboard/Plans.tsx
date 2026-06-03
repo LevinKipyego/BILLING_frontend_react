@@ -19,9 +19,9 @@ import {
 
 const COMMON_SPEEDS = ["1M/1M", "2M/2M", "3M/3M", "5M/5M", "8M/8M", "10M/10M", "15M/15M", "20M/20M"];
 const SERVICE_TYPES = [
-  { id: "pppoe", label: "PPPoE Broadband Connection" },
-  { id: "hotspot", label: "Hotspot Captive Portal" },
-  { id: "ipoe", label: "IPoE / Static Allocation" }
+  { id: "PPPOE", label: "PPPoE Broadband Connection" },
+  { id: "HOTSPOT", label: "Hotspot Captive Portal" },
+  { id: "IPOE", label: "IPoE / Static Allocation" }
 ];
 type TimeUnit = "minutes" | "hours" | "days";
 
@@ -48,7 +48,7 @@ export default function Plans() {
     price: "",
     rate_limit: "5M/5M",
     mikrotik: "",
-    service_type: "pppoe"
+    service_type: "PPPOE"
   });
 
   async function loadData() {
@@ -119,7 +119,7 @@ export default function Plans() {
       price: String(p.price),
       rate_limit: p.rate_limit || "5M/5M",
       mikrotik: String(p.mikrotik_profile || ""),
-      service_type: (p as any).service_type || "pppoe"
+      service_type: (p as any).service_type || "PPPOE"
     });
     setShowForm(true);
   }
@@ -128,7 +128,7 @@ export default function Plans() {
     setEditingId(null);
     setDurationInput("");
     setTimeUnit("days");
-    setForm({ name: "", price: "", rate_limit: "5M/5M", mikrotik: "", service_type: "pppoe" });
+    setForm({ name: "", price: "", rate_limit: "5M/5M", mikrotik: "", service_type: "PPPOE" });
     setShowForm(false);
   }
 
@@ -407,7 +407,7 @@ export default function Plans() {
                   {p.name}
                 </span>
                 <span className="inline-block text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider bg-slate-50 dark:bg-gray-900/50 border border-slate-150 dark:border-gray-700 px-1.5 py-0.5 rounded">
-                  {(p as any).service_type || "pppoe"}
+                  {(p as any).service_type || "PPPOE"}
                 </span>
               </div>
               <div className="flex flex-col items-end gap-1 flex-shrink-0">
@@ -471,7 +471,7 @@ export default function Plans() {
                   </td>
                   <td className="px-4 py-4 text-center">
                     <span className="text-[10px] font-black tracking-wider text-slate-500 dark:text-slate-400 uppercase bg-slate-100 dark:bg-slate-900/60 px-2.5 py-1 rounded-md border border-slate-200 dark:border-gray-700">
-                      {(p as any).service_type || "pppoe"}
+                      {(p as any).service_type || "PPPOE"}
                     </span>
                   </td>
                   <td className="px-4 py-4 text-center font-bold text-slate-700 dark:text-slate-300 text-xs">
