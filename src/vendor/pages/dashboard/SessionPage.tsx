@@ -184,7 +184,7 @@ const SessionsPage = () => {
                 paginatedSessions.map((s: SessionRow) => (
                   <tr
                     key={s.id}
-                    onClick={() => navigate(`/vendor/dashboard/sessions/${s.id}`)}
+                    onClick={() => navigate(`/dashboard/sessions/${s.id}`)}
                     className="hover:bg-blue-50/50 dark:hover:bg-white/[0.02] cursor-pointer transition-all group"
                   >
                     <td className="px-3 md:px-8 py-3">

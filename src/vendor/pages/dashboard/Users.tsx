@@ -31,6 +31,9 @@ import { listPlans } from '../../api/plans';
 import { fetchMikrotiks } from '../../api/devices'; 
 import type { Plan } from '../../types/plan';
 import type { MikrotikDevice } from '../../types/device';
+import { useNavigate } from "react-router-dom";
+
+
 
 type ExtendedCreateUserPayload = CreateUserPayload & {
   address?: string;
@@ -71,6 +74,8 @@ export default function UsersPage() {
   };
 
   const [form, setForm] = useState<ExtendedCreateUserPayload>(initialForm);
+
+  const navigate = useNavigate();
 
   async function load() {
     setLoading(true);
@@ -414,7 +419,11 @@ export default function UsersPage() {
               </thead>
               <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
                 {paginatedUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-colors group">
+                  <tr
+                      key={user.id}
+                      onClick={() => navigate(`/dashboard/users/detailed/${user.id}`)}
+                      className="cursor-pointer hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-colors group"
+                  >
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-gray-900 flex items-center justify-center font-black text-blue-600 dark:text-blue-400 text-xs shadow-inner shrink-0">

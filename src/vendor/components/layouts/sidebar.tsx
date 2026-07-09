@@ -28,52 +28,52 @@ const navSections: NavSection[] = [
   {
     title: "General",
     items: [
-      { to: "/vendor/dashboard", label: "Overview", icon: Squares2X2Icon, color: "text-blue-600 dark:text-blue-400", bgHover: "hover:bg-blue-50/60 dark:hover:bg-blue-950/10 hover:text-blue-700 dark:hover:text-blue-400" },
-      { to: "/vendor/dashboard/users", label: "Users", icon: UserGroupIcon, color: "text-blue-600 dark:text-blue-400", bgHover: "hover:bg-blue-50/60 dark:hover:bg-blue-950/10 hover:text-blue-700 dark:hover:text-blue-400" },
+      { to: "/dashboard", label: "Overview", icon: Squares2X2Icon, color: "text-blue-600 dark:text-blue-400", bgHover: "hover:bg-blue-50/60 dark:hover:bg-blue-950/10 hover:text-blue-700 dark:hover:text-blue-400" },
+      { to: "/dashboard/users", label: "Users", icon: UserGroupIcon, color: "text-blue-600 dark:text-blue-400", bgHover: "hover:bg-blue-50/60 dark:hover:bg-blue-950/10 hover:text-blue-700 dark:hover:text-blue-400" },
     ]
   },
   {
     title: "Network & Infrastructure",
     items: [
-      { to: "/vendor/dashboard/nas", label: "NAS Management", icon: ServerIcon, color: "text-slate-600 dark:text-slate-400", bgHover: "hover:bg-slate-100/60 dark:hover:bg-slate-800/30 hover:text-slate-800 dark:hover:text-slate-300" },
-      { to: "/vendor/dashboard/mikrotik", label: "MikroTik Devices", icon: CpuChipIcon, color: "text-slate-600 dark:text-slate-400", bgHover: "hover:bg-slate-100/60 dark:hover:bg-slate-800/30 hover:text-slate-800 dark:hover:text-slate-300" },
-      { to: "/vendor/dashboard/mikrotik/configurations", label: "Configurations", icon: Cog6ToothIcon, color: "text-slate-600 dark:text-slate-400", bgHover: "hover:bg-slate-100/60 dark:hover:bg-slate-800/30 hover:text-slate-800 dark:hover:text-slate-300" },
-      { to: "/vendor/dashboard/network", label: "Network", icon: GlobeAltIcon, color: "text-slate-600 dark:text-slate-400", bgHover: "hover:bg-slate-100/60 dark:hover:bg-slate-800/30 hover:text-slate-800 dark:hover:text-slate-300" },
+      { to: "/dashboard/nas", label: "NAS Management", icon: ServerIcon, color: "text-slate-600 dark:text-slate-400", bgHover: "hover:bg-slate-100/60 dark:hover:bg-slate-800/30 hover:text-slate-800 dark:hover:text-slate-300" },
+      { to: "/dashboard/mikrotik", label: "MikroTik Devices", icon: CpuChipIcon, color: "text-slate-600 dark:text-slate-400", bgHover: "hover:bg-slate-100/60 dark:hover:bg-slate-800/30 hover:text-slate-800 dark:hover:text-slate-300" },
+      { to: "/dashboard/mikrotik/configurations", label: "Configurations", icon: Cog6ToothIcon, color: "text-slate-600 dark:text-slate-400", bgHover: "hover:bg-slate-100/60 dark:hover:bg-slate-800/30 hover:text-slate-800 dark:hover:text-slate-300" },
+      { to: "/dashboard/network", label: "Network", icon: GlobeAltIcon, color: "text-slate-600 dark:text-slate-400", bgHover: "hover:bg-slate-100/60 dark:hover:bg-slate-800/30 hover:text-slate-800 dark:hover:text-slate-300" },
     ]
   },
   {
     title: "ISP Services",
     items: [
       { 
-        to: "/vendor/dashboard/pppoe/credentials/list", 
+        to: "/dashboard/pppoe/credentials/list", 
         label: "PPPoE Credentials", 
         icon: KeyIcon, 
         color: "text-indigo-600 dark:text-indigo-400",
         bgHover: "hover:bg-indigo-50/60 dark:hover:bg-indigo-950/10 hover:text-indigo-700 dark:hover:text-indigo-400"
       },
       { 
-        to: "/vendor/dashboard/pppoe/subscriptions/list", 
+        to: "/dashboard/pppoe/subscriptions/list", 
         label: "PPPoE Subscriptions", 
         icon: TicketIcon, 
         color: "text-indigo-600 dark:text-indigo-400",
         bgHover: "hover:bg-indigo-50/60 dark:hover:bg-indigo-950/10 hover:text-indigo-700 dark:hover:text-indigo-400"
       },
       { 
-        to: "/vendor/dashboard/hotspot/credentials/list", 
+        to: "/dashboard/hotspot/credentials/list", 
         label: "Hotspot Credentials", 
         icon: UserIcon, 
         color: "text-amber-600 dark:text-amber-500",
         bgHover: "hover:bg-amber-50/60 dark:hover:bg-amber-950/10 hover:text-amber-700 dark:hover:text-amber-400"
       },
       { 
-        to: "/vendor/dashboard/hotspot/subscriptions/list", 
+        to: "/dashboard/hotspot/subscriptions/list", 
         label: "Hotspot Subscriptions", 
         icon: WifiIcon, 
         color: "text-amber-600 dark:text-amber-500",
         bgHover: "hover:bg-amber-50/60 dark:hover:bg-amber-950/10 hover:text-amber-700 dark:hover:text-amber-400"
       },
       { 
-        to: "/vendor/dashboard/sessions/dashboard", 
+        to: "/dashboard/sessions/dashboard", 
         label: "Active Sessions", 
         icon: SignalIcon, 
         color: "text-emerald-600 dark:text-emerald-400",
@@ -84,11 +84,11 @@ const navSections: NavSection[] = [
   {
     title: "Billing",
     items: [
-      { to: "/vendor/dashboard/plans", label: "Service Plans", icon: AdjustmentsHorizontalIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
-      { to: "/vendor/dashboard/mpesa", label: "M-Pesa Config", icon: CreditCardIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
-      { to: "/vendor/dashboard/mpesa/c2b", label: "C2B Config", icon: CircleStackIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
-      { to: "/vendor/dashboard/transactions", label: "Transactions", icon: BanknotesIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
-      { to: "/vendor/dashboard/transactions/c2b", label: "M-Pesa C2B Trans", icon: CreditCardIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
+      { to: "/dashboard/plans", label: "Service Plans", icon: AdjustmentsHorizontalIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
+      { to: "/dashboard/mpesa", label: "M-Pesa Config", icon: CreditCardIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
+      { to: "/dashboard/mpesa/c2b", label: "C2B Config", icon: CircleStackIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
+      { to: "/dashboard/transactions", label: "Transactions", icon: BanknotesIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
+      { to: "/dashboard/transactions/c2b", label: "M-Pesa C2B Trans", icon: CreditCardIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
     ]
   }
 ];
@@ -130,7 +130,7 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
               <NavLink
                 key={item.to}
                 to={item.to}
-                end={item.to === "/vendor/dashboard"}
+                end={item.to === "/dashboard"}
                 onClick={() => {
                   if (window.innerWidth < 1024 && closeMobile) closeMobile();
                 }}

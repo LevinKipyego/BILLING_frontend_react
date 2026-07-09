@@ -29,7 +29,7 @@ const Signup = () => {
     setError("");
 
     try {
-      const response = await fetch(`${BaseUrl}/api/vendors/signup/`, {
+      const response = await fetch(`${BaseUrl}/api/signup/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, phone, email, password }),
@@ -40,7 +40,7 @@ const Signup = () => {
         throw new Error(data.message || "Signup failed");
       }
 
-      navigate("/vendor/login", { replace: true });
+      navigate("/login", { replace: true });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -156,7 +156,7 @@ const Signup = () => {
           {/* Footer Link */}
           <p className="mt-8 text-sm text-center text-slate-500 dark:text-slate-400">
             Already have an account?{" "}
-            <Link to="/vendor/login" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+            <Link to="/login" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
               Sign in
             </Link>
           </p>

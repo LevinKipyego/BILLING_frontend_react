@@ -61,7 +61,7 @@ export default function Login() {
       // optional flag for UI stability
       localStorage.setItem("auth_ready", "true");
 
-      navigate("/vendor/dashboard", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (err: any) {
       setError(err.message || "Unable to connect to server");
     } finally {
@@ -140,7 +140,7 @@ export default function Login() {
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Password
                 </label>
-                <Link to="/vendor/forgot-password" hidden={true} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+                <Link to="/forgot-password" hidden={true} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
                   Forgot?
                 </Link>
               </div>
@@ -183,7 +183,7 @@ export default function Login() {
           {/* Footer Link */}
           <p className="mt-8 text-sm text-center text-slate-500 dark:text-slate-400">
             Don’t have an account?{" "}
-            <Link to="/vendor/signup" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
+            <Link to="/signup" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
               Create one
             </Link>
           </p>

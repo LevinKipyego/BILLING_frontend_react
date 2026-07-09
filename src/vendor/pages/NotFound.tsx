@@ -1,4 +1,4 @@
-import React from "react";
+
 import { useNavigate } from "react-router-dom";
 import { MapPinOff, ArrowLeft, Home } from "lucide-react";
 
