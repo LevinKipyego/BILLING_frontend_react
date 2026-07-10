@@ -118,13 +118,13 @@ export function UserHeader({
 
                 <StatCard
                     title="Lifetime Spend"
-                    value={`KES ${overview.total_spent.toLocaleString()}`}
+                    value={`KES ${(overview?.lifetime_spend || 0).toLocaleString()}`}
                     icon={<Wallet size={28} />}
                 />
 
                 <StatCard
                     title="Purchases"
-                    value={overview.total_purchases}
+                    value={overview.total_payments}
                     icon={<ShoppingBag size={28} />}
                 />
 

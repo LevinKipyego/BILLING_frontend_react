@@ -38,7 +38,7 @@ import HotspotSubscriptionPage from "./vendor/pages/dashboard/HotspotSubscriptio
 import HotspotCredentialPage from "./vendor/pages/dashboard/HotspotCredentials";
 
 import ProtectedRoute from "../ProtectedRoute";
-//import AuthWatcher from "./vendor/AuthWatcher";
+import AuthWatcher from "./vendor/AuthWatcher";
 import UserProfile from "./vendor/pages/dashboard/users/UserProfile";
 export default function App() {
   return (
@@ -47,7 +47,7 @@ export default function App() {
     <Router>
       
      
-
+      <AuthWatcher />
         <Routes>
           {/* =========================
               PUBLIC ROUTES

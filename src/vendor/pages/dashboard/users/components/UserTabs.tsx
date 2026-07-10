@@ -4,9 +4,12 @@ import type { UserProfile } from "../components/types/types";
 
 import OverviewTab from "./tabs/OverviewTab";
 import HotspotTab from "../hotspot/HotspotTab";
+import PPPoETab from "../pppoe/PppoeTab";
+import PaymentsTab from "../payments/PaymentTab";
 
 interface Props {
     profile: UserProfile;
+    reload: () => Promise<void>;
 }
 
 type Tab =
@@ -45,6 +48,7 @@ const tabs: {
 export default function UserTabs({
 
     profile,
+    reload,
 
 }: Props) {
 
@@ -89,6 +93,7 @@ export default function UserTabs({
 
                 <OverviewTab
                     profile={profile}
+                    reload={reload}
                 />
 
             )}
@@ -103,43 +108,21 @@ export default function UserTabs({
 
             {activeTab === "pppoe" && (
 
-                <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center">
-
-                    <h2 className="text-xl font-bold mb-2">
-
-                        PPPoE
-
-                    </h2>
-
-                    <p className="text-slate-500">
-
-                        PPPoE profile is under construction.
-
-                    </p>
-
-                </div>
-
+                <PPPoETab
+                    profile={profile}
+                />
+            
             )}
 
             {activeTab === "payments" && (
 
-                <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center">
-
-                    <h2 className="text-xl font-bold mb-2">
-
-                        Payments
-
-                    </h2>
-
-                    <p className="text-slate-500">
-
-                        Payment history will appear here.
-
-                    </p>
-
-                </div>
+                <PaymentsTab
+                    profile={profile}
+                />
 
             )}
+
+                
 
             {activeTab === "activity" && (
 

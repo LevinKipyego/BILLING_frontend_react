@@ -37,9 +37,9 @@ const AuthWatcher = () => {
       localStorage.removeItem("auth_ready");
 
       // ✅ SAFE REDIRECT
-      if (!window.location.pathname.includes("/vendor/login")) {
+      if (!window.location.pathname.includes("/login")) {
         window.location.href =
-          "/vendor/login?message=session-expired";
+          "/login?message=session-expired";
       }
     };
 

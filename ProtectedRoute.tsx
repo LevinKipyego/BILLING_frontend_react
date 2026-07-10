@@ -13,7 +13,7 @@ const ProtectedRoute = () => {
   if (!token) {
     return (
       <Navigate
-        to="/vendor/login?message=authentication-required"
+        to="/login?message=authentication-required"
         replace
       />
     );
@@ -27,7 +27,7 @@ const ProtectedRoute = () => {
       localStorage.clear();
       return (
         <Navigate
-          to="/vendor/login?message=session-expired"
+          to="/login?message=session-expired"
           replace
         />
       );
@@ -38,7 +38,7 @@ const ProtectedRoute = () => {
       localStorage.clear();
       return (
         <Navigate
-          to="/vendor/login?message=invalid-session"
+          to="/login?message=invalid-session"
           replace
         />
       );
@@ -49,7 +49,7 @@ const ProtectedRoute = () => {
     localStorage.clear();
     return (
       <Navigate
-        to="/vendor/login?message=session-expired"
+        to="/login?message=session-expired"
         replace
       />
     );

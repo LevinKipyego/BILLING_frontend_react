@@ -10,6 +10,8 @@ interface Props {
 
     footer?: React.ReactNode;
 
+    subtitle?: string;
+
 }
 export default function SummaryCard({
 

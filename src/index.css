@@ -2,22 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure both custom fonts are registered */
+@font-face {
+    font-family: 'Rosemary';
+    src: url('/fonts/rosemary.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Chocolate';
+    src: url('/fonts/chocolate.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Comfortaa';
+    src: url('/fonts/comfortaa.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Delius';
+    src: url('/fonts/delius.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Patrickhand';
+    src: url('/fonts/patrickhand.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Jakarta';
+    src: url('/fonts/jakarta.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 @layer base {
   html {
-    /* Set Geist as the default */
-    /* font-family: "Geist", ui-sans-serif, system-ui, sans-serif; */
-    font-family: 'Figtree', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Smooth scrolling for internal links */
     scroll-behavior: smooth;
+
+    /* 1. Global Mobile-First Font Size (Scales Tailwind's rem values down slightly) */
+    font-size: 14px; 
   }
 
   body {
     @apply bg-slate-50 text-slate-900 antialiased;
-    /* Prevent "rubber-banding" on mobile scrolls */
     overscroll-behavior-y: none;
-    font-family: 'Figtree', sans-serif;
+    
+    /* 2. Standardize baseline rem layout */
+    font-size: 1rem;
+    line-height: 1.5;
+
+    /* Mobile First: Using Comfortaa as your primary choice, clean fallback stack */
+    font-family: 'Comfortaa', 'Rosemary', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* Desktop Override: Apply Jakarta and scale up base font layout when screen hits 'md' */
+  @media (min-width: 768px) {
+    html {
+      font-size: 16px; /* Bumps up all text elements using text-sm, text-base, etc. uniformly */
+    }
+    body {
+      font-family: 'Jakarta', ui-sans-serif, system-ui, sans-serif;
+    }
   }
 }
 

@@ -14,7 +14,10 @@ interface Props {
         | "active"
         | "expired"
         | "pending"
-        | "suspended";
+        | "suspended"
+        | "success"
+        | "failed";
+
 }
 
 export default function StatusBadge({ status }: Props) {
@@ -39,6 +42,12 @@ export default function StatusBadge({ status }: Props) {
         suspended:
             "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
 
+        success:
+            "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400",
+
+        failed:
+            "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
+
     };
 
     const icons = {
@@ -49,6 +58,8 @@ export default function StatusBadge({ status }: Props) {
         expired: <XCircle size={14} />,
         pending: <Clock3 size={14} />,
         suspended: <PauseCircle size={14} />,
+        success: <CheckCircle2 size={14} />,
+        failed: <XCircle size={14} />,
 
     };
 
@@ -60,7 +71,8 @@ export default function StatusBadge({ status }: Props) {
 
             {icons[status]}
 
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            // If status is undefined, it safely returns an empty string instead of crashing
+            {(status?.charAt(0).toUpperCase() || '') + (status?.slice(1) || '')}
 
         </span>
 

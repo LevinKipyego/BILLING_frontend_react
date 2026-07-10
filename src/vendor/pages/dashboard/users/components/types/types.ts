@@ -1,7 +1,7 @@
 /* =========================================================
  * USER
  * ========================================================= */
-
+import type { Payment } from "../../payments/components/types/types";
 import type { BaseSubscription } from "./subscription";
 
 export interface User {
@@ -78,6 +78,10 @@ export interface Overview {
 
     last_payment: string | null;
 
+    status: "active" | "offline" | "suspended" | "expired" | "pending";
+
+    last_seen: string | null;
+
 }
 
 /* =========================================================
@@ -99,29 +103,7 @@ export interface HotspotCredential {
     created_at: string;
 
 }
-{/*
-export interface HotspotSubscription {
 
-    id: number;
-
-    plan: string;
-
-    router_name: string;
-
-    start_at: string;
-
-    end_at: string;
-
-    active: boolean;
-
-    transaction_id?: string;
-
-
-    summary: SubscriptionSummary;
-
-
-}
-*/}
 export interface HotspotConnection {
 
     online: boolean;
@@ -137,6 +119,27 @@ export interface HotspotConnection {
     uptime?: string | null;
 
 }
+export interface ConnectionStatus {
+
+    online: boolean;
+
+    router_name: string;
+
+    ip_address: string;
+
+    mac_address: string;
+
+    login_time: string;
+
+    uptime_seconds: number;
+
+    download_bytes: number;
+
+    upload_bytes: number;
+
+    last_seen: string;
+
+}
 
 export interface Hotspot {
 
@@ -144,7 +147,7 @@ export interface Hotspot {
 
     current_subscription: HotspotSubscription | null;
 
-    connection: HotspotConnection | null;
+    connection: ConnectionStatus | null;
 
 }
 
@@ -168,6 +171,8 @@ export interface PPPoECredential {
 
     id: number;
 
+    mikrotik: string;
+
     username: string;
 
     password: string;
@@ -177,6 +182,16 @@ export interface PPPoECredential {
     suspended: boolean;
 
     created_at: string;
+
+}
+
+export interface PPPoEProfile {
+
+    credential: PPPoECredential | null;
+
+    current_subscription: SubscriptionSummary | null;
+
+    history: SubscriptionSummary[];
 
 }
 
@@ -198,29 +213,7 @@ export interface PPPoESubscription {
  * PAYMENTS
  * ========================================================= */
 
-export interface Payment {
 
-    id: number;
-
-    amount: number;
-
-    status: string;
-
-    payment_method: string;
-
-    phone: string;
-
-    reference: string;
-
-    transaction_id: string;
-
-    created_at: string;
-
-    plan_name?: string;
-
-   
-
-}
 
 /* =========================================================
  * RADIUS SESSION
@@ -281,22 +274,22 @@ export interface Device {
  * ========================================================= */
 
 export interface Activity {
-    id: string;
+
+    id: number;
 
     type:
-        | "payment"
-        | "hotspot"
-        | "pppoe"
-        | "login"
-        | "logout"
-        | "device"
-        | "system";
+        | "PAYMENT"
+        | "HOTSPOT_LOGIN"
+        | "HOTSPOT_LOGOUT"
+        | "PPPOE_LOGIN"
+        | "PPPOE_LOGOUT"
+        | "SUBSCRIPTION"
+        | "ACCOUNT"
+        | "PASSWORD";
 
     title: string;
 
     description: string;
-
-    time: string;
 
     status:
         | "success"
@@ -304,8 +297,11 @@ export interface Activity {
         | "error"
         | "info";
 
-}
+    created_at: string;
 
+    amount?: number;
+
+}
 /* =========================================================
  * COMPLETE PROFILE
  * ========================================================= */

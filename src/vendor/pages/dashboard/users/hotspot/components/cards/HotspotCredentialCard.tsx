@@ -16,7 +16,7 @@ import { useState } from "react";
 
 import CredentialRow from "../../../components/common/CredentialRow";
 
-import CopyButton from "../../components/CopyButton";
+import CopyButton from "../../../components/common/CopyButton";
 
 import StatusBadge from "../../../components/StatusBadge";
 

@@ -57,6 +57,7 @@ export default function UserProfile() {
 
             <UserTabs
                 profile={profile}
+                reload={reload}
             />
 
         </div>

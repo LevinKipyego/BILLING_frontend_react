@@ -2,11 +2,12 @@ import type { FC } from "react";
 
 import type { UserProfile } from "../components/types/types";
 
-import HotspotCredentialCard from "./components/cards/HotspotCredentialCard";
+//import HotspotCredentialCard from "./components/cards/HotspotCredentialCard";
 import ConnectionStatusCard from "./components/cards/ConnectionStatusCard";
 import CurrentSubscriptionCard from "../components/cards/CurrentSubscriptionCard";
 import SubscriptionHistorySection from "./components/section/SubscriptionHistorySection";
-//import HotspotQuickActions from "./components/section/HotspotQuickActions";
+import CredentialCard from "../components/cards/CredentialCard";
+import HotspotQuickActions from "./components/section/HotspotQuickActions";
 
 type HotspotTabProps = {
     profile: UserProfile;
@@ -22,10 +23,14 @@ const HotspotTab: FC<HotspotTabProps> = ({ profile }) => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                <HotspotCredentialCard
-                    profile={profile}
-                />
+               
+                <CredentialCard
 
+                    title="Hotspot Credential"
+
+                    credential={profile.hotspot.credential}
+
+                />
                 <ConnectionStatusCard
                     connection={profile.hotspot.connection}
                 />
@@ -46,6 +51,12 @@ const HotspotTab: FC<HotspotTabProps> = ({ profile }) => {
             />
 
             {/* Quick Actions */}
+
+            <HotspotQuickActions
+
+                profile={profile}
+
+            />
 
           
 

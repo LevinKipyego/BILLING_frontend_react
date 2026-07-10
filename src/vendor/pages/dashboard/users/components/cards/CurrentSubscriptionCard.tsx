@@ -1,48 +1,32 @@
 import {
+    AlertCircle,
     Calendar,
+    CheckCircle2,
     Clock,
     CreditCard,
-    CheckCircle2,
-    AlertCircle,
 } from "lucide-react";
 
 import ProgressBar from "../../components/ProgressBar";
 import StatusBadge from "../../components/StatusBadge";
 import InfoRow from "../../components/InfoRow";
 
-interface SubscriptionSummary {
-    percentage_remaining: number;
-    remaining_seconds: number;
-    expired: boolean;
-}
-
-interface Plan {
-    name: string;
-    price: number;
-}
-
-interface Subscription {
-    id: number;
-    active: boolean;
-    start_at: string;
-    end_at: string;
-    plan: Plan;
-    summary: SubscriptionSummary;
-
-    router_name?: string;
-    purchase_amount?: number;
-    transaction_id?: string;
-}
+import type  { BaseSubscription } from "../../components/types/subscription";
 
 interface Props {
+
     title?: string;
-    subscription: Subscription | null;
+
+    subscription: BaseSubscription | null;
+
 }
 
 function formatRemaining(seconds: number) {
 
-    if (seconds <= 0)
+    if (seconds <= 0) {
+
         return "Expired";
+
+    }
 
     const days = Math.floor(seconds / 86400);
 
@@ -50,13 +34,20 @@ function formatRemaining(seconds: number) {
 
     const minutes = Math.floor((seconds % 3600) / 60);
 
-    if (days > 0)
+    if (days > 0) {
+
         return `${days}d ${hours}h`;
 
-    if (hours > 0)
+    }
+
+    if (hours > 0) {
+
         return `${hours}h ${minutes}m`;
 
-    return `${minutes} minutes`;
+    }
+
+    return `${minutes}m`;
+
 }
 
 export default function CurrentSubscriptionCard({
@@ -96,6 +87,26 @@ export default function CurrentSubscriptionCard({
 
     }
 
+    const {
+
+        id,
+
+        active,
+
+        start_at,
+
+        end_at,
+
+        plan,
+
+        transaction,
+
+        summary,
+
+        is_trial,
+
+    } = subscription;
+
     return (
 
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
@@ -114,7 +125,7 @@ export default function CurrentSubscriptionCard({
 
                     <p className="mt-1 text-sm text-slate-500">
 
-                        Active customer package
+                        Current service package
 
                     </p>
 
@@ -124,15 +135,15 @@ export default function CurrentSubscriptionCard({
 
                     status={
 
-                        subscription.summary.expired
+                        summary.expired
 
                             ? "expired"
 
-                            : subscription.active
+                            : active
 
-                            ? "active"
+                                ? "active"
 
-                            : "pending"
+                                : "offline"
 
                     }
 
@@ -156,7 +167,7 @@ export default function CurrentSubscriptionCard({
 
                         <h3 className="mt-1 text-2xl font-bold">
 
-                            {subscription.plan.name}
+                            {plan.name}
 
                         </h3>
 
@@ -172,12 +183,7 @@ export default function CurrentSubscriptionCard({
 
                         <p className="mt-1 text-2xl font-bold text-blue-600">
 
-                            KES{" "}
-
-                            {(
-                                subscription.purchase_amount ??
-                                subscription.plan.price
-                            ).toLocaleString()}
+                            KES {plan.price.toLocaleString()}
 
                         </p>
 
@@ -189,17 +195,17 @@ export default function CurrentSubscriptionCard({
 
                 <div>
 
-                    <div className="flex justify-between mb-2 text-sm">
+                    <div className="mb-2 flex justify-between text-sm">
 
                         <span>
 
-                            Time Remaining
+                            Remaining Time
 
                         </span>
 
                         <span className="font-semibold">
 
-                            {subscription.summary.percentage_remaining.toFixed(1)}%
+                            {summary.percentage_remaining.toFixed(1)}%
 
                         </span>
 
@@ -207,7 +213,7 @@ export default function CurrentSubscriptionCard({
 
                     <ProgressBar
 
-                        value={subscription.summary.percentage_remaining}
+                        value={summary.percentage_remaining}
 
                     />
 
@@ -215,31 +221,29 @@ export default function CurrentSubscriptionCard({
 
                         {formatRemaining(
 
-                            subscription.summary.remaining_seconds
+                            summary.remaining_seconds
 
-                        )}
-
-                        {" "}remaining
+                        )} remaining
 
                     </div>
 
                 </div>
 
-                {/* Information */}
+                {/* Details */}
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
 
                     <InfoRow
 
                         icon={<Calendar size={16}/>}
 
-                        label="Purchased"
+                        label="Started"
 
                         value={
 
                             new Date(
 
-                                subscription.start_at
+                                start_at
 
                             ).toLocaleString()
 
@@ -257,7 +261,7 @@ export default function CurrentSubscriptionCard({
 
                             new Date(
 
-                                subscription.end_at
+                                end_at
 
                             ).toLocaleString()
 
@@ -273,9 +277,7 @@ export default function CurrentSubscriptionCard({
 
                         value={
 
-                            subscription.transaction_id ??
-
-                            "-"
+                            transaction?.transaction_id ?? "-"
 
                         }
 
@@ -287,7 +289,25 @@ export default function CurrentSubscriptionCard({
 
                         label="Subscription ID"
 
-                        value={`#${subscription.id}`}
+                        value={`#${id}`}
+
+                    />
+
+                    <InfoRow
+
+                        icon={<CheckCircle2 size={16}/>}
+
+                        label="Type"
+
+                        value={
+
+                            is_trial
+
+                                ? "Trial"
+
+                                : "Paid"
+
+                        }
 
                     />
 

@@ -70,7 +70,7 @@ export default function ActivityItem({
 
                         <Clock size={14} />
 
-                        {new Date(activity.time).toLocaleString()}
+                        {new Date(activity.created_at).toLocaleString()}
 
                     </div>
 
