@@ -30,7 +30,7 @@ export default function StatCard({
 
                     </p>
 
-                    <h2 className="mt-2 text-3xl font-black text-slate-900 dark:text-white">
+                    <h2 className="mt-2 text-lg font-black text-slate-900 dark:text-white">
 
                         {value}
 
