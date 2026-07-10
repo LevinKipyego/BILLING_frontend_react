@@ -146,14 +146,14 @@ export default function HotspotCredentialPage() {
   };
 
   if (loading && data.length === 0) return (
-    <div className="flex h-64 items-center justify-center font-['Figtree'] font-medium text-sm text-blue-500 bg-slate-50 dark:bg-gray-900">
+    <div className="flex h-64 items-center justify-center font-medium text-sm text-blue-500 bg-slate-50 dark:bg-gray-900">
        <div className="mr-3 h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
        Accessing Registry...
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-4 lg:p-8 font-['Figtree',sans-serif] transition-colors duration-500">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-4 lg:p-8  transition-colors duration-500">
       
       {/* HEADER */}
       <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -162,7 +162,7 @@ export default function HotspotCredentialPage() {
             <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight leading-none">
               Hotspot <span className="text-blue-600">Credentials</span>
             </h2>
-            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 font-bold uppercase tracking-wider">Access Control</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1 font-bold  tracking-wider">Access Control</p>
           </div>
         </div>
         
@@ -260,7 +260,7 @@ export default function HotspotCredentialPage() {
       <div className="hidden lg:block overflow-hidden rounded-[32px] border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/40 backdrop-blur-md shadow-sm">
         <table className="w-full text-left">
           <thead>
-            <tr className="text-[11px] font-black uppercase tracking-[0.1em] text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700">
+            <tr className="text-[11px] font-black  tracking-[0.1em] text-gray-400 dark:text-gray-500 border-b border-gray-100 dark:border-gray-700">
               <th className="p-6">Credential Details</th>
               <th className="p-6">Account Status</th>
               <th className="p-6">Trial Window</th>
@@ -280,7 +280,7 @@ export default function HotspotCredentialPage() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">{item.username}</span>
+                          <span className="text-sm font-black text-gray-900 dark:text-white  tracking-tight">{item.username}</span>
                         </div>
                         <span className="text-[10px] font-bold text-gray-400">ID: #{item.user}</span>
                       </div>

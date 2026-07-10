@@ -115,7 +115,7 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
         - injected mobile-no-scroll to selectively target responsive scroll containers
         - switched font styling directly to Figtree for all devices
       */}
-      <nav className="flex-1 w-[88vw] sm:w-[350px] lg:w-full overflow-y-auto mobile-no-scroll px-3 py-6 space-y-8 font-['Comfortaa']">
+      <nav className="flex-1 w-[88vw] sm:w-[350px] lg:w-full overflow-y-auto mobile-no-scroll px-3 py-6 space-y-8 font-['Gummymimimal']">
         {navSections.map((section) => (
           <div key={section.title} className="space-y-1">
             {/* SECTION HEADER */}

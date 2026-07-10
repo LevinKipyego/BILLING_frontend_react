@@ -9,14 +9,16 @@ export default {
         jakarta: ['Jakarta', 'sans-serif'],
         rosemary: ['Rosemary', 'sans-serif'],
         chocolate: ['Chocolate','sans-serif'],
-        chocolate: ['Comfortaa','sans-serif'],
-        chocolate: ['Delius','sans-serif'],
-        chocolate: ['Patrickhand','sans-serif'],
+        comfortaa: ['Comfortaa','sans-serif'],
+        delius: ['Delius','sans-serif'],
+        patrickhand: ['Patrickhand','sans-serif'],
+        poppins: ['Poppins','sans-serif'],
+        gummyminimal: ['Gummymimimal','sans-serif'],
         
         //figtree: ['Figtree', 'sans-serif'],
         
         // This maps the default 'font-sans' utilities to use your CSS-controlled cascade
-        sans: ['Jakarta', 'Rosemary', 'Chocolate', 'Comfortaa', 'Delius' , 'Patrickhand', 'sans-serif'],
+        sans: ['Jakarta', 'Rosemary', 'Chocolate', 'Comfortaa', 'Delius' , 'Patrickhand', 'Gummymimimal', 'sans-serif'],
       },
     },
   },

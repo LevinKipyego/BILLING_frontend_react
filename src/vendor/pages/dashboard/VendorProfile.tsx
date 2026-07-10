@@ -80,7 +80,7 @@ export default function VendorProfilePage(): React.JSX.Element {
       setMessage(null);
 
       const payload = {
-        vendor_code: profile.vendor_code, // Added to payload mapping
+        vendor_code: profile.vendor_code, 
         phone_number: profile.phone_number,
         support_phone: profile.support_phone,
         location: profile.location,
@@ -139,7 +139,7 @@ export default function VendorProfilePage(): React.JSX.Element {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-2 md:p-8 space-y-4 md:space-y-6 animate-fadeIn pb-24 transition-colors duration-500 font-['Figtree',sans-serif]">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-2 md:p-8 space-y-4 md:space-y-6 animate-fadeIn pb-24 transition-colors duration-500 ">
       
       {/* HEADER AREA */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-2 mt-2">

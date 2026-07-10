@@ -146,14 +146,16 @@ export default function PppoeCredentialPage() {
   };
 
   if (loading && data.length === 0) return (
-    <div className="flex h-64 items-center justify-center font-['Figtree'] font-medium text-sm text-blue-500 bg-slate-50 dark:bg-gray-900">
+    <div className="flex h-64 items-center justify-center 
+     font-medium text-sm text-blue-500 bg-slate-50 dark:bg-gray-900">
        <div className="mr-3 h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
        Accessing Registry...
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-4 lg:p-8 font-['Figtree',sans-serif] transition-colors duration-500">
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-4 lg:p-8 
+     transition-colors duration-500">
       
       {/* HEADER */}
       <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">

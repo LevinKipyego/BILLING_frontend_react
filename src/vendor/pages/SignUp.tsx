@@ -49,7 +49,7 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-[#090d16] font-sans">
+    <div className="min-h-screen flex bg-slate-50 dark:bg-[#090d16] ">
       
       {/* LEFT SIDE - FORM */}
       <div className="flex flex-1 items-center justify-center px-6 py-12 lg:px-16 xl:px-24 z-10">

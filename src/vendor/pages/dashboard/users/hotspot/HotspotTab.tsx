@@ -1,9 +1,11 @@
 import type { FC } from "react";
 
-import type { UserProfile } from "../components/types/types";
+import type { UserProfile, ConnectionStatus} from "../components/types/types";
 
 //import HotspotCredentialCard from "./components/cards/HotspotCredentialCard";
-import ConnectionStatusCard from "./components/cards/ConnectionStatusCard";
+//import ConnectionStatusCard from "./components/cards/ConnectionStatusCard";
+
+import ConnectionStatusCard from "../components/cards/ConnectionStatusCard";
 import CurrentSubscriptionCard from "../components/cards/CurrentSubscriptionCard";
 import SubscriptionHistorySection from "./components/section/SubscriptionHistorySection";
 import CredentialCard from "../components/cards/CredentialCard";
@@ -32,8 +34,8 @@ const HotspotTab: FC<HotspotTabProps> = ({ profile }) => {
 
                 />
                 <ConnectionStatusCard
-                    connection={profile.hotspot.connection}
-                />
+                    connection={(profile.hotspot.connection  as ConnectionStatus) || null}
+                    />
 
             </div>
 

@@ -88,8 +88,8 @@ export default function StkTransactions() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-4 lg:p-8 font-['Rosemary',sans-serif] transition-colors duration-500">
-      
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-4 lg:p-8 text-[12px] lg:text-sm transition-colors duration-500">
+ 
       {/* HEADER SECTION */}
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>

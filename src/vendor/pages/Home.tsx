@@ -8,11 +8,15 @@ import {
   Menu,
   X,
   ArrowRight,
+  BookOpen,
+  HelpCircle,
+  Activity
 } from "lucide-react";
 
 const Home: React.FC = () => {
   const location = useLocation();
-  const isRoot = location.pathname === "/dashboard" || location.pathname === "/dashboard/";
+  // FIXED: Now checks for root path so your lander content actually displays by default
+  const isRoot = location.pathname === "/" || location.pathname === "";
   const [open, setOpen] = useState(false);
 
   return (
@@ -23,20 +27,20 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
 
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <div className="bg-blue-600 p-2 rounded-md">
               <Cpu className="w-5 h-5 text-white" />
             </div>
             <span className="font-semibold text-gray-900 dark:text-white">
               VendHub
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8 text-sm text-gray-600 dark:text-gray-300">
-            <a href="#features" className="hover:text-blue-600">Features</a>
-            <a href="#security" className="hover:text-blue-600">Security</a>
-            <Link to="/login" className="hover:text-blue-600">Login</Link>
+            <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
+            <a href="#security" className="hover:text-blue-600 transition-colors">Security</a>
+            <Link to="/login" className="hover:text-blue-600 transition-colors">Login</Link>
             <Link
               to="/signup"
               className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
@@ -45,27 +49,86 @@ const Home: React.FC = () => {
             </Link>
           </nav>
 
-          {/* Mobile Button */}
-          <button onClick={() => setOpen(!open)} className="md:hidden">
-            {open ? <X /> : <Menu />}
+          {/* Mobile Menu Button Toggle */}
+          <button 
+            onClick={() => setOpen(!open)} 
+            className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
+          >
+            {open ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* UPDATED: Structured Mobile Dropdown Context with future placeholders */}
         {open && (
-          <div className="md:hidden px-4 pb-4 space-y-3">
-            <Link to="/login" className="block text-gray-600 dark:text-gray-300">
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="block text-center bg-blue-600 text-white py-3 rounded-lg"
-            >
-              Get Started
-            </Link>
+          <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0b0f19] px-4 py-4 space-y-4 shadow-xl">
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">Explore</p>
+              <a 
+                href="#features" 
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-2 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg text-sm"
+              >
+                <Cpu size={16} className="text-blue-500" /> Features
+              </a>
+              <a 
+                href="#security" 
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-2 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg text-sm"
+              >
+                <ShieldCheck size={16} className="text-emerald-500" /> Security
+              </a>
+            </div>
+
+            {/* Future Additions Expansion Tier */}
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">Resources</p>
+              <Link 
+                to="/docs" 
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-2 py-2 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg text-sm"
+              >
+                <BookOpen size={16} /> API Docs (Future)
+              </Link>
+              <Link 
+                to="/status" 
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-2 py-2 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg text-sm"
+              >
+                <Activity size={16} /> System Status (Future)
+              </Link>
+              <Link 
+                to="/support" 
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-2 py-2 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg text-sm"
+              >
+                <HelpCircle size={16} /> Help Center (Future)
+              </Link>
+            </div>
+
+            <hr className="border-gray-200 dark:border-gray-800" />
+
+            {/* Authentication Core Group */}
+            <div className="space-y-2 pt-1">
+              <Link 
+                to="/login" 
+                onClick={() => setOpen(false)}
+                className="block text-center text-sm font-medium text-gray-600 dark:text-gray-300 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition"
+              >
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                onClick={() => setOpen(false)}
+                className="block text-center text-sm font-medium bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition"
+              >
+                Get Started
+              </Link>
+            </div>
           </div>
         )}
       </header>
+
+      <header />
 
       <main className="flex-1">
         {isRoot ? (
@@ -162,7 +225,7 @@ const Home: React.FC = () => {
       {/* FOOTER */}
       <footer className="border-t border-gray-200 dark:border-gray-800 py-10">
         <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} VendHub</p>
+          <p>© {new Date().getFullYear()} VendHub VeeGoStems</p>
 
           <div className="flex gap-6">
             <a href="#" className="hover:text-blue-600">Privacy</a>

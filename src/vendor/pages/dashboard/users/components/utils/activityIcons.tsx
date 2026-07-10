@@ -7,33 +7,42 @@ import {
     LogOut,
     Smartphone,
     Settings,
+    SubscriptIcon,
     
 } from "lucide-react";
 
 
 import type { Activity } from "../types/types";
 
+
 export function activityIcon(type: Activity["type"]): LucideIcon {
 
     switch (type) {
 
-        case "payment":
+        case "PAYMENT":
             return CreditCard;
 
-        case "hotspot":
+        case "HOTSPOT_LOGIN":
             return Wifi;
 
-        case "pppoe":
+        case "PPPOE_LOGIN":
             return Network;
 
-        case "login":
-            return LogIn;
+        //case "login":
+           // return LogIn;
 
-        case "logout":
+        case "HOTSPOT_LOGOUT":
             return LogOut;
 
-        case "device":
-            return Smartphone;
+        case "PPPOE_LOGOUT":
+            return LogOut;
+
+
+        case "SUBSCRIPTION":
+            return SubscriptIcon
+
+        //case "device":
+         //   return Smartphone;
 
         default:
             return Settings;

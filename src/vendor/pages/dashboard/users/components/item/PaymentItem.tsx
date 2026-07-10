@@ -5,7 +5,7 @@ import {
     Clock3,
 } from "lucide-react";
 
-import type { Payment } from "../types/types";
+import type { Payment } from "../../payments/components/types/types";
 
 interface Props {
 

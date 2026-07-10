@@ -35,7 +35,7 @@ export default function SubscriptionHistoryRow({
                 KES{" "}
 
                 {subscription.transaction
-                    ? String(subscription.transaction)
+                    ? String(subscription.transaction.amount)
                     : '-'}
 
             </td>

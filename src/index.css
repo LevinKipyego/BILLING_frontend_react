@@ -28,12 +28,29 @@
 }
 
 @font-face {
+    font-family: 'Poppins';
+    src: url('/fonts/poppins.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
     font-family: 'Delius';
     src: url('/fonts/delius.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
 }
+
+@font-face {
+    font-family: 'Gummymimimal';
+    src: url('/fonts/gummy-minimal.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 
 @font-face {
     font-family: 'Patrickhand';
@@ -70,7 +87,7 @@
     line-height: 1.5;
 
     /* Mobile First: Using Comfortaa as your primary choice, clean fallback stack */
-    font-family: 'Comfortaa', 'Rosemary', ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Gummymimimal', 'Rosemary', ui-sans-serif, system-ui, sans-serif;
   }
 
   /* Desktop Override: Apply Jakarta and scale up base font layout when screen hits 'md' */
@@ -79,7 +96,7 @@
       font-size: 16px; /* Bumps up all text elements using text-sm, text-base, etc. uniformly */
     }
     body {
-      font-family: 'Jakarta', ui-sans-serif, system-ui, sans-serif;
+      font-family: 'Gummymimimal', ui-sans-serif, system-ui, sans-serif;
     }
   }
 }

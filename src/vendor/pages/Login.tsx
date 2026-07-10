@@ -70,7 +70,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-[#090d16] font-['Figtree']">
+    <div className="min-h-screen flex bg-slate-50 dark:bg-[#090d16] ">
       
       {/* LEFT SIDE - Centered Form Card */}
       <div className="flex flex-1 items-center justify-center px-6 py-12 lg:px-16 xl:px-24 z-10">

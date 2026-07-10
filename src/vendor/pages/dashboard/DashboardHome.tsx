@@ -39,7 +39,7 @@ export default function DashboardHome() {
       {/* 1. Industrial Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase flex items-center gap-2 ">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight  flex items-center gap-2 ">
             
             System Intelligence
           </h1>
@@ -49,7 +49,7 @@ export default function DashboardHome() {
             <div className="text-right">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Telemetry Sync</p>
                 <p className="text-xs font-bold text-blue-600 dark:text-blue-400  flex items-center justify-end gap-1">
-                    <DotIcon className="w-3 h-3 animate-spin" /> LIVE_STATUS
+                    <DotIcon className="w-3 h-3 animate-spin" /> 
                 </p>
             </div>
         </div>

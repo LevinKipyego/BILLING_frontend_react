@@ -71,7 +71,7 @@ export default function StatusBadge({ status }: Props) {
 
             {icons[status]}
 
-            // If status is undefined, it safely returns an empty string instead of crashing
+            
             {(status?.charAt(0).toUpperCase() || '') + (status?.slice(1) || '')}
 
         </span>

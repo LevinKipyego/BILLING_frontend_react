@@ -161,7 +161,7 @@ export default function NASPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight uppercase flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight  flex items-center gap-2">
               NAS Infrastructure
             </h1>
             <span className="relative flex h-2 w-2">

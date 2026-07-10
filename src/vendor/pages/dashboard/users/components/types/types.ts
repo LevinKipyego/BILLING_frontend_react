@@ -118,6 +118,7 @@ export interface HotspotConnection {
 
     uptime?: string | null;
 
+    
 }
 export interface ConnectionStatus {
 
