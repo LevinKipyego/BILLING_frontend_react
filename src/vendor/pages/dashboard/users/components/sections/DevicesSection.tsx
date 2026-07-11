@@ -1,66 +1,66 @@
 import DeviceItem from "../item/DeviceItem";
 
-import type { UserProfile } from "../types/types";
+import type { CurrentDevice, UserProfile } from "../types/types";
 
 interface Props {
+
     profile: UserProfile;
+
 }
 
 export default function DevicesSection({
+
     profile,
+
 }: Props) {
+
+    const currentDevice = profile.devices.current as CurrentDevice | null;
 
     return (
 
-        <section className="rounded-2xl border bg-white dark:bg-slate-900 p-6">
+        <section className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
 
-            <div className="flex justify-between items-center mb-6">
+            <div className="mb-6 flex items-center justify-between">
 
                 <div>
 
                     <h2 className="text-xl font-bold">
 
-                        Connected Devices
+                        Current Device
 
                     </h2>
 
                     <p className="text-sm text-slate-500">
 
-                        Devices associated with this customer.
+                        The customer's currently active network connection.
 
                     </p>
 
                 </div>
 
-                <button className="text-blue-600 hover:text-blue-700">
+                <button className="text-sm font-medium text-blue-600 hover:text-blue-700">
 
-                    View all
+                    View device history
 
                 </button>
 
             </div>
 
-            {profile.devices.length === 0 ? (
+            {!currentDevice ? (
 
-                <div className="py-12 text-center text-slate-500">
+                <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 py-12 text-center text-slate-500">
 
-                    No devices found.
+                    No active device connected.
 
                 </div>
 
             ) : (
 
-                profile.devices.map(device => (
+                <DeviceItem
 
-                    <DeviceItem
+                    device={currentDevice}
 
-                        key={`${device.source}-${device.identifier ?? device.name}`}
-
-                        device={device}
-
-                    />
-
-                ))
+                />
 
             )}
 

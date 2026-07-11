@@ -45,7 +45,15 @@
 
 @font-face {
     font-family: 'Gummymimimal';
-    src: url('/fonts/gummy-minimal.woff2') format('woff2');
+    src: url('/fonts/sour-gummy-minimal.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Gummy400';
+    src: url('/fonts/sour-gummy-latin-400-normal.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -96,7 +104,7 @@
       font-size: 16px; /* Bumps up all text elements using text-sm, text-base, etc. uniformly */
     }
     body {
-      font-family: 'Gummymimimal', ui-sans-serif, system-ui, sans-serif;
+      font-family:'Gummy400', 'Gummymimimal', ui-sans-serif, system-ui, sans-serif;
     }
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import type { UserProfile } from "../components/types/types";
 
@@ -6,6 +6,8 @@ import OverviewTab from "./tabs/OverviewTab";
 import HotspotTab from "../hotspot/HotspotTab";
 import PPPoETab from "../pppoe/PppoeTab";
 import PaymentsTab from "../payments/PaymentTab";
+import ActivityTab from "../activities/ActivityTab";
+import DeviceTab from "../devices/DeviceTab";
 
 interface Props {
     profile: UserProfile;
@@ -16,6 +18,7 @@ type Tab =
     | "overview"
     | "hotspot"
     | "pppoe"
+    | "device"
     | "payments"
     | "activity";
 
@@ -36,6 +39,10 @@ const tabs: {
         label: "PPPoE",
     },
     {
+        id: "device",
+        label: "Devices",
+    },
+    {
         id: "payments",
         label: "Payments",
     },
@@ -48,6 +55,7 @@ const tabs: {
 export default function UserTabs({
 
     profile,
+
     reload,
 
 }: Props) {
@@ -55,11 +63,75 @@ export default function UserTabs({
     const [activeTab, setActiveTab] =
         useState<Tab>("overview");
 
+    const tabComponents = useMemo<Record<Tab, ReactNode>>(
+        () => ({
+
+            overview: (
+
+                <OverviewTab
+                    profile={profile}
+                    reload={reload}
+                />
+
+            ),
+
+            hotspot: (
+
+                <HotspotTab
+                    profile={profile}
+                />
+
+            ),
+
+            pppoe: (
+
+                <PPPoETab
+                    profile={profile}
+                />
+
+            ),
+
+            device: (
+
+                <DeviceTab
+                    profile={profile}
+                />
+
+            ),
+
+            payments: (
+
+                <PaymentsTab
+                    profile={profile}
+                />
+
+            ),
+
+            activity: (
+
+                <ActivityTab
+                    profile={profile}
+                />
+
+            ),
+
+        }),
+
+        [
+
+            profile,
+
+            reload,
+
+        ]
+
+    );
+
     return (
 
         <div className="space-y-6">
 
-            {/* Tab Navigation */}
+            {/* Navigation */}
 
             <div className="overflow-x-auto">
 
@@ -68,17 +140,25 @@ export default function UserTabs({
                     {tabs.map((tab) => (
 
                         <button
+
                             key={tab.id}
+
                             onClick={() =>
+
                                 setActiveTab(tab.id)
+
                             }
-                            className={`px-5 py-3 text-sm font-semibold transition-all whitespace-nowrap border-b-2 ${
+
+                            className={`px-5 py-3 text-sm font-semibold whitespace-nowrap border-b-2 transition-all ${
                                 activeTab === tab.id
                                     ? "border-blue-600 text-blue-600"
                                     : "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-white"
                             }`}
+
                         >
+
                             {tab.label}
+
                         </button>
 
                     ))}
@@ -87,62 +167,9 @@ export default function UserTabs({
 
             </div>
 
-            {/* Tab Content */}
+            {/* Active Tab */}
 
-            {activeTab === "overview" && (
-
-                <OverviewTab
-                    profile={profile}
-                    reload={reload}
-                />
-
-            )}
-
-            {activeTab === "hotspot" && (
-
-                <HotspotTab
-                    profile={profile}
-                />
-
-            )}
-
-            {activeTab === "pppoe" && (
-
-                <PPPoETab
-                    profile={profile}
-                />
-            
-            )}
-
-            {activeTab === "payments" && (
-
-                <PaymentsTab
-                    profile={profile}
-                />
-
-            )}
-
-                
-
-            {activeTab === "activity" && (
-
-                <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center">
-
-                    <h2 className="text-xl font-bold mb-2">
-
-                        Activity
-
-                    </h2>
-
-                    <p className="text-slate-500">
-
-                        User activity timeline will appear here.
-
-                    </p>
-
-                </div>
-
-            )}
+            {tabComponents[activeTab]}
 
         </div>
 

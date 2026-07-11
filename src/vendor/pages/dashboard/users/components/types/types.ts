@@ -248,26 +248,96 @@ export interface RadiusSession {
 
 export interface Device {
 
-    id?: number;
+    mac_address: string;
 
-    name: string;
+    ip_address: string;
 
-    type: "phone" | "computer" | "router" | "tablet" | "unknown";
+    router_name: string;
 
-    identifier?: string;
+    username: string;
 
-    mac_address?: string;
+    connected_since?: string;
 
-    ip_address?: string;
+    first_seen?: string;
 
-    status: "active" | "offline";
+    last_seen?: string;
 
-    source: "Hotspot" | "PPPoE" | "GenieACS";
+    total_sessions: number;
 
-    vendor?: string;
+    type: string;
 
-    online: boolean;
+}
 
+
+
+
+export interface DeviceSummary {
+
+    known_devices: number;
+
+    online_devices: number;
+
+    last_seen: string | null;
+
+    last_router: string | null;
+
+}
+
+
+export interface CurrentDevice {
+
+    mac_address: string;
+
+    username: string;
+
+    service: "HOTSPOT" | "PPPOE" | "UNKNOWN";
+
+    ip_address: string | null;
+
+    router_ip: string;
+
+    router_name: string;
+
+    connected_since: string | null;
+
+    last_seen: string | null;
+
+    upload_bytes: number;
+
+    download_bytes: number;
+
+}
+
+export interface DeviceHistoryItem {
+
+    mac_address: string;
+
+    username: string;
+
+    service: "HOTSPOT" | "PPPOE" | "UNKNOWN";
+
+    router_name: string;
+
+    router_ip: string;
+
+    last_ip: string | null;
+
+    first_seen: string;
+
+    last_seen: string;
+
+    sessions: number;
+
+    upload_bytes: number;
+
+    download_bytes: number;
+
+}
+
+export interface DeviceProfile {
+    summary: DeviceSummary;
+    current: CurrentDevice | null;
+    history: DeviceHistoryItem[];
 }
 
 /* =========================================================
@@ -276,17 +346,18 @@ export interface Device {
 
 export interface Activity {
 
-    id: number;
+    id: string;
 
     type:
         | "PAYMENT"
-        | "HOTSPOT_LOGIN"
-        | "HOTSPOT_LOGOUT"
-        | "PPPOE_LOGIN"
-        | "PPPOE_LOGOUT"
-        | "SUBSCRIPTION"
-        | "ACCOUNT"
-        | "PASSWORD";
+        | "HOTSPOT_SUBSCRIPTION"
+        | "PPPOE_SUBSCRIPTION"
+        | "NETWORK_LOGIN"
+        | "NETWORK_LOGOUT"
+        | "ACCOUNT_CREATED"
+        | "PASSWORD_CHANGED"
+        | "ACCOUNT_SUSPENDED"
+        | "ACCOUNT_ACTIVATED";
 
     title: string;
 
@@ -294,15 +365,18 @@ export interface Activity {
 
     status:
         | "success"
+        | "pending"
+        | "failed"
         | "warning"
-        | "error"
-        | "info";
+        | "info"
+        | "active";
 
     created_at: string;
 
-    amount?: number;
+    metadata: Record<string, any>;
 
 }
+
 /* =========================================================
  * COMPLETE PROFILE
  * ========================================================= */
@@ -339,11 +413,15 @@ export interface UserProfile {
 
     payments: Payment[];
 
-    devices: Device[];
+    //devices: Device[];
+
+    devices: DeviceProfile;
 
     sessions: RadiusSession[];
 
     activity: Activity[];
+
+    activities: Activity[];
 
 
 
