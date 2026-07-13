@@ -3,24 +3,19 @@ import ServiceCard from "../cards/ServiceCard";
 import type { UserProfile } from "../types/types";
 
 interface Props {
-
     profile: UserProfile;
-
 }
 
 export default function CurrentServicesSection({
-
     profile,
-
 }: Props) {
 
-    const hotspot = profile.hotspot.current_subscription;
+    const hotspotAccounts = profile.hotspot.accounts ?? [];
+    const pppoeAccounts = profile.pppoe.accounts ?? [];
 
-    const hotspotCredential = profile.hotspot.credential;
-
-    const pppoe = profile.pppoe.current_subscription;
-
-    const pppoeCredential = profile.pppoe.credential;
+    const hasServices =
+        hotspotAccounts.length > 0 ||
+        pppoeAccounts.length > 0;
 
     return (
 
@@ -42,63 +37,75 @@ export default function CurrentServicesSection({
 
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            {!hasServices ? (
 
-                <ServiceCard
+                <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 py-10 text-center text-slate-500">
 
-                    title="Hotspot"
+                    No internet services found.
 
-                    status={
-                        hotspot?.active
-                            ? "active"
-                            : hotspot
-                                ? "expired"
-                                : "pending"
-                    }
+                </div>
 
-                    plan={
-                        // hotspot.plan may be an object (SubscriptionPlan) or a string.
-                        // Normalize to string or undefined for ServiceCard prop.
-                        typeof hotspot?.plan === "string"
-                            ? hotspot.plan
-                            : hotspot?.plan?.name ?? undefined
-                    }
+            ) : (
 
-                    username={hotspotCredential?.username}
+                <div className="grid gap-6 lg:grid-cols-2">
 
-                    expires={
-                        hotspot?.end_at
-                            ? new Date(hotspot.end_at).toLocaleString()
-                            : null
-                    }
+                    {hotspotAccounts.map((account, index) => (
 
-                />
+                        <ServiceCard
+                            key={`hotspot-${account.credential?.id ?? index}`}
+                            title={`Hotspot • ${account.credential?.mikrotik?.identity_name ?? "Router"}`}
+                            status={
+                                account.current_subscription?.active
+                                    ? "active"
+                                    : account.current_subscription
+                                        ? "expired"
+                                        : "pending"
+                            }
+                            plan={
+                                typeof account.current_subscription?.plan === "string"
+                                    ? account.current_subscription.plan
+                                    : account.current_subscription?.plan?.name
+                            }
+                            username={account.credential?.username ?? "unknown"}
+                            expires={
+                                account.current_subscription?.end_at
+                                    ? new Date(
+                                          account.current_subscription.end_at
+                                      ).toLocaleString()
+                                    : null
+                            }
+                        />
 
-                <ServiceCard
+                    ))}
 
-                    title="PPPoE"
+                    {pppoeAccounts.map((account, index) => (
 
-                    status={
-                        pppoe?.active
-                            ? "active"
-                            : pppoe
-                                ? "expired"
-                                : "pending"
-                    }
+                        <ServiceCard
+                            key={`pppoe-${account.credential?.id ?? index}`}
+                            title={`PPPoE • ${account.credential?.mikrotik?.identity_name ?? "Router"}`}
+                            status={
+                                account.current_subscription?.active
+                                    ? "active"
+                                    : account.current_subscription
+                                        ? "expired"
+                                        : "pending"
+                            }
+                            plan={account.current_subscription?.plan_name}
+                            username={account.credential?.username ?? "unknown"}
+                            expires={
+                                account.current_subscription?.end_at
+                                    ? new Date(
+                                          account.current_subscription.end_at
+                                      ).toLocaleString()
+                                    : null
+                            }
+                        />
 
-                    plan={pppoe?.plan_name}
+                    ))}
 
-                    username={pppoeCredential?.username}
+                </div>
 
-                    expires={
-                        pppoe?.end_at
-                            ? new Date(pppoe.end_at).toLocaleString()
-                            : null
-                    }
-
-                />
-
-            </div>
+            )}
 
         </section>
 

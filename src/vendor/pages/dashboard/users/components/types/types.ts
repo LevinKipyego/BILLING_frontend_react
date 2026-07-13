@@ -22,6 +22,13 @@ export interface User {
     avatar?: string | null;
 }
 
+
+export interface mikrotik{
+
+    id: string;
+    identity_name?: string;
+    api_ip: string;
+}
 /* =========================================================
  * OVERVIEW
  * ========================================================= */
@@ -102,6 +109,8 @@ export interface HotspotCredential {
 
     created_at: string;
 
+    mikrotik? :mikrotik;
+
 }
 
 export interface HotspotConnection {
@@ -152,6 +161,23 @@ export interface Hotspot {
 
 }
 
+export interface HotspotAccount {
+    credential: HotspotCredential | null;
+    current_subscription: HotspotSubscription | null;
+    connection: ConnectionStatus | null;
+}
+
+export interface HotspotSummary {
+    total_accounts: number;
+    active_accounts: number;
+    inactive_accounts: number;
+}
+
+export interface HotspotProfile {
+    summary: HotspotSummary;
+    accounts: HotspotAccount[];
+}
+
 
 export interface SubscriptionSummary {
 
@@ -172,7 +198,7 @@ export interface PPPoECredential {
 
     id: number;
 
-    mikrotik: string;
+    mikrotik?: mikrotik;
 
     username: string;
 
@@ -208,6 +234,25 @@ export interface PPPoESubscription {
 
     active: boolean;
 
+}
+
+
+
+export interface PPPoEAccount {
+    credential: PPPoECredential | null;
+    current_subscription: PPPoESubscription | null;
+    connection: ConnectionStatus | null;
+}
+
+export interface PPPoESummary {
+    total_accounts: number;
+    active_accounts: number;
+    inactive_accounts: number;
+}
+
+export interface PPPoEProfile {
+    summary: PPPoESummary;
+    accounts: PPPoEAccount[];
 }
 
 /* =========================================================
@@ -292,23 +337,35 @@ export interface CurrentDevice {
 
     service: "HOTSPOT" | "PPPOE" | "UNKNOWN";
 
+    device_type:
+        | "PHONE"
+        | "LAPTOP"
+        | "TABLET"
+        | "ROUTER"
+        | "UNKNOWN";
+
     ip_address: string | null;
 
-    router_ip: string;
+    router: {
+        id: string | null;
+        name: string;
+        ip: string;
+        vendor: {
+            id: string;
+            name: string;
+        } | null;
+    };
 
-    router_name: string;
+    connected_since: string;
 
-    connected_since: string | null;
-
-    last_seen: string | null;
+    last_seen: string;
 
     upload_bytes: number;
 
     download_bytes: number;
-
 }
 
-export interface DeviceHistoryItem {
+export interface DeviceHistory{
 
     mac_address: string;
 
@@ -316,15 +373,36 @@ export interface DeviceHistoryItem {
 
     service: "HOTSPOT" | "PPPOE" | "UNKNOWN";
 
-    router_name: string;
+    device_type:
+        | "PHONE"
+        | "LAPTOP"
+        | "TABLET"
+        | "ROUTER"
+        | "UNKNOWN";
 
-    router_ip: string;
+    router: {
+
+        id: string | null;
+
+        name: string;
+
+        ip: string;
+
+        vendor: {
+
+            id: string;
+
+            name: string;
+
+        } | null;
+
+    };
 
     last_ip: string | null;
 
-    first_seen: string;
+    first_seen: string | null;
 
-    last_seen: string;
+    last_seen: string | null;
 
     sessions: number;
 
@@ -332,13 +410,16 @@ export interface DeviceHistoryItem {
 
     download_bytes: number;
 
+    online: boolean;
+
 }
 
 export interface DeviceProfile {
     summary: DeviceSummary;
-    current: CurrentDevice | null;
-    history: DeviceHistoryItem[];
+    current: CurrentDevice[];
+    history: DeviceHistory[];
 }
+
 
 /* =========================================================
  * ACTIVITY
@@ -387,25 +468,11 @@ export interface UserProfile {
 
     overview: Overview;
 
-    hotspot: {
-
-        credential: HotspotCredential | null;
-
-        connection: HotspotConnection | null;
-
-        current_subscription: HotspotSubscription | null;
-
-    };
+    hotspot: HotspotProfile;
 
     hotspot_history: HotspotSubscription[];
 
-    pppoe: {
-
-        credential: PPPoECredential | null;
-
-        current_subscription: PPPoESubscription | null;
-
-    };
+    pppoe: PPPoEProfile;
 
     connection: HotspotConnection | null;
 

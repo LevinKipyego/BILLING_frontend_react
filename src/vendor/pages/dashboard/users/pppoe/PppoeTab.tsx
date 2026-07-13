@@ -1,62 +1,62 @@
 import type { FC } from "react";
 
-import CredentialCard from "../components/cards/CredentialCard";
-import CurrentSubscriptionCard from "../components/cards/CurrentSubscriptionCard";
+import type { UserProfile } from "../components/types/types";
+
+import PPPoEAccountCard from "./components/cards/PPPoEAccountCard";
 import SubscriptionHistorySection from "../components/sections/SubscriptionHistorySection";
 import PPPoEQuickActions from "./components/sections/PPPoEQuickActions";
 
-import type { UserProfile } from "../components/types/types";
-
 interface PPPoETabProps {
-
     profile: UserProfile;
-
 }
 
-const PPPoETab: FC<PPPoETabProps> = ({ profile }) => {
+const PPPoETab: FC<PPPoETabProps> = ({
+    profile,
+}) => {
 
     return (
 
         <div className="space-y-6">
 
-            {/* Top Cards */}
+            {profile.pppoe.accounts.length === 0 ? (
 
-            <div className="grid gap-6 lg:grid-cols-2">
+                <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center">
 
-                <CredentialCard
+                    <h3 className="text-lg font-semibold">
+                        No PPPoE Accounts
+                    </h3>
 
-                    title="PPPoE Credentials"
+                    <p className="mt-2 text-slate-500">
+                        This customer has no PPPoE credentials.
+                    </p>
 
-                    credential={profile.pppoe.credential}
+                </div>
 
-                />
+            ) : (
 
-                <CurrentSubscriptionCard
+                profile.pppoe.accounts.map((account, index) => (
 
-                    title="Current PPPoE Subscription"
+                    <PPPoEAccountCard
+                        key={
+                            account.credential?.id ??
+                            account.credential?.username ??
+                            index
+                        }
+                        account={account}
+                        index={index}
+                    />
 
-                    subscription={profile.pppoe.current_subscription}
+                ))
 
-                />
-
-            </div>
-
-            {/* Subscription History */}
+            )}
 
             <SubscriptionHistorySection
-
                 title="Subscription History"
-
                 subscriptions={profile.pppoe_history}
-
             />
 
-            {/* Quick Actions */}
-
             <PPPoEQuickActions
-
-                profile={profile}
-
+                accounts={profile.pppoe.accounts}
             />
 
         </div>

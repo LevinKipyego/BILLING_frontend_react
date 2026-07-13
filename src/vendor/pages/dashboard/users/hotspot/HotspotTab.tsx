@@ -1,66 +1,66 @@
 import type { FC } from "react";
 
-import type { UserProfile, ConnectionStatus} from "../components/types/types";
+import type { UserProfile } from "../components/types/types";
 
-//import HotspotCredentialCard from "./components/cards/HotspotCredentialCard";
-//import ConnectionStatusCard from "./components/cards/ConnectionStatusCard";
-
-import ConnectionStatusCard from "../components/cards/ConnectionStatusCard";
-import CurrentSubscriptionCard from "../components/cards/CurrentSubscriptionCard";
 import SubscriptionHistorySection from "./components/section/SubscriptionHistorySection";
-import CredentialCard from "../components/cards/CredentialCard";
 import HotspotQuickActions from "./components/section/HotspotQuickActions";
+import HotspotAccountCard from "./components/cards/HotspotAccountCard";
 
 type HotspotTabProps = {
     profile: UserProfile;
 };
 
-const HotspotTab: FC<HotspotTabProps> = ({ profile }) => {
+const HotspotTab: FC<HotspotTabProps> = ({
+    profile,
+}) => {
 
     return (
 
         <div className="space-y-6">
 
-            {/* Top Row */}
+            {profile.hotspot.accounts.length === 0 ? (
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center">
 
-               
-                <CredentialCard
+                    <h3 className="text-lg font-semibold">
 
-                    title="Hotspot Credential"
+                        No Hotspot Accounts
 
-                    credential={profile.hotspot.credential}
+                    </h3>
 
-                />
-                <ConnectionStatusCard
-                    connection={(profile.hotspot.connection  as ConnectionStatus) || null}
+                    <p className="text-slate-500 mt-2">
+
+                        This customer has no hotspot credentials.
+
+                    </p>
+
+                </div>
+
+            ) : (
+
+                profile.hotspot.accounts.map((account, index) => (
+
+                    <HotspotAccountCard
+                        key={
+                            account.credential?.id ??
+                            account.credential?.username ??
+                            index
+                        }
+                        account={account}
+                        index={index}
                     />
 
-            </div>
+                ))
 
-            {/* Current Subscription */}
-
-            <CurrentSubscriptionCard
-                title="Current Hotspot Subscription"
-                subscription={profile.hotspot.current_subscription}
-            />
-
-            {/* Purchase History */}
+            )}
 
             <SubscriptionHistorySection
                 profile={profile}
             />
 
-            {/* Quick Actions */}
-
             <HotspotQuickActions
-
-                profile={profile}
-
+                accounts={profile.hotspot.accounts}
             />
-
-          
 
         </div>
 

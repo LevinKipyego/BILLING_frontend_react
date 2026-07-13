@@ -1,5 +1,5 @@
 import DeviceSummaryCard from "./components/DeviceSummaryCard";
-import CurrentDeviceCard from "./components/CurrentDeviceCard";
+import OnlineDevicesSection from "./components/OnlineDeviceSection";
 import DeviceHistoryTable from "./components/DeviceHistoryTable";
 import DeviceQuickActions from "./components/DeviceQuickActions";
 
@@ -17,24 +17,26 @@ export default function DeviceTab({
 
     return (
 
-    <div className="space-y-6">
+        <div className="space-y-6">
 
-        <DeviceSummaryCard
-            summary={devices.summary}
-        />
+            <DeviceSummaryCard
+                summary={devices.summary}
+            />
 
-        <CurrentDeviceCard
-            device={devices.current}
-        />
+            <OnlineDevicesSection
+                devices={devices.current}
+            />
 
-        <DeviceQuickActions
-            device={devices.current}
-        />
+            <DeviceHistoryTable
+                devices={devices.history}
+            />
 
-        <DeviceHistoryTable
-            devices={devices.history}
-        />
+            <DeviceQuickActions
+                devices={devices.current}
+            />
 
-    </div>
+        </div>
 
-);}
+    );
+
+}

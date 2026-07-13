@@ -1,3 +1,5 @@
+import { useMemo, useState } from "react";
+
 import {
     Copy,
     Globe,
@@ -11,16 +13,19 @@ import {
 import type { CurrentDevice } from "../../components/types/types";
 
 interface Props {
-
-    device: CurrentDevice | null;
-
+    devices: CurrentDevice[];
 }
 
 export default function DeviceQuickActions({
-
-    device,
-
+    devices,
 }: Props) {
+
+    const [selected, setSelected] = useState(0);
+
+    const device = useMemo(
+        () => devices[selected] ?? null,
+        [devices, selected]
+    );
 
     const copy = async (text?: string | null) => {
 
@@ -53,12 +58,10 @@ export default function DeviceQuickActions({
         <button
             disabled={disabled}
             onClick={onClick}
-            className="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm font-medium transition hover:bg-slate-50 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
             {icon}
-
             {label}
-
         </button>
 
     );
@@ -83,116 +86,109 @@ export default function DeviceQuickActions({
 
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 p-6">
+            {devices.length > 0 && (
+
+                <div className="px-6 pt-6">
+
+                    <label className="mb-2 block text-sm font-medium">
+
+                        Select Device
+
+                    </label>
+
+                    <select
+                        value={selected}
+                        onChange={(e) =>
+                            setSelected(Number(e.target.value))
+                        }
+                        className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-transparent px-4 py-2.5"
+                    >
+
+                        {devices.map((item, index) => (
+
+                            <option
+                                key={`${item.username}-${item.router.id}-${index}`}
+                                value={index}
+                            >
+                                {item.username} • {item.router.name} • {item.service}
+                            </option>
+
+                        ))}
+
+                    </select>
+
+                </div>
+
+            )}
+
+            <div className="grid gap-4 p-6 md:grid-cols-2 xl:grid-cols-3">
 
                 <ActionButton
-
-                    icon={<Copy size={18}/>}
-
+                    icon={<Copy size={18} />}
                     label="Copy Username"
-
                     disabled={!device}
-
                     onClick={() =>
-
                         copy(device?.username)
-
                     }
-
                 />
 
                 <ActionButton
-
-                    icon={<Globe size={18}/>}
-
+                    icon={<Globe size={18} />}
                     label="Copy IP Address"
-
                     disabled={!device}
-
                     onClick={() =>
-
                         copy(device?.ip_address)
-
                     }
-
                 />
 
                 <ActionButton
-
-                    icon={<Wifi size={18}/>}
-
+                    icon={<Wifi size={18} />}
                     label="Copy MAC Address"
-
                     disabled={!device}
-
                     onClick={() =>
-
                         copy(device?.mac_address)
-
                     }
-
                 />
 
                 <ActionButton
-
-                    icon={<Router size={18}/>}
-
+                    icon={<Router size={18} />}
                     label="Copy Router"
-
                     disabled={!device}
-
                     onClick={() =>
-
-                        copy(device?.router_name)
-
+                        copy(device?.router.name)
                     }
-
                 />
 
                 <ActionButton
-
-                    icon={<RefreshCw size={18}/>}
-
+                    icon={<RefreshCw size={18} />}
                     label="Refresh Device"
-
                     onClick={() => {
 
-                        // TODO
+                        console.log("Refresh", device);
 
                     }}
-
                 />
 
                 <ActionButton
-
-                    icon={<Power size={18}/>}
-
+                    icon={<Power size={18} />}
                     label="Disconnect Device"
-
                     disabled={!device}
-
                     onClick={() => {
 
-                        // TODO
+                        console.log("Disconnect", device);
 
                     }}
-
                 />
 
                 <ActionButton
-
-                    icon={<Ban size={18}/>}
-
+                    icon={<Ban size={18} />}
                     label="Block Device"
-
                     disabled={!device}
-
                     onClick={() => {
 
-                        // TODO
+                        console.log("Block", device);
 
                     }}
-
                 />
 
             </div>

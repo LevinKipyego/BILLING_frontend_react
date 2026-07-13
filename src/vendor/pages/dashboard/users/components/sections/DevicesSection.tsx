@@ -1,20 +1,16 @@
 import DeviceItem from "../item/DeviceItem";
 
-import type { CurrentDevice, UserProfile } from "../types/types";
+import type { UserProfile } from "../types/types";
 
 interface Props {
-
     profile: UserProfile;
-
 }
 
 export default function DevicesSection({
-
     profile,
-
 }: Props) {
 
-    const currentDevice = profile.devices.current as CurrentDevice | null;
+    const currentDevices = profile.devices.current ?? [];
 
     return (
 
@@ -26,13 +22,13 @@ export default function DevicesSection({
 
                     <h2 className="text-xl font-bold">
 
-                        Current Device
+                        Connected Devices
 
                     </h2>
 
                     <p className="text-sm text-slate-500">
 
-                        The customer's currently active network connection.
+                        {currentDevices.length} active connection{currentDevices.length !== 1 ? "s" : ""}
 
                     </p>
 
@@ -46,21 +42,28 @@ export default function DevicesSection({
 
             </div>
 
-            {!currentDevice ? (
+            {currentDevices.length === 0 ? (
 
                 <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 py-12 text-center text-slate-500">
 
-                    No active device connected.
+                    No active devices connected.
 
                 </div>
 
             ) : (
 
-                <DeviceItem
+                <div className="space-y-4">
 
-                    device={currentDevice}
+                    {currentDevices.map((device) => (
 
-                />
+                        <DeviceItem
+                            key={`${device.username}-${device.mac_address}-${device.connected_since}`}
+                            device={device}
+                        />
+
+                    ))}
+
+                </div>
 
             )}
 

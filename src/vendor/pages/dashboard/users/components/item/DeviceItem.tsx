@@ -5,14 +5,15 @@ import {
     Upload,
     Download,
     Clock,
+    Smartphone,
+    Laptop,
+    Tablet,
 } from "lucide-react";
 
 import type { CurrentDevice } from "../types/types";
 
 interface Props {
-
     device: CurrentDevice;
-
 }
 
 function formatBytes(bytes: number) {
@@ -38,12 +39,19 @@ function formatBytes(bytes: number) {
 }
 
 export default function DeviceItem({
-
     device,
-
 }: Props) {
 
     const online = Boolean(device.connected_since);
+
+    const Icon =
+        device.device_type === "PHONE"
+            ? Smartphone
+            : device.device_type === "LAPTOP"
+            ? Laptop
+            : device.device_type === "TABLET"
+            ? Tablet
+            : Router;
 
     return (
 
@@ -55,12 +63,9 @@ export default function DeviceItem({
 
                     <div className="rounded-xl bg-blue-100 dark:bg-blue-900/30 p-3">
 
-                        <Router
-
+                        <Icon
                             size={22}
-
                             className="text-blue-600"
-
                         />
 
                     </div>
@@ -112,19 +117,21 @@ export default function DeviceItem({
                 <Info
                     icon={<Router size={16} />}
                     label="Router"
-                    value={device.router_name}
+                    value={device.router.name}
+                />
+
+                <Info
+                    icon={<Router size={16} />}
+                    label="Vendor"
+                    value={device.router.vendor?.name ?? "-"}
                 />
 
                 <Info
                     icon={<Clock size={16} />}
                     label="Connected Since"
-                    value={
+                    value={new Date(
                         device.connected_since
-                            ? new Date(
-                                  device.connected_since
-                              ).toLocaleString()
-                            : "-"
-                    }
+                    ).toLocaleString()}
                 />
 
                 <Info
@@ -153,25 +160,21 @@ interface InfoProps {
 
     label: string;
 
-    value: string;
+    value: React.ReactNode;
 
 }
 
 function Info({
-
     icon,
-
     label,
-
     value,
-
 }: InfoProps) {
 
     return (
 
         <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
 
-            <div className="flex items-center gap-2 text-slate-500 text-sm">
+            <div className="flex items-center gap-2 text-sm text-slate-500">
 
                 {icon}
 
