@@ -6,11 +6,11 @@ import {
     Wifi,
 } from "lucide-react";
 
-import type { DeviceHistoryItem } from "../../components/types/types";
+import type { DeviceHistory } from "../../components/types/types";
 
 interface Props {
 
-    device: DeviceHistoryItem;
+    device: DeviceHistory;
 
 }
 
@@ -86,7 +86,7 @@ export default function DeviceHistoryRow({
 
                     <Router size={15} />
 
-                    {device.router_name}
+                    {device.router.name}
 
                 </div>
 
@@ -146,7 +146,7 @@ export default function DeviceHistoryRow({
 
                     <Clock size={15} />
 
-                    {new Date(device.last_seen).toLocaleString()}
+                    {device.last_seen ? new Date(device.last_seen).toLocaleString() : "-"}
 
                 </div>
 
