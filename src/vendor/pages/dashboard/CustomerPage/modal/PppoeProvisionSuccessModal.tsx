@@ -16,39 +16,19 @@ import {
 
 } from "lucide-react";
 
+import type {
+
+    PPPoEProvisionResponse,
+
+} from "../types/types";
+
 interface Props {
 
     open: boolean;
 
     onClose: () => void;
 
-    result: {
-
-        customer: {
-
-            full_name: string;
-
-        };
-
-        credential: {
-
-            username: string;
-
-            radius_username: string;
-
-            password: string;
-
-        };
-
-        subscription: {
-
-            plan: string;
-
-            expires_at: string;
-
-        };
-
-    } | null;
+    result: PPPoEProvisionResponse | null;
 
 }
 
@@ -62,33 +42,32 @@ export default function PPPoEProvisionSuccessModal({
 
 }: Props) {
 
-    if (!open || !result) return null;
+    
+    if (!open || !result) {
+    return null;
+}
 
     function copy(text: string) {
 
-        navigator.clipboard.writeText(text);
+            navigator.clipboard.writeText(text);
 
-    }
+        }
+    const provision = result;
 
     function copyAll() {
 
         navigator.clipboard.writeText(
 
-        `Customer: ${result.customer.full_name}
+    `Customer: ${provision.customer.full_name}
+    Username: ${provision.credential.username}
+    
+    Password: ${provision.credential.password}
+    Plan: ${provision.subscription.plan}
+    `
 
-        Username: ${result.credential.username}
+        );
 
-        Radius Username: ${result.credential.radius_username}
-
-        Password: ${result.credential.password}
-
-        Plan: ${result.subscription.plan}
-
-        Expires: ${result.subscription.expires_at}`
-
-            );
-
-        }
+    }
 
         return (
 
@@ -184,13 +163,13 @@ export default function PPPoEProvisionSuccessModal({
 
                             label="Radius Username"
 
-                            value={result.credential.radius_username}
+                            value={result.credential.username}
 
                             copy={()=>
 
                                 copy(
 
-                                    result.credential.radius_username
+                                    result.credential.username
 
                                 )
 
@@ -224,7 +203,7 @@ export default function PPPoEProvisionSuccessModal({
 
                             label="Plan"
 
-                            value={result.subscription.plan}
+                            value={result.subscription.plan.name}
 
                         />
 
@@ -234,7 +213,7 @@ export default function PPPoEProvisionSuccessModal({
 
                             label="Expires"
 
-                            value={result.subscription.expires_at}
+                            value={result.subscription.end_at}
 
                         />
 

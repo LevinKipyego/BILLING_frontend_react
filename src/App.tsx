@@ -20,7 +20,7 @@ import MikrotikConfig from "./vendor/pages/dashboard/MikrotikConfig";
 import Mpesa from "./vendor/pages/dashboard/MpesaConfig";
 import C2BConfig from "./vendor/pages/dashboard/C2BConfig";
 
-import UsersPage from "./vendor/pages/dashboard/Users";
+//import UsersPage from "./vendor/pages/dashboard/Users";
 
 import NetworkHealth from "./vendor/pages/dashboard/NetworkHealth";
 import NetworkDetailed from "./vendor/pages/dashboard/NetworkDetailed";
@@ -40,6 +40,7 @@ import HotspotCredentialPage from "./vendor/pages/dashboard/HotspotCredentials";
 import ProtectedRoute from "../ProtectedRoute";
 import AuthWatcher from "./vendor/AuthWatcher";
 import UserProfile from "./vendor/pages/dashboard/users/UserProfile";
+import CustomersPage from "./vendor/pages/dashboard/CustomerPage/CustomersPage";
 export default function App() {
   return (
 
@@ -156,7 +157,7 @@ export default function App() {
               {/* Users */}
               <Route
                 path="users"
-                element={<UsersPage />}
+                element={<CustomersPage />}
               />
 
               <Route

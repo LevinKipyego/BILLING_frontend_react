@@ -22,7 +22,7 @@ export async function createPPPoEUser(
 
     return apiFetch(
 
-        `/api/pppoe/users/${userId}/create/`,
+        `/users/${userId}/pppoe/`,
 
         {
 

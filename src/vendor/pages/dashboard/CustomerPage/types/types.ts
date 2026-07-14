@@ -48,15 +48,29 @@ export interface CreatePPPoEPayload {
 
 export interface PPPoEProvisionResponse {
 
+    success: boolean;
+
     message: string;
 
     customer: {
 
         id: number;
 
+        full_name: string;
+
+        phone: string;
+
         username: string;
 
         service_type: string;
+
+    };
+
+    router: {
+
+        id: string;
+
+        name: string;
 
     };
 
@@ -76,7 +90,13 @@ export interface PPPoEProvisionResponse {
 
         id: number;
 
-        plan: string;
+        plan: {
+
+            id: number;
+
+            name: string;
+
+        };
 
         active: boolean;
 
@@ -102,26 +122,27 @@ export interface CustomerStats {
 }
 
 
-export interface PPPoEProvisionResult {
 
-    success: boolean;
 
-    message: string;
+export interface Mikrotik {
 
-    provision: {
+    id: string;
 
-        customer_name: string;
+    identity_name: string;
 
-        username: string;
+    api_ip: string;
 
-        radius_username: string;
+}
 
-        password: string;
 
-        plan_name: string;
+export interface Plan {
 
-        expires_at: string;
+    id: number;
 
-    };
+    name: string;
+
+    price: string;
+
+    duration_minutes: number;
 
 }

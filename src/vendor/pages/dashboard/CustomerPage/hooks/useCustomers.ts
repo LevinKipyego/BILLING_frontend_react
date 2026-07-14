@@ -1,4 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import {
+    useCallback,
+    useEffect,
+    useState,
+} from "react";
 
 import { apiFetch } from "../../../../api/client";
 
@@ -6,15 +10,20 @@ import type {
     Customer,
     CreatePPPoEPayload,
     PPPoEProvisionResponse,
+    Mikrotik,
+    Plan,
 } from "../types/types";
-
 
 export default function useCustomers() {
 
-    
-
     const [customers, setCustomers] =
         useState<Customer[]>([]);
+
+    const [mikrotiks, setMikrotiks] =
+        useState<Mikrotik[]>([]);
+
+    const [plans, setPlans] =
+        useState<Plan[]>([]);
 
     const [loading, setLoading] =
         useState(false);
@@ -25,7 +34,7 @@ export default function useCustomers() {
     const [lastProvision, setLastProvision] =
         useState<PPPoEProvisionResponse | null>(null);
 
-        const stats = {
+    const stats = {
 
         total: customers.length,
 
@@ -55,7 +64,7 @@ export default function useCustomers() {
         try {
 
             const data = await apiFetch(
-                "/users/"
+                "/customers/"
             );
 
             setCustomers(data);
@@ -63,8 +72,11 @@ export default function useCustomers() {
         } catch (err: any) {
 
             setError(
+
                 err.message ??
+
                 "Failed to load customers."
+
             );
 
         } finally {
@@ -75,6 +87,43 @@ export default function useCustomers() {
 
     }, []);
 
+    const loadProvisionData = useCallback(async () => {
+
+        try {
+
+            const [
+
+                routers,
+
+                plans,
+
+            ] = await Promise.all([
+
+                apiFetch("/devices/"),
+
+                apiFetch("/plans/"),
+
+            ]);
+
+            setMikrotiks(routers);
+
+            setPlans(plans);
+
+        }
+
+        catch (err: any) {
+
+            setError(
+
+                err.message ??
+
+                "Failed to load provisioning data."
+
+            );
+
+        }
+
+    }, []);
 
     const createPPPoE = useCallback(
 
@@ -84,7 +133,7 @@ export default function useCustomers() {
 
             payload: CreatePPPoEPayload,
 
-        ) => {
+        ): Promise<PPPoEProvisionResponse | null> => {
 
             setLoading(true);
 
@@ -95,7 +144,7 @@ export default function useCustomers() {
                 const response =
                     await apiFetch(
 
-                        `/users/${userId}/pppoe/`,
+                        `/customers/${userId}/pppoe/`,
 
                         {
 
@@ -117,16 +166,23 @@ export default function useCustomers() {
 
                 return response;
 
-            } catch (err: any) {
+            }
+
+            catch (err: any) {
 
                 setError(
+
                     err.message ??
+
                     "Failed to create PPPoE account."
+
                 );
 
-                throw err;
+                return null;
 
-            } finally {
+            }
+
+            finally {
 
                 setLoading(false);
 
@@ -138,17 +194,27 @@ export default function useCustomers() {
 
     );
 
-
     useEffect(() => {
 
         refresh();
 
-    }, [refresh]);
+        loadProvisionData();
 
+    }, [
+
+        refresh,
+
+        loadProvisionData,
+
+    ]);
 
     return {
 
         customers,
+
+        mikrotiks,
+
+        plans,
 
         stats,
 

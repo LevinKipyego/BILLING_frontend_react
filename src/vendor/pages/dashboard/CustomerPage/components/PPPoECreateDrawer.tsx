@@ -93,12 +93,13 @@ export default function PPPoECreateDrawer({
                 onClick={onClose}
             />
 
-            {/* Drawer Container */}
-            <div className="fixed right-0 top-0 z-50 h-screen w-full max-w-2xl overflow-y-auto bg-white shadow-2xl dark:bg-slate-900">
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-700">
+            {/* Drawer Container - Changed to flex layout & removed height-destroying outer overflow */}
+            <div className="fixed right-0 top-0 z-50 flex h-screen w-full max-w-2xl flex-col bg-white shadow-2xl dark:bg-slate-900">
+                
+                {/* Fixed Header */}
+                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/95 px-6 py-5 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95">
                     <div>
-                        <h2 className="text-xl font-bold">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                             Create PPPoE Account
                         </h2>
                         <p className="text-sm text-slate-500">
@@ -107,18 +108,19 @@ export default function PPPoECreateDrawer({
                     </div>
                     <button
                         onClick={onClose}
-                        className="rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
                     >
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="space-y-6 p-6">
+                {/* Independent Scrollable Body Content */}
+                <div className="flex-1 overflow-y-auto space-y-6 p-6">
                     {/* Customer Info Card */}
                     <div className="rounded-xl border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-2 border-b border-slate-200 px-5 py-4 dark:border-slate-700">
-                            <User size={18} />
-                            <h3 className="font-semibold">
+                            <User size={18} className="text-slate-500" />
+                            <h3 className="font-semibold text-slate-900 dark:text-white">
                                 Customer Information
                             </h3>
                         </div>
@@ -137,20 +139,20 @@ export default function PPPoECreateDrawer({
                     {/* Network Configuration Card */}
                     <div className="rounded-xl border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-2 border-b border-slate-200 px-5 py-4 dark:border-slate-700">
-                            <Router size={18} />
-                            <h3 className="font-semibold">
+                            <Router size={18} className="text-slate-500" />
+                            <h3 className="font-semibold text-slate-900 dark:text-white">
                                 Network Configuration
                             </h3>
                         </div>
                         <div className="space-y-5 p-5">
                             <div>
-                                <label className="mb-2 block text-sm font-medium">
+                                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                                     MikroTik Router
                                 </label>
                                 <select
                                     value={mikrotik}
                                     onChange={(e) => setMikrotik(e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"
+                                    className="w-full rounded-xl border border-slate-300 bg-white p-3 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                                 >
                                     <option value="">Select Router</option>
                                     {mikrotiks.map((router) => (
@@ -162,13 +164,13 @@ export default function PPPoECreateDrawer({
                             </div>
 
                             <div>
-                                <label className="mb-2 block text-sm font-medium">
+                                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
                                     Internet Plan
                                 </label>
                                 <select
                                     value={plan}
                                     onChange={(e) => setPlan(e.target.value)}
-                                    className="w-full rounded-xl border border-slate-300 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"
+                                    className="w-full rounded-xl border border-slate-300 bg-white p-3 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                                 >
                                     <option value="">Select Plan</option>
                                     {plans.map((plan) => (
@@ -180,14 +182,14 @@ export default function PPPoECreateDrawer({
                             </div>
 
                             {selectedPlan && (
-                                <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
-                                    <div className="flex justify-between">
+                                <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800 text-sm">
+                                    <div className="flex justify-between text-slate-600 dark:text-slate-400">
                                         <span>Price</span>
-                                        <strong>KES {selectedPlan.price}</strong>
+                                        <strong className="text-slate-900 dark:text-white">KES {selectedPlan.price}</strong>
                                     </div>
-                                    <div className="mt-2 flex justify-between">
+                                    <div className="mt-2 flex justify-between text-slate-600 dark:text-slate-400">
                                         <span>Duration</span>
-                                        <strong>
+                                        <strong className="text-slate-900 dark:text-white">
                                             {selectedPlan.duration_minutes} minutes
                                         </strong>
                                     </div>
@@ -197,24 +199,24 @@ export default function PPPoECreateDrawer({
                     </div> 
 
                     {/* Automatic Credentials Info */}
-                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800 dark:bg-blue-900/20">
-                        <div className="flex items-center gap-2">
+                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-5 dark:border-blue-800/30 dark:bg-blue-900/20">
+                        <div className="flex items-center gap-2 text-blue-800 dark:text-blue-400">
                             <Package size={18} />
                             <h3 className="font-semibold">
                                 Automatic Credential Generation
                             </h3>
                         </div>
-                        <p className="mt-3 text-sm text-slate-600 dark:text-slate-300">
+                        <p className="mt-3 text-sm text-blue-700 dark:text-blue-300">
                             The PPPoE username, password and Radius username are generated
                             securely by the server after the account is created.
                         </p>
 
                         {router && (
-                            <div className="mt-4 rounded-lg border border-blue-100 bg-white p-4 dark:border-blue-700 dark:bg-slate-900">
-                                <p className="text-sm font-medium">
+                            <div className="mt-4 rounded-lg border border-blue-100 bg-white p-4 dark:border-blue-800/30 dark:bg-slate-900">
+                                <p className="text-sm font-medium text-slate-800 dark:text-slate-200">
                                     Radius Username Preview
                                 </p>
-                                <p className="mt-2 font-mono text-blue-700 dark:text-blue-300">
+                                <p className="mt-2 font-mono text-blue-700 dark:text-blue-400">
                                     VGO000001-{router.identity_name}
                                 </p>
                                 <p className="mt-2 text-xs text-slate-500">
@@ -227,28 +229,28 @@ export default function PPPoECreateDrawer({
 
                     {/* Provisioning Options */}
                     <div className="rounded-xl border border-slate-200 p-5 dark:border-slate-700">
-                        <h3 className="mb-4 font-semibold">
+                        <h3 className="mb-4 font-semibold text-slate-900 dark:text-white">
                             Provisioning Options
                         </h3>
                         <div className="space-y-4">
-                            <label className="flex items-center gap-3 cursor-pointer">
+                            <label className="flex items-center gap-3 cursor-pointer text-slate-700 dark:text-slate-300">
                                 <input
                                     type="checkbox"
                                     checked={activate}
                                     onChange={() => setActivate(!activate)}
-                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800"
                                 />
                                 <span className="text-sm font-medium">
                                     Activate account immediately
                                 </span>
                             </label>
 
-                            <label className="flex items-center gap-3 cursor-pointer">
+                            <label className="flex items-center gap-3 cursor-pointer text-slate-700 dark:text-slate-300">
                                 <input
                                     type="checkbox"
                                     checked={pushRadius}
                                     onChange={() => setPushRadius(!pushRadius)}
-                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-800"
                                 />
                                 <span className="text-sm font-medium">
                                     Push account to Radius
@@ -258,12 +260,12 @@ export default function PPPoECreateDrawer({
                     </div>
                 </div>
 
-                {/* Footer Controls */}
-                <div className="sticky bottom-0 flex justify-end gap-3 border-t border-slate-200 bg-white px-6 py-5 dark:border-slate-700 dark:bg-slate-900">
+                {/* Fixed Sticky Footer - Always visible on mobile */}
+                <div className="sticky bottom-0 z-10 flex justify-end gap-3 border-t border-slate-200 bg-white px-6 py-5 dark:border-slate-700 dark:bg-slate-900">
                     <button
                         onClick={onClose}
                         disabled={loading}
-                        className="rounded-xl border border-slate-300 px-6 py-3 transition hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-xl border border-slate-300 px-6 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Cancel
                     </button>
@@ -278,7 +280,7 @@ export default function PPPoECreateDrawer({
                                 push_radius: pushRadius,
                             });
                         }}
-                        className="flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <CheckCircle2 size={18} />
                         {loading ? "Creating..." : "Create PPPoE"}
@@ -298,7 +300,7 @@ function Info({
 }) {
     return (
         <div>
-            <p className="text-xs uppercase tracking-wide text-slate-500">
+            <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 {label}
             </p>
             <p className="mt-1 font-medium text-slate-900 dark:text-white">

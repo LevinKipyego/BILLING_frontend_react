@@ -1,4 +1,4 @@
-import { Search, UserPlus, Wifi, Router } from "lucide-react";
+import { Search, UserPlus , Wifi, Router } from "lucide-react";
 import type { FC } from "react";
 
 interface Props {

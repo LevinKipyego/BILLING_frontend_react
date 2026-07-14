@@ -1,323 +1,268 @@
-import { type  FC } from "react";
+import { useState } from "react";
+import { User, Phone, Loader2 } from "lucide-react";
 
-type ServiceType = "HOTSPOT" | "PPPOE";
-
-interface Vendor {
-    id: string;
-    name: string;
-}
-
-interface Router {
-    id: string;
-    identity_name: string;
-}
-
-interface Plan {
-    id: number;
-    name: string;
-}
-
-interface CustomerFormData {
-    full_name: string;
-    phone: string;
-
-    vendor: string;
-    mikrotik: string;
-
-    plan: string;
-
-    username: string;
-    password: string;
-}
+import { apiFetch } from "../../../../api/client";
 
 interface Props {
 
-    service: ServiceType;
+    serviceType: "HOTSPOT" | "PPPOE";
 
-    data: CustomerFormData;
-
-    vendors: Vendor[];
-
-    routers: Router[];
-
-    plans: Plan[];
-
-    loading?: boolean;
-
-    onChange: (
-        field: keyof CustomerFormData,
-        value: string
-    ) => void;
-
-    onSubmit: () => void;
-
-    onBack: () => void;
+    onSuccess?: () => void;
 
 }
 
-const CustomerForm: FC<Props> = ({
-    service,
-    data,
-    vendors,
-    routers,
-    plans,
-    loading,
-    onChange,
-    onSubmit,
-    onBack,
-}) => {
+export default function CustomerForm({
+
+    serviceType,
+
+    onSuccess,
+
+}: Props) {
+
+    const [fullName, setFullName] = useState("");
+
+    const [phone, setPhone] = useState("");
+
+    const [loading, setLoading] = useState(false);
+
+    const [error, setError] = useState<string | null>(null);
+
+    function normalizePhone(value: string) {
+
+        let phone = value.replace(/\D/g, "");
+
+        if (phone.startsWith("0")) {
+
+            phone = "254" + phone.substring(1);
+
+        }
+
+        if (phone.startsWith("7")) {
+
+            phone = "254" + phone;
+
+        }
+
+        return phone;
+
+    }
+
+    async function handleSubmit(
+        e: React.FormEvent
+    ) {
+
+        e.preventDefault();
+
+        setLoading(true);
+
+        setError(null);
+
+        try {
+
+            await apiFetch(
+
+                "/customers/create/",
+
+                {
+
+                    method: "POST",
+
+                    body: JSON.stringify({
+
+                        full_name: fullName,
+
+                        phone: normalizePhone(phone),
+
+                        service_type: serviceType,
+
+                        
+
+                    }),
+
+                }
+
+            );
+
+            setFullName("");
+
+            setPhone("");
+
+            onSuccess?.();
+
+        } catch (err: any) {
+
+            setError(
+
+                err?.message ??
+
+                "Unable to create customer."
+
+            );
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    }
 
     return (
 
-        <div className="space-y-8">
+        <form
+            onSubmit={handleSubmit}
+            className="space-y-6"
+        >
 
-            <div>
+            {error && (
 
-                <h2 className="text-2xl font-bold">
+                <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 dark:border-red-800 dark:bg-red-900/20">
 
-                    New {service} Customer
-
-                </h2>
-
-                <p className="mt-2 text-sm text-slate-500">
-
-                    Fill in the customer's information.
-
-                </p>
-
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2">
-
-                <Input
-                    label="Full Name"
-                    value={data.full_name}
-                    onChange={(v)=>
-                        onChange("full_name",v)
-                    }
-                />
-
-                <Input
-                    label="Phone Number"
-                    value={data.phone}
-                    onChange={(v)=>
-                        onChange("phone",v)
-                    }
-                />
-
-                <Select
-                    label="Vendor"
-                    value={data.vendor}
-                    onChange={(v)=>
-                        onChange("vendor",v)
-                    }
-                    options={vendors.map(v=>({
-                        value:v.id,
-                        label:v.name,
-                    }))}
-                />
-
-                <Select
-                    label="Router"
-                    value={data.mikrotik}
-                    onChange={(v)=>
-                        onChange("mikrotik",v)
-                    }
-                    options={routers.map(r=>({
-                        value:r.id,
-                        label:r.identity_name,
-                    }))}
-                />
-
-                <Select
-                    label="Plan"
-                    value={data.plan}
-                    onChange={(v)=>
-                        onChange("plan",v)
-                    }
-                    options={plans.map(p=>({
-                        value:String(p.id),
-                        label:p.name,
-                    }))}
-                />
-
-                {service==="PPPOE" && (
-
-                    <>
-
-                        <Input
-                            label="Username"
-                            value={data.username}
-                            onChange={(v)=>
-                                onChange("username",v)
-                            }
-                        />
-
-                        <Input
-                            label="Password"
-                            value={data.password}
-                            onChange={(v)=>
-                                onChange("password",v)
-                            }
-                        />
-
-                    </>
-
-                )}
-
-            </div>
-
-            {service==="HOTSPOT" && (
-
-                <div className="rounded-xl bg-blue-50 border border-blue-200 p-4 text-sm">
-
-                    Username and password will be automatically generated after the customer purchases a Hotspot package.
+                    {error}
 
                 </div>
 
             )}
 
-            <div className="flex justify-between">
+            {/* Full Name */}
+
+            <div>
+
+                <label className="mb-2 block text-sm font-medium">
+
+                    Full Name
+
+                </label>
+
+                <div className="relative">
+
+                    <User
+                        size={18}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+
+                    <input
+
+                        value={fullName}
+
+                        onChange={(e) =>
+                            setFullName(
+                                e.target.value
+                            )
+                        }
+
+                        placeholder="John Doe"
+
+                        required
+
+                        className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-4 dark:border-slate-700 dark:bg-slate-800"
+
+                    />
+
+                </div>
+
+            </div>
+
+            {/* Phone */}
+
+            <div>
+
+                <label className="mb-2 block text-sm font-medium">
+
+                    Phone Number
+
+                </label>
+
+                <div className="relative">
+
+                    <Phone
+                        size={18}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    />
+
+                    <input
+
+                        value={phone}
+
+                        onChange={(e) =>
+                            setPhone(
+                                e.target.value
+                            )
+                        }
+
+                        placeholder="0712345678"
+
+                        required
+
+                        className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-4 dark:border-slate-700 dark:bg-slate-800"
+
+                    />
+
+                </div>
+
+                <p className="mt-2 text-xs text-slate-500">
+
+                    Accepted formats:
+                    0712345678,
+                    712345678,
+                    254712345678
+
+                </p>
+
+            </div>
+
+            {/* Service */}
+
+            <div>
+
+                <label className="mb-2 block text-sm font-medium">
+
+                    Service
+
+                </label>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
+
+                    {serviceType === "PPPOE"
+
+                        ? "PPPoE"
+
+                        : "Hotspot"}
+
+                </div>
+
+            </div>
+
+            {/* Footer */}
+
+            <div className="flex justify-end gap-3 pt-2">
 
                 <button
-                    onClick={onBack}
-                    className="rounded-xl border px-5 py-3"
-                >
-                    Back
-                </button>
 
-                <button
+                    type="submit"
+
                     disabled={loading}
-                    onClick={onSubmit}
-                    className="rounded-xl bg-blue-600 px-6 py-3 text-white"
+
+                    className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+
                 >
+
+                    {loading && (
+
+                        <Loader2
+                            size={18}
+                            className="animate-spin"
+                        />
+
+                    )}
+
                     Create Customer
+
                 </button>
 
             </div>
 
-        </div>
-
-    );
-
-};
-
-export default CustomerForm;
-
-interface InputProps{
-
-    label:string;
-
-    value:string;
-
-    onChange:(v:string)=>void;
-
-}
-
-function Input({
-    label,
-    value,
-    onChange,
-}:InputProps){
-
-    return(
-
-        <div>
-
-            <label className="mb-2 block text-sm font-medium">
-
-                {label}
-
-            </label>
-
-            <input
-
-                value={value}
-
-                onChange={(e)=>
-
-                    onChange(e.target.value)
-
-                }
-
-                className="w-full rounded-xl border border-slate-300 px-4 py-3"
-
-            />
-
-        </div>
-
-    );
-
-}
-
-interface SelectProps{
-
-    label:string;
-
-    value:string;
-
-    onChange:(v:string)=>void;
-
-    options:{
-        value:string;
-        label:string;
-    }[];
-
-}
-
-function Select({
-    label,
-    value,
-    onChange,
-    options,
-}:SelectProps){
-
-    return(
-
-        <div>
-
-            <label className="mb-2 block text-sm font-medium">
-
-                {label}
-
-            </label>
-
-            <select
-
-                value={value}
-
-                onChange={(e)=>
-
-                    onChange(e.target.value)
-
-                }
-
-                className="w-full rounded-xl border border-slate-300 px-4 py-3"
-
-            >
-
-                <option value="">
-
-                    Select...
-
-                </option>
-
-                {options.map(option=>(
-
-                    <option
-                        key={option.value}
-                        value={option.value}
-                    >
-
-                        {option.label}
-
-                    </option>
-
-                ))}
-
-            </select>
-
-        </div>
+        </form>
 
     );
 

@@ -1,17 +1,23 @@
-import { useState } from "react";
+
+import { useMemo, useState } from "react";
+
+import CustomerHeader from "./components/CustomerHeader";
+import CreateHotspotCustomerModal from "./modal/CreateHotspotCustomerModal";
+import CreatePPPoECustomerModal from "./modal/CreatePPPoECustomerModal";
 
 import CustomerStats from "./components/CustomerStats";
 import CustomerTable from "./components/CustomerTable";
 import PPPoECreateDrawer, {
     type CreatePPPoEPayload,
 } from "./components/PPPoECreateDrawer";
-import PPPoEProvisionSuccessModal from "./components/PPPoEProvisionSuccessModal";
+import PPPoEProvisionSuccessModal from "./modal/PppoeProvisionSuccessModal";
 
 import useCustomers from "./hooks/useCustomers";
 
 import type {
     Customer,
-    PPPoEProvisionResult,
+    
+    PPPoEProvisionResponse,
 } from "./types/types";
 
 export default function CustomersPage() {
@@ -44,7 +50,7 @@ export default function CustomersPage() {
         useState(false);
 
     const [provisionResult, setProvisionResult] =
-        useState<PPPoEProvisionResult | null>(null);
+    useState<PPPoEProvisionResponse | null>(null);
 
     const openPPPoEDrawer = (
         customer: Customer
@@ -98,9 +104,109 @@ export default function CustomersPage() {
 
     };
 
+
+    const [search, setSearch] = useState("");
+
+    const [service, setService] = useState("");
+
+    const [status, setStatus] = useState("");
+
+    const [vendor, setVendor] = useState("");
+
+    const [hotspotModalOpen, setHotspotModalOpen] =
+        useState(false);
+
+    const [pppoeModalOpen, setPPPoEModalOpen] =
+        useState(false);
+
+
+
+    
+    const filteredCustomers = useMemo(() => {
+
+        return customers.filter(customer => {
+
+            const matchesSearch =
+                customer.full_name
+                    .toLowerCase()
+                    .includes(search.toLowerCase()) ||
+
+                customer.phone.includes(search) ||
+
+                customer.username
+                    .toLowerCase()
+                    .includes(search.toLowerCase());
+
+            const matchesService =
+                !service ||
+                customer.service_type === service;
+
+            const matchesStatus =
+                !status ||
+                customer.session_status === status;
+
+            const matchesVendor =
+                !vendor ||
+                customer.vendor_name === vendor;
+
+            return (
+
+                matchesSearch &&
+                matchesService &&
+                matchesStatus &&
+                matchesVendor
+
+            );
+
+        });
+
+    }, [
+
+        customers,
+
+        search,
+
+        service,
+
+        status,
+
+        vendor,
+
+    ]);
+
     return (
 
         <div className="space-y-6">
+
+            <CustomerHeader
+
+                search={search}
+
+                onSearchChange={setSearch}
+
+                service={service}
+
+                onServiceChange={setService}
+
+                status={status}
+
+                onStatusChange={setStatus}
+
+                vendor={vendor}
+
+                onVendorChange={setVendor}
+
+                vendors={[]}
+
+                onCreateHotspot={() =>
+                    setHotspotModalOpen(true)
+                }
+
+                onCreatePPPoE={() =>
+                    setPPPoEModalOpen(true)
+                }
+
+            />
 
             <CustomerStats
 
@@ -110,7 +216,7 @@ export default function CustomersPage() {
 
             <CustomerTable
 
-                customers={customers}
+                customers={filteredCustomers}
 
                 loading={loading}
 
@@ -153,6 +259,26 @@ export default function CustomersPage() {
                 result={provisionResult}
 
             />
+
+            <CreateHotspotCustomerModal
+
+                open={hotspotModalOpen}
+
+                onClose={() =>
+                    setHotspotModalOpen(false)
+                }
+
+            />
+
+        <CreatePPPoECustomerModal
+
+            open={pppoeModalOpen}
+
+            onClose={() =>
+                setPPPoEModalOpen(false)
+            }
+
+        />
 
         </div>
 
