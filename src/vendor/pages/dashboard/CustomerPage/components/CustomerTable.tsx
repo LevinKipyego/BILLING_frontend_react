@@ -5,36 +5,61 @@ import StatusBadge from "./StatusBadge";
 import { Cpu, Wifi, Tag, ShieldAlert } from "lucide-react";
 import type { Customer } from "../types/types";
 
+
 interface Props {
+
     customers: Customer[];
-    loading: boolean;
-    onCreatePPPoE: (customer: Customer) => void;
+
+    loading?: boolean;
+
+    onViewCustomer: (
+        customer: Customer
+    ) => void;
+
+    onCreatePPPoE: (
+        customer: Customer
+    ) => void;
+
 }
 
 export default function CustomerTable({
+
     customers,
-    loading,
+
+    loading = false,
+
+    onViewCustomer,
+
     onCreatePPPoE,
+
 }: Props) {
+
     if (loading) {
+
         return (
-            <div className="rounded-xl border border-slate-200 bg-white p-12 text-center text-sm font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-900">
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
+
                 Loading customers...
+
             </div>
+
         );
+
     }
 
-    if (customers.length === 0) {
+    if (!customers.length) {
+
         return (
-            <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-700 dark:bg-slate-900">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    No customers found
-                </h3>
-                <p className="mt-2 text-sm text-slate-500">
-                    Customers will appear here after they are created.
-                </p>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center dark:border-slate-700 dark:bg-slate-900">
+
+                No customers found.
+
             </div>
+
         );
+
     }
 
     return (
@@ -154,14 +179,28 @@ export default function CustomerTable({
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tbody>
+
                         {customers.map((customer) => (
+
                             <CustomerRow
+
                                 key={customer.id}
+
                                 customer={customer}
-                                onCreatePPPoE={onCreatePPPoE}
+
+                                onViewCustomer={
+                                    onViewCustomer
+                                }
+
+                                onCreatePPPoE={
+                                    onCreatePPPoE
+                                }
+
                             />
+
                         ))}
+
                     </tbody>
                 </table>
             </div>

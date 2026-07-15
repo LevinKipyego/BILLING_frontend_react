@@ -1,5 +1,6 @@
 
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import CustomerHeader from "./components/CustomerHeader";
 import CreateHotspotCustomerModal from "./modal/CreateHotspotCustomerModal";
@@ -174,6 +175,24 @@ export default function CustomersPage() {
 
     ]);
 
+
+    const navigate = useNavigate();
+
+
+    const handleViewCustomer = (
+
+        customer: Customer
+
+    ) => {
+
+        navigate(
+
+            `/dashboard/users/detailed/${customer.id}`
+
+        );
+
+    };
+
     return (
 
         <div className="space-y-6">
@@ -220,7 +239,13 @@ export default function CustomersPage() {
 
                 loading={loading}
 
-                onCreatePPPoE={openPPPoEDrawer}
+                onViewCustomer={
+                    handleViewCustomer
+                }
+
+                onCreatePPPoE={
+                    openPPPoEDrawer
+                }
 
             />
 
