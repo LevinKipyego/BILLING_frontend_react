@@ -34,7 +34,7 @@ export default function SummaryCard({
                     {title}
                 </p>
 
-                <h3 className="mt-3 text-3xl font-extrabold text-slate-900 dark:text-white">
+                <h3 className="mt-3 text-xl font-extrabold text-slate-900 dark:text-white">
                     {value}
                 </h3>
 

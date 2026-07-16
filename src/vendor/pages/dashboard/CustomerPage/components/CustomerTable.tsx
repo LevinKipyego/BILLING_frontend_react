@@ -90,6 +90,8 @@ export default function CustomerTable({
                                 <CustomerActions
                                     customer={customer}
                                     onCreatePPPoE={onCreatePPPoE}
+                                    onView={onViewCustomer}
+                                    
                                 />
                             </div>
                         </div>

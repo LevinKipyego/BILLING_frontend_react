@@ -16,6 +16,7 @@ interface Props {
     onRenew?: (customer: Customer) => void;
     onSuspend?: (customer: Customer) => void;
     onDelete?: (customer: Customer) => void;
+    
 }
 
 export default function CustomerActions({
