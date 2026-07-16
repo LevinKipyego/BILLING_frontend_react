@@ -148,6 +148,7 @@ export default function Plans() {
         duration_minutes: calculatedMinutesFeedback,
         rate_limit: form.rate_limit,
         mikrotik_profile: form.mikrotik,
+        mikrotik:form.mikrotik,
         service_type: form.service_type
       };
 

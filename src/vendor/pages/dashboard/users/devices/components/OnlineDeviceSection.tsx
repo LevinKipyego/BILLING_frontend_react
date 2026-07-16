@@ -3,11 +3,11 @@ import OnlineDeviceCard from "./OnlineDeviceCard";
 import type { CurrentDevice } from "../../components/types/types";
 
 interface Props {
-    devices: CurrentDevice[];
+    devices?: CurrentDevice[];
 }
 
 export default function OnlineDevicesSection({
-    devices,
+    devices = [],
 }: Props) {
 
     return (
@@ -24,13 +24,13 @@ export default function OnlineDevicesSection({
 
                 <p className="text-sm text-slate-500">
 
-                    {devices.length} active connection{devices.length !== 1 ? "s" : ""}
+                    {devices?.length ?? 0}  active connection{(devices?.length ?? 0) !== 1 ? "s" : ""}
 
                 </p>
 
             </div>
 
-            {devices.length === 0 ? (
+            {(devices?.length ?? 0) === 0 ? (
 
                 <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center">
 

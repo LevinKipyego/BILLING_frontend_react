@@ -69,7 +69,7 @@ export default function DeviceSummaryCard({
 
                     label="Last Router"
 
-                    value={summary.last_router ?? "-"}
+                    value={summary.last_router?.name ?? "-"}
 
                 />
 

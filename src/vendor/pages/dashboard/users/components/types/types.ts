@@ -314,7 +314,11 @@ export interface Device {
 }
 
 
-
+export interface l_router{
+                id: string,
+                name: string,
+                ip: string
+}
 
 export interface DeviceSummary {
 
@@ -324,7 +328,7 @@ export interface DeviceSummary {
 
     last_seen: string | null;
 
-    last_router: string | null;
+    last_router: l_router | null;
 
 }
 
