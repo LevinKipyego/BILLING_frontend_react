@@ -32,7 +32,7 @@ export default function Login() {
 
     try {
       const response = await fetch(
-        `${BaseUrl}/api/vendors/login/`,
+        `${BaseUrl}/api/login/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

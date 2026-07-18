@@ -175,7 +175,7 @@ export default function PPPoECreateDrawer({
                                     <option value="">Select Plan</option>
                                     {plans.map((plan) => (
                                         <option key={plan.id} value={plan.id}>
-                                            {plan.name}
+                                            {plan.name }
                                         </option>
                                     ))}
                                 </select>

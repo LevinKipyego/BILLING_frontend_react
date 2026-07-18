@@ -14,7 +14,7 @@ interface Props {
 
 export default function OverviewTab({
     profile,
-    reload,
+    
 }: Props) {
 
     return (
