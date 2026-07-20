@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   AlertCircle,
 } from "lucide-react";
+
 import { BaseUrl } from "../../BaseUrl";
 
 export default function Login() {
@@ -17,16 +18,46 @@ export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
-  // Detect if redirected due to expired session
-  const sessionExpired = searchParams.get("message") === "session-expired";
-  const authRequired = searchParams.get("message") === "authentication-required";
+  const [showPassword, setShowPassword] =
+    useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  // ==========================================
+  // AUTH MESSAGE
+  // ==========================================
+
+  const authMessage =
+    searchParams.get("message");
+
+  const sessionExpired =
+    authMessage === "session-expired";
+
+  const authRequired =
+    authMessage === "authentication-required";
+
+  const loggedOut =
+    authMessage === "logged-out";
+
+  const sessionRevoked =
+    authMessage === "session-revoked";
+
+  // ==========================================
+  // LOGIN
+  // ==========================================
+
+  const handleSubmit = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
+
+    if (loading) return;
+
     setError(null);
     setLoading(true);
 
@@ -35,19 +66,42 @@ export default function Login() {
         `${BaseUrl}/api/login/`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            password,
+          }),
         }
       );
 
+      const data =
+        await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        throw new Error("Invalid email or password");
+        throw new Error(
+          data.message ||
+            "Invalid email or password."
+        );
       }
 
-      const data = await response.json();
+      if (
+        !data?.tokens?.access ||
+        !data?.tokens?.refresh
+      ) {
+        throw new Error(
+          "Authentication failed."
+        );
+      }
 
-      // ✅ SINGLE SOURCE OF TRUTH = JWT ONLY
-      localStorage.setItem("access_token", data.access);
+      // ==========================================
+      // SAVE TOKENS
+      // ==========================================
+
       localStorage.setItem(
         "access_token",
         data.tokens.access
@@ -58,17 +112,37 @@ export default function Login() {
         data.tokens.refresh
       );
 
-      // optional flag for UI stability
-      localStorage.setItem("auth_ready", "true");
+      localStorage.setItem(
+        "auth_ready",
+        "true"
+      );
 
-      navigate("/dashboard", { replace: true });
+      // Remove any previous logout notification
+      localStorage.removeItem(
+        "logout_event"
+      );
+
+      // Notify AuthWatcher
+      window.dispatchEvent(
+        new Event("auth-changed")
+      );
+
+      // ==========================================
+      // REDIRECT
+      // ==========================================
+
+      navigate("/dashboard", {
+        replace: true,
+      });
     } catch (err: any) {
-      setError(err.message || "Unable to connect to server");
+      setError(
+        err?.message ||
+          "Unable to connect to the server."
+      );
     } finally {
       setLoading(false);
     }
   };
-
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-[#090d16] ">
       

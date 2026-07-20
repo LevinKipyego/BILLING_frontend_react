@@ -1,117 +1,157 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { jwtDecode } from "jwt-decode";
-import { BaseUrl } from "../BaseUrl";
+import { logout } from "./api/client"; 
 
 type JwtPayload = {
   exp: number;
 };
 
-const API_BASE =
-  import.meta.env.VITE_API_BASE ||
-  `${BaseUrl}/api`;
+const LOGIN_PATH = "/login";
 
-const AuthWatcher = () => {
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
+export default function AuthWatcher() {
+  const timerRef = useRef<number | null>(null);
 
-    const logout = async () => {
-      const token = localStorage.getItem("access_token");
-
-      try {
-        if (token) {
-          await fetch(`${API_BASE}/logout/`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          });
-        }
-      } catch (err) {
-        console.warn("Logout API failed:", err);
-      }
-
-      // ✅ CLEAR AUTH STATE
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("auth_ready");
-
-      // ✅ SAFE REDIRECT
-      if (!window.location.pathname.includes("/login")) {
-        window.location.href =
-          "/login?message=session-expired";
-      }
-    };
-
-    const setupWatcher = () => {
-      const token = localStorage.getItem("access_token");
-
-      if (!token) return;
-
-      try {
-        const decoded = jwtDecode<JwtPayload>(token);
-
-        const expirationTime = decoded.exp * 1000;
-        const now = Date.now();
-
-        const timeLeft = expirationTime - now;
-
-        // =====================================
-        // IMPORTANT:
-        // DO NOT AUTO LOGOUT ON EXPIRY
-        // apiFetch handles token refresh
-        // =====================================
-        if (timeLeft <= 0) {
-          return;
-        }
-
-        // =====================================
-        // OPTIONAL WARNING BEFORE EXPIRY
-        // =====================================
-        const warningTime = timeLeft - 60 * 1000;
-
-        if (warningTime > 0) {
-          timer = setTimeout(() => {
-            console.warn("Session expiring soon...");
-          }, warningTime);
-        }
-
-      } catch {
-        logout();
-      }
-    };
-
-    // =====================================
-    // INITIAL CHECK
-    // =====================================
-    setupWatcher();
-
-    // =====================================
-    // SYNC ACROSS TABS
-    // =====================================
-    const handleStorageChange = () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
-
-      setupWatcher();
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
-
-      window.removeEventListener(
-        "storage",
-        handleStorageChange
-      );
-    };
+  const clearTimer = useCallback(() => {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
   }, []);
 
-  return null;
-};
+  /**
+   * Schedule automatic logout based on the refresh token expiry.
+   */
+  const scheduleLogout = useCallback(() => {
+    clearTimer();
 
-export default AuthWatcher;
+    const refresh = localStorage.getItem("refresh_token");
+
+    // User is already logged out
+    if (!refresh) {
+      return;
+    }
+
+    try {
+      const { exp } = jwtDecode<JwtPayload>(refresh);
+
+      const expiresAt = exp * 1000;
+      const delay = expiresAt - Date.now();
+
+      if (delay <= 0) {
+        logout(false);
+        return;
+      }
+
+      timerRef.current = window.setTimeout(() => {
+        logout(false);
+      }, delay);
+    } catch {
+      logout(false);
+    }
+  }, [clearTimer]);
+
+  /**
+   * Verify the refresh token whenever the tab becomes active.
+   */
+  const verifySession = useCallback(() => {
+    const refresh = localStorage.getItem("refresh_token");
+
+    if (!refresh) {
+      return;
+    }
+
+    try {
+      const { exp } = jwtDecode<JwtPayload>(refresh);
+
+      if (exp * 1000 <= Date.now()) {
+        logout(false);
+      } else {
+        scheduleLogout();
+      }
+    } catch {
+      logout(false);
+    }
+  }, [scheduleLogout]);
+
+  useEffect(() => {
+    scheduleLogout();
+
+    /**
+     * Another tab updated tokens or logged out.
+     */
+    const handleStorage = (event: StorageEvent) => {
+      switch (event.key) {
+        case "refresh_token":
+        case "access_token":
+          scheduleLogout();
+          break;
+
+        case "logout_event":
+          logout(false);
+          break;
+
+        default:
+          break;
+      }
+    };
+
+    /**
+     * Logout triggered within this tab.
+     */
+    const handleLogout = () => {
+      clearTimer();
+
+      if (!window.location.pathname.startsWith(LOGIN_PATH)) {
+        window.location.replace(
+          "/login?message=session-expired"
+        );
+      }
+    };
+
+    /**
+     * Refresh timer after successful token refresh.
+     */
+    const handleAuthChanged = () => {
+      scheduleLogout();
+    };
+
+    /**
+     * Check expiry after computer sleep/tab inactivity.
+     */
+    const handleFocus = () => verifySession();
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        verifySession();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("auth-changed", handleAuthChanged);
+    window.addEventListener("auth:logout", handleLogout);
+    document.addEventListener(
+      "visibilitychange",
+      handleVisibility
+    );
+
+    return () => {
+      clearTimer();
+
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("auth-changed", handleAuthChanged);
+      window.removeEventListener("auth:logout", handleLogout);
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibility
+      );
+    };
+  }, [
+    clearTimer,
+    scheduleLogout,
+    verifySession,
+  ]);
+
+  return null;
+}
