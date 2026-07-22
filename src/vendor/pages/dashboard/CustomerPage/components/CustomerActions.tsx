@@ -28,7 +28,7 @@ export default function CustomerActions({
     onDelete,
 }: Props) {
     const [open, setOpen] = useState(false);
-    const [openUpward, setOpenUpward] = useState(false); // Tracks menu direction
+    const [openUpward, setOpenUpward] = useState(false);
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {

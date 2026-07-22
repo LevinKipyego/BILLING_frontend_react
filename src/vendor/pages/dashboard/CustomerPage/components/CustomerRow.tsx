@@ -1,24 +1,39 @@
-import { UserCircle2, Router } from "lucide-react";
+import {
+    UserCircle2,
+    Router,
+} from "lucide-react";
 
-import type { Customer } from "../types/types";
+import type {
+    Customer,
+} from "../types/types";
 
 import CustomerActions from "./CustomerActions";
-
 import ServiceBadge from "./ServiceBadge";
-
 import StatusBadge from "./StatusBadge";
 
 interface Props {
 
     customer: Customer;
 
-    onViewCustomer: (
-        customer: Customer
-    ) => void;
+    onViewCustomer(
+        customer: Customer,
+    ): void;
 
-    onCreatePPPoE: (
-        customer: Customer
-    ) => void;
+    onCreatePPPoE(
+        customer: Customer,
+    ): void;
+
+    onRenewCustomer?(
+        customer: Customer,
+    ): void;
+
+    onSuspendCustomer?(
+        customer: Customer,
+    ): void;
+
+    onDeleteCustomer?(
+        customer: Customer,
+    ): void;
 
 }
 
@@ -29,6 +44,12 @@ export default function CustomerRow({
     onViewCustomer,
 
     onCreatePPPoE,
+
+    onRenewCustomer,
+
+    onSuspendCustomer,
+
+    onDeleteCustomer,
 
 }: Props) {
 
@@ -45,11 +66,8 @@ export default function CustomerRow({
                     <div className="rounded-full bg-slate-100 p-2 dark:bg-slate-800">
 
                         <UserCircle2
-
                             size={34}
-
                             className="text-slate-500"
-
                         />
 
                     </div>
@@ -79,9 +97,7 @@ export default function CustomerRow({
             <td className="px-5 py-4">
 
                 <ServiceBadge
-
                     service={customer.service_type}
-
                 />
 
             </td>
@@ -105,9 +121,7 @@ export default function CustomerRow({
                             Expires{" "}
 
                             {new Date(
-
-                                customer.expires_at
-
+                                customer.expires_at,
                             ).toLocaleDateString()}
 
                         </p>
@@ -125,11 +139,8 @@ export default function CustomerRow({
                 <div className="flex items-center gap-2">
 
                     <Router
-
                         size={15}
-
                         className="text-slate-400"
-
                     />
 
                     <div>
@@ -157,9 +168,7 @@ export default function CustomerRow({
             <td className="px-5 py-4">
 
                 <StatusBadge
-
                     customer={customer}
-
                 />
 
             </td>
@@ -175,6 +184,12 @@ export default function CustomerRow({
                     onView={onViewCustomer}
 
                     onCreatePPPoE={onCreatePPPoE}
+
+                    onRenew={onRenewCustomer}
+
+                    onSuspend={onSuspendCustomer}
+
+                    onDelete={onDeleteCustomer}
 
                 />
 

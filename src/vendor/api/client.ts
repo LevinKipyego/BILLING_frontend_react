@@ -259,3 +259,38 @@ export async function apiFetch<T = any>(
     });
   });
 }
+
+
+export function apiGet<T>(
+    endpoint: string,
+) {
+    return apiFetch<T>(endpoint);
+}
+
+export function apiPost<T>(
+    endpoint: string,
+    body?: unknown,
+) {
+    return apiFetch<T>(endpoint, {
+        method: "POST",
+        body: JSON.stringify(body),
+    });
+}
+
+export function apiPatch<T>(
+    endpoint: string,
+    body?: unknown,
+) {
+    return apiFetch<T>(endpoint, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+    });
+}
+
+export function apiDelete<T>(
+    endpoint: string,
+) {
+    return apiFetch<T>(endpoint, {
+        method: "DELETE",
+    });
+}

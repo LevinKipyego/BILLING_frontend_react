@@ -12,13 +12,25 @@ interface Props {
 
     loading?: boolean;
 
-    onViewCustomer: (
-        customer: Customer
-    ) => void;
+    onViewCustomer(
+        customer: Customer,
+    ): void;
 
-    onCreatePPPoE: (
-        customer: Customer
-    ) => void;
+    onCreatePPPoE(
+        customer: Customer,
+    ): void;
+
+    onRenewCustomer?(
+        customer: Customer,
+    ): void;
+
+    onSuspendCustomer?(
+        customer: Customer,
+    ): void;
+
+    onDeleteCustomer?(
+        customer: Customer,
+    ): void;
 
 }
 
@@ -31,6 +43,12 @@ export default function CustomerTable({
     onViewCustomer,
 
     onCreatePPPoE,
+
+    onRenewCustomer,
+
+    onSuspendCustomer,
+
+    onDeleteCustomer,
 
 }: Props) {
 
@@ -91,7 +109,9 @@ export default function CustomerTable({
                                     customer={customer}
                                     onCreatePPPoE={onCreatePPPoE}
                                     onView={onViewCustomer}
-                                    
+                                    onRenew={onRenewCustomer}
+                                    onSuspend={onSuspendCustomer}
+                                    onDelete={onDeleteCustomer}
                                 />
                             </div>
                         </div>
@@ -187,19 +207,21 @@ export default function CustomerTable({
 
                             <CustomerRow
 
-                                key={customer.id}
+                                    key={customer.id}
 
-                                customer={customer}
+                                    customer={customer}
 
-                                onViewCustomer={
-                                    onViewCustomer
-                                }
+                                    onViewCustomer={onViewCustomer}
 
-                                onCreatePPPoE={
-                                    onCreatePPPoE
-                                }
+                                    onCreatePPPoE={onCreatePPPoE}
 
-                            />
+                                    onRenewCustomer={onRenewCustomer}
+
+                                    onSuspendCustomer={onSuspendCustomer}
+
+                                    onDeleteCustomer={onDeleteCustomer}
+
+                                />
 
                         ))}
 

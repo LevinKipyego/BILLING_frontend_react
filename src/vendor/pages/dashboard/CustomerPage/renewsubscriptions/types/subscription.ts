@@ -1,105 +1,145 @@
-import type {
-    Customer,
-    Mikrotik,
-    Plan,
-} from "./subscription";
+/* =====================================================
+ * Available Plan
+ * ===================================================== */
 
-export type RenewalMode =
-    | "EXTEND"
-    | "IMMEDIATE"
-    | "CUSTOM";
+export interface AvailablePlan {
+
+    id: number;
+
+    name: string;
+
+    description?: string;
+
+    price: number;
+
+    duration_days: number;
+
+    service_type: string;
+
+    router_name?: string | null;
+
+}
+
+/* =====================================================
+ * Current Subscription
+ * ===================================================== */
 
 export interface CurrentSubscription {
 
     id: number;
 
-    service_type: "HOTSPOT" | "PPPOE";
+    username: string;
 
-    plan: Plan | null;
+    service_type: string;
 
-    mikrotik: Mikrotik | null;
+    status: string;
+
+    plan: AvailablePlan;
+
+    router_name?: string | null;
+
+    started_at: string;
+
+    expires_at: string;
+
+    remaining_days: number;
+
+    auto_renew: boolean;
+
+}
+
+/* =====================================================
+ * Subscription Change
+ * ===================================================== */
+
+export interface SubscriptionChange {
+
+    field: string;
+
+    old_value: string | number | boolean | null;
+
+    new_value: string | number | boolean | null;
+
+}
+
+/* =====================================================
+ * Renewal Mode
+ * ===================================================== */
+
+export type RenewalMode =
+
+    | "extend"
+
+    | "reset";
+
+/* =====================================================
+ * Renewal Preview
+ * ===================================================== */
+
+export interface RenewalPreview {
+
+    current_plan: AvailablePlan;
+
+    new_plan: AvailablePlan;
+
+    mode: RenewalMode;
+
+    current_expiry: string;
 
     start_at: string;
 
     end_at: string;
 
-    active: boolean;
+    amount: number;
+
+    duration_days: number;
+
+    extends_days: number;
+
+    price_difference: number;
 
 }
 
-export interface RenewalState {
-
-    mode: RenewalMode;
-
-    plan: Plan | null;
-
-    mikrotik: Mikrotik | null;
-
-    start_at: string | null;
-
-    activate: boolean;
-
-    push_radius: boolean;
-
-}
-
-export interface RenewalWarning {
-
-    type:
-        | "info"
-        | "warning"
-        | "error";
-
-    message: string;
-
-}
+/* =====================================================
+ * Renewal Summary
+ * ===================================================== */
 
 export interface RenewalSummary {
 
-    oldExpiry: string;
+    mode: RenewalMode;
 
-    newExpiry: string;
+    plan_name: string;
 
-    duration: number;
+    amount: number;
 
-    price: string;
+    duration_days: number;
+
+    start_at: string;
+
+    end_at: string;
 
 }
+
+/* =====================================================
+ * Renew Payload
+ * ===================================================== */
 
 export interface RenewSubscriptionPayload {
 
     plan_id: number;
 
-    mikrotik_id: string;
+    mode: RenewalMode;
 
-    renew_mode: RenewalMode;
-
-    start_at: string | null;
-
-    activate: boolean;
-
-    push_radius: boolean;
+    notes?: string;
 
 }
 
-export interface RenewSubscriptionModalProps {
+/* =====================================================
+ * Renew Result
+ * ===================================================== */
 
-    open: boolean;
-
-    customer: Customer;
+export interface RenewSubscriptionResult {
 
     subscription: CurrentSubscription;
-
-    plans: Plan[];
-
-    mikrotiks: Mikrotik[];
-
-    loading?: boolean;
-
-    onClose(): void;
-
-    onSubmit(
-        payload: RenewSubscriptionPayload
-    ): Promise<void>;
 
 }

@@ -12,14 +12,19 @@ import PPPoECreateDrawer, {
     type CreatePPPoEPayload,
 } from "./components/PPPoECreateDrawer";
 import PPPoEProvisionSuccessModal from "./modal/PppoeProvisionSuccessModal";
+import CustomerActionCenter from "./renewsubscriptions/CustomerActionCenter/CustomerActionCenter";
 
-import useCustomers from "./hooks/useCustomers";
+import type { CustomerActionType } from "./renewsubscriptions/CustomerActionCenter/actionRegistry";
+
+import useCustomers from "./hooks/useRenewal";
 
 import type {
     Customer,
     
     PPPoEProvisionResponse,
 } from "./types/types";
+
+
 
 export default function CustomersPage() {
 
@@ -41,8 +46,29 @@ export default function CustomersPage() {
 
     } = useCustomers();
 
-    const [selectedCustomer, setSelectedCustomer] =
-        useState<Customer | null>(null);
+    const [
+
+    drawerCustomer,
+
+    setDrawerCustomer,
+
+    ] = useState<Customer | null>(null);
+
+    const [
+
+        actionCustomer,
+
+        setActionCustomer,
+
+    ] = useState<Customer | null>(null);
+
+    const [
+
+        customerAction,
+
+        setCustomerAction,
+
+    ] = useState<CustomerActionType | null>(null);
 
     const [drawerOpen, setDrawerOpen] =
         useState(false);
@@ -54,10 +80,12 @@ export default function CustomersPage() {
     useState<PPPoEProvisionResponse | null>(null);
 
     const openPPPoEDrawer = (
-        customer: Customer
+
+        customer: Customer,
+
     ) => {
 
-        setSelectedCustomer(customer);
+        setDrawerCustomer(customer);
 
         setDrawerOpen(true);
 
@@ -67,7 +95,7 @@ export default function CustomersPage() {
 
         setDrawerOpen(false);
 
-        setSelectedCustomer(null);
+        setDrawerCustomer(null);
 
     };
 
@@ -83,13 +111,17 @@ export default function CustomersPage() {
 
     const handleProvision = async (
         payload: CreatePPPoEPayload
-    ) => {
+        ) => {
 
-        if (!selectedCustomer) return;
+            if (!drawerCustomer) {
+
+        return;
+
+}
 
         const result = await createPPPoE(
 
-            selectedCustomer.id,
+            drawerCustomer.id,
 
             payload,
 
@@ -104,7 +136,28 @@ export default function CustomersPage() {
         setSuccessOpen(true);
 
     };
+    
+    function openCustomerAction(
 
+        customer: Customer,
+
+        action: CustomerActionType,
+
+    ) {
+
+        setActionCustomer(customer);
+
+        setCustomerAction(action);
+
+    }
+
+    function closeCustomerAction() {
+
+        setActionCustomer(null);
+
+        setCustomerAction(null);
+
+    }
 
     const [search, setSearch] = useState("");
 
@@ -239,19 +292,51 @@ export default function CustomersPage() {
 
                 loading={loading}
 
-                onViewCustomer={
-                    handleViewCustomer
+                onViewCustomer={handleViewCustomer}
+
+                onCreatePPPoE={openPPPoEDrawer}
+
+                onRenewCustomer={(customer) =>
+
+                    openCustomerAction(
+
+                        customer,
+
+                        "renew",
+
+                    )
+
                 }
 
-                onCreatePPPoE={
-                    openPPPoEDrawer
+                onSuspendCustomer={(customer) =>
+
+                    openCustomerAction(
+
+                        customer,
+
+                        "suspend",
+
+                    )
+
+                }
+
+                onDeleteCustomer={(customer) =>
+
+                    openCustomerAction(
+
+                        customer,
+
+                        "delete",
+
+                    )
+
                 }
 
             />
 
             {
 
-                selectedCustomer && (
+                drawerCustomer && (
 
                     <PPPoECreateDrawer
 
@@ -259,7 +344,7 @@ export default function CustomersPage() {
 
                         onClose={closeDrawer}
 
-                        customer={selectedCustomer}
+                        customer={drawerCustomer}
 
                         mikrotiks={mikrotiks}
 
@@ -274,6 +359,28 @@ export default function CustomersPage() {
                 )
 
             }
+
+
+            {
+
+            actionCustomer &&
+
+            customerAction && (
+
+                <CustomerActionCenter
+                    open={customerAction !== null}
+                    customer={actionCustomer}
+                    action={customerAction}
+                    onClose={closeCustomerAction}
+                    onCompleted={() => {
+                        refresh();
+                        closeCustomerAction();
+                    }}
+                />
+
+            )
+
+        }
 
             <PPPoEProvisionSuccessModal
 

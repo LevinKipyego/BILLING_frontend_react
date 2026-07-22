@@ -1,17 +1,21 @@
 import { apiFetch } from "../../../../../api/client";
+
+import type { ApiResponse } from "../types/api";
+
 import type {
+    AvailablePlan,
     CurrentSubscription,
     RenewSubscriptionPayload,
-    RenewSubscriptionResponse,
+    RenewSubscriptionResult,
 } from "../types/subscription";
 
-/* ===========================================================
-   Get Current Subscription
-=========================================================== */
+/* =====================================================
+ * Current Subscription
+ * ===================================================== */
 
-export async function getCurrentSubscription(
+export function getCurrentSubscription(
     customerId: number,
-): Promise<CurrentSubscription> {
+): Promise<ApiResponse<CurrentSubscription>> {
 
     return apiFetch(
         `/customers/${customerId}/subscription/`,
@@ -19,118 +23,33 @@ export async function getCurrentSubscription(
 
 }
 
-/* ===========================================================
-   Renewal Preview
-=========================================================== */
+/* =====================================================
+ * Available Plans
+ * ===================================================== */
 
-export async function previewRenewal(
-    customerId: number,
-    payload: RenewSubscriptionPayload,
-): Promise<RenewSubscriptionResponse> {
+export function getAvailablePlans(): Promise<ApiResponse<AvailablePlan[]>> {
 
     return apiFetch(
-
-        `/customers/${customerId}/subscription/preview/`,
-
-        {
-
-            method: "POST",
-
-            body: JSON.stringify(payload),
-
-        },
-
+        "/plans/",
     );
 
 }
 
-/* ===========================================================
-   Renew Subscription
-=========================================================== */
+/* =====================================================
+ * Renew Subscription
+ * ===================================================== */
 
-export async function renewSubscription(
+export function renewSubscription(
     customerId: number,
     payload: RenewSubscriptionPayload,
-): Promise<RenewSubscriptionResponse> {
+): Promise<ApiResponse<RenewSubscriptionResult>> {
 
     return apiFetch(
-
-        `/customers/${customerId}/subscription/renew/`,
-
+        `/customers/${customerId}/renew/`,
         {
-
             method: "POST",
-
             body: JSON.stringify(payload),
-
         },
-
-    );
-
-}
-
-/* ===========================================================
-   Suspend Subscription
-=========================================================== */
-
-export async function suspendSubscription(
-    customerId: number,
-): Promise<void> {
-
-    await apiFetch(
-
-        `/customers/${customerId}/subscription/suspend/`,
-
-        {
-
-            method: "POST",
-
-        },
-
-    );
-
-}
-
-/* ===========================================================
-   Resume Subscription
-=========================================================== */
-
-export async function resumeSubscription(
-    customerId: number,
-): Promise<void> {
-
-    await apiFetch(
-
-        `/customers/${customerId}/subscription/resume/`,
-
-        {
-
-            method: "POST",
-
-        },
-
-    );
-
-}
-
-/* ===========================================================
-   Cancel Subscription
-=========================================================== */
-
-export async function cancelSubscription(
-    customerId: number,
-): Promise<void> {
-
-    await apiFetch(
-
-        `/customers/${customerId}/subscription/cancel/`,
-
-        {
-
-            method: "POST",
-
-        },
-
     );
 
 }
