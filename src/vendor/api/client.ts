@@ -108,11 +108,8 @@ export async function apiFetch<T = any>(
     }
   );
 
-  console.log(
-    "apiFetch response:",
-    endpoint,
-    response.status
-);
+  
+
   /* ------------------------------------------ */
   /* SUCCESS                                    */
   /* ------------------------------------------ */
@@ -133,6 +130,7 @@ export async function apiFetch<T = any>(
       await response.json().catch(() => ({}));
 
     throw new Error(
+      
       error.message ||
       `HTTP ${response.status}`
     );

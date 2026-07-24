@@ -8,7 +8,7 @@ import Card from "../common/Card";
 import InfoRow from "../common/InfoRow";
 import StatusBadge from "../common/StatusBadge";
 
-import { formatDate } from "../../utils/date";
+import { formatDate, formatDuration } from "../../utils/date";
 
 import type {
     CurrentSubscription,
@@ -64,7 +64,7 @@ export default function CurrentSubscriptionCard({
 
                     label="Remaining"
 
-                    value={`${subscription.remaining_days} days`}
+                    value={`${formatDuration(subscription.remaining_minutes)}`}
 
                 />
 

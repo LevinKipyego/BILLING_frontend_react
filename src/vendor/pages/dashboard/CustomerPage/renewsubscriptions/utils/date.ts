@@ -19,15 +19,58 @@ export function addDays(
 }
 
 export function formatDate(
-
-    value: string | Date,
-
+    value: string | Date | null | undefined,
 ): string {
+    if (!value) return "—";
 
-    return new Date(value)
+    // Handle UTC ISO strings without explicit timezone offsets (e.g. "2026-07-24T12:00:00")
+    // by appending "Z" so JS parses it as UTC rather than local time.
+    let dateInput = value;
+    if (typeof value === "string" && !value.endsWith("Z") && !value.includes("+")) {
+        dateInput = `${value}Z`;
+    }
 
-        .toLocaleDateString();
+    const date = new Date(dateInput);
 
+    if (isNaN(date.getTime())) {
+        return "Invalid Date";
+    }
+
+    const now = new Date();
+
+    // Reset hours to compare local calendar dates
+    const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const diffInDays = Math.round(
+        (targetDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    const timeString = date.toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    });
+
+    if (diffInDays === 0) {
+        return `Today at ${timeString}`;
+    }
+
+    if (diffInDays === 1) {
+        return `Tomorrow at ${timeString}`;
+    }
+
+    if (diffInDays === -1) {
+        return `Yesterday at ${timeString}`;
+    }
+
+    const dateString = date.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    });
+
+    return `${dateString} at ${timeString}`;
 }
 
 export function daysBetween(
@@ -70,34 +113,28 @@ export function addMinutes(
 
 }
 
-export function formatDuration(
-    minutes: number,
-): string {
-
-    if (minutes < 60) {
-
-        return `${minutes} Minute${minutes === 1 ? "" : "s"}`;
-
+export function formatDuration(minutes: number): string {
+    if (!minutes || minutes <= 0) {
+        return "0 Minutes";
     }
 
-    if (minutes < 1440) {
+    const days = Math.floor(minutes / 1440);
+    const hours = Math.floor((minutes % 1440) / 60);
+    const mins = minutes % 60;
 
-        const hours = minutes / 60;
+    const parts: string[] = [];
 
-        return `${hours} Hour${hours === 1 ? "" : "s"}`;
-
+    if (days > 0) {
+        parts.push(`${days} Day${days === 1 ? "" : "s"}`);
     }
 
-    const days = minutes / 1440;
-
-    if (days < 30) {
-
-        return `${days} Day${days === 1 ? "" : "s"}`;
-
+    if (hours > 0) {
+        parts.push(`${hours} Hour${hours === 1 ? "" : "s"}`);
     }
 
-    const months = days / 30;
+    if (mins > 0) {
+        parts.push(`${mins} Minute${mins === 1 ? "" : "s"}`);
+    }
 
-    return `${months} Month${months === 1 ? "" : "s"}`;
-
+    return parts.join(" ");
 }

@@ -163,8 +163,6 @@ export default function RenewSubscriptionModal({
 
     return (
 
-        
-
         <CustomerActionModal
 
             open={open}

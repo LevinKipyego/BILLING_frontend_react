@@ -10,6 +10,8 @@ import InfoRow from "./InfoRow";
 
 import type { AvailablePlan } from "../../types/subscription";
 
+import { formatDuration } from "../../utils/date";
+
 interface PlanCardProps {
     title?: string;
     plan: AvailablePlan;
@@ -93,7 +95,7 @@ export default function PlanCard({
                 <InfoRow
                     icon={CalendarDays}
                     label="Duration"
-                    value={`${plan.duration_minutes} mins`}
+                    value={`${formatDuration(plan.duration_minutes)}`}
                 />
 
                 {plan.router_name && (

@@ -8,7 +8,7 @@ import {
 import Card from "../common/Card";
 import InfoRow from "../common/InfoRow";
 
-import { formatDate } from "../../utils/date";
+import { formatDate, formatDuration } from "../../utils/date";
 
 import type {
     RenewalPreview as RenewalPreviewData,
@@ -51,7 +51,7 @@ export default function RenewalPreview({
 
                     label="Duration"
 
-                    value={`${preview.duration_minutes} minutes`}
+                    value={`${formatDuration(preview.duration_minutes)}`}
 
                 />
 
