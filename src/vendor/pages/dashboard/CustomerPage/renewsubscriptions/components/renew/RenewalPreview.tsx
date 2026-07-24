@@ -51,7 +51,7 @@ export default function RenewalPreview({
 
                     label="Duration"
 
-                    value={`${preview.duration_days} days`}
+                    value={`${preview.duration_minutes} minutes`}
 
                 />
 

@@ -37,6 +37,9 @@ interface RenewalConfigurationProps {
 
 }
 
+
+
+
 export default function RenewalConfiguration({
 
     subscription,
@@ -54,6 +57,9 @@ export default function RenewalConfiguration({
     onNotesChange,
 
 }: RenewalConfigurationProps) {
+
+
+  
 
     return (
 

@@ -74,23 +74,23 @@ export function useRenewSubscription(): UseRenewSubscriptionResult {
 
     const fetchData = useCallback(
 
-        async (
+    async (
 
-            id: number,
+        id: number,
 
-        ) => {
+    ) => {
 
-            setLoading(true);
+        setLoading(true);
 
-            setError(null);
+        setError(null);
 
-            try {
+        try {
 
                 const [
 
-                    subscription,
+                    subscriptionResponse,
 
-                    plans,
+                    plansResponse,
 
                 ] = await Promise.all([
 
@@ -100,9 +100,17 @@ export function useRenewSubscription(): UseRenewSubscriptionResult {
 
                 ]);
 
-                setSubscription(subscription.payload);
+                setSubscription(
 
-                setPlans(plans.payload);
+                    subscriptionResponse.payload,
+
+                );
+
+                setPlans(
+
+                    plansResponse,
+
+                );
 
             }
 
@@ -116,9 +124,9 @@ export function useRenewSubscription(): UseRenewSubscriptionResult {
 
                         : new Error(
 
-                              "Unable to load subscription.",
+                            "Unable to load subscription.",
 
-                          ),
+                        ),
 
                 );
 

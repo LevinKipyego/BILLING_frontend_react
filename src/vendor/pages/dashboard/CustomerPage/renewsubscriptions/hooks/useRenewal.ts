@@ -20,9 +20,8 @@ import type {
 
 export function useRenewal(
     subscription: CurrentSubscription | null,
-    plans: AvailablePlan[],
+    plans: AvailablePlan[] = [],
 ): UseRenewalResult {
-
     const [
         configuration,
         setConfiguration,
@@ -60,13 +59,15 @@ export function useRenewal(
 
         }
 
+        const availablePlans = Array.isArray(plans)
+            ? plans
+            : [];
+
         return (
-            plans.find(
+            availablePlans.find(
                 plan =>
-                    plan.id ===
-                    configuration.planId,
-            ) ??
-            subscription.plan
+                    plan.id === configuration.planId,
+            ) ?? subscription.plan
         );
 
     }, [
@@ -74,6 +75,13 @@ export function useRenewal(
         plans,
         subscription,
     ]);
+
+
+    console.log({
+    subscription,
+    plans,
+    isArray: Array.isArray(plans),
+    });
 
     const renewal = useMemo(() => {
 

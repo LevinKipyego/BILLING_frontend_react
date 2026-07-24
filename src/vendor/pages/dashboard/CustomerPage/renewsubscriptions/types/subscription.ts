@@ -8,13 +8,13 @@ export interface AvailablePlan {
 
     name: string;
 
-    description?: string;
+    description?: string | null;
+
+    service_type: string;
 
     price: number;
 
-    duration_days: number;
-
-    service_type: string;
+    duration_minutes: number;
 
     router_name?: string | null;
 
@@ -42,7 +42,7 @@ export interface CurrentSubscription {
 
     expires_at: string;
 
-    remaining_days: number;
+    remaining_minutes: number;
 
     auto_renew: boolean;
 
@@ -86,17 +86,25 @@ export interface RenewalPreview {
 
     current_expiry: string;
 
+    new_expiry: string;
+
     start_at: string;
 
     end_at: string;
 
     amount: number;
 
-    duration_days: number;
+    duration_minutes: number;
 
-    extends_days: number;
+    extends_minutes: number;
+
+    formatted_duration: string;
+
+    formatted_remaining: string;
 
     price_difference: number;
+
+    plan_changed: boolean;
 
 }
 
@@ -112,11 +120,21 @@ export interface RenewalSummary {
 
     amount: number;
 
-    duration_days: number;
+    duration_minutes: number;
+
+    formatted_duration: string;
+
+    effective_date: string;
+
+    expiry_date: string;
 
     start_at: string;
 
     end_at: string;
+
+    plan_changed: boolean;
+
+    total_changes: number;
 
 }
 

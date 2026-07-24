@@ -1,4 +1,4 @@
-import { addDays } from "./date";
+import { addMinutes, formatDuration } from "./date";
 
 import type {
     AvailablePlan,
@@ -26,9 +26,9 @@ export function buildRenewal(
             ? new Date()
             : currentExpiry;
 
-    const endDate = addDays(
+    const endDate = addMinutes(
         startDate,
-        selectedPlan.duration_days,
+        selectedPlan.duration_minutes,
     );
 
     const payload = {
@@ -38,7 +38,8 @@ export function buildRenewal(
         mode: configuration.mode,
 
         notes:
-            configuration.notes.trim() || undefined,
+            configuration.notes.trim() ||
+            undefined,
 
     };
 
@@ -64,7 +65,7 @@ export function buildRenewal(
     }
 
     if (
-        configuration.mode === "reset"
+        configuration.mode !== "extend"
     ) {
 
         changes.push({
@@ -73,7 +74,8 @@ export function buildRenewal(
 
             old_value: "Extend",
 
-            new_value: "Reset",
+            new_value:
+                configuration.mode,
 
         });
 
@@ -102,6 +104,9 @@ export function buildRenewal(
         current_expiry:
             subscription.expires_at,
 
+        new_expiry:
+            endDate.toISOString(),
+
         start_at:
             startDate.toISOString(),
 
@@ -111,17 +116,29 @@ export function buildRenewal(
         amount:
             selectedPlan.price,
 
-        duration_days:
-            selectedPlan.duration_days,
+        duration_minutes:
+            selectedPlan.duration_minutes,
 
-        extends_days:
-            selectedPlan.duration_days,
+        extends_minutes:
+            selectedPlan.duration_minutes,
+
+        formatted_duration:
+            formatDuration(
+                selectedPlan.duration_minutes,
+            ),
+
+        formatted_remaining:
+            formatDuration(
+                subscription.remaining_minutes,
+            ),
 
         price_difference:
-
             selectedPlan.price -
-
             subscription.plan.price,
+
+        plan_changed:
+            subscription.plan.id !==
+            selectedPlan.id,
 
     };
 
@@ -136,14 +153,32 @@ export function buildRenewal(
         amount:
             selectedPlan.price,
 
-        duration_days:
-            selectedPlan.duration_days,
+        duration_minutes:
+            selectedPlan.duration_minutes,
+
+        formatted_duration:
+            formatDuration(
+                selectedPlan.duration_minutes,
+            ),
+
+        effective_date:
+            startDate.toISOString(),
+
+        expiry_date:
+            endDate.toISOString(),
 
         start_at:
             startDate.toISOString(),
 
         end_at:
             endDate.toISOString(),
+
+        plan_changed:
+            subscription.plan.id !==
+            selectedPlan.id,
+
+        total_changes:
+            changes.length,
 
     };
 

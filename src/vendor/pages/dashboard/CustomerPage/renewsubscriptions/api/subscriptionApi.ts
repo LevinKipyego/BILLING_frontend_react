@@ -27,11 +27,10 @@ export function getCurrentSubscription(
  * Available Plans
  * ===================================================== */
 
-export function getAvailablePlans(): Promise<ApiResponse<AvailablePlan[]>> {
+export function getAvailablePlans(
+): Promise<AvailablePlan[]> {
 
-    return apiFetch(
-        "/plans/",
-    );
+    return apiFetch("/plans/");
 
 }
 
