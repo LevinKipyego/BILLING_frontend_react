@@ -29,7 +29,7 @@ export default function MpesaTransactions() {
   async function loadData() {
     setLoading(true);
     try {
-      const res = await apiFetch("/client/c2b/c2btransactions/");
+      const res = await apiFetch("/pipoe/client/c2b/c2btransactions/");
       setData(res);
     } finally {
       setLoading(false);

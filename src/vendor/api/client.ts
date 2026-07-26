@@ -91,7 +91,7 @@ export async function apiFetch<T = any>(
     headers.set("Content-Type", "application/json");
   }
 
-  console.log("apiFetch:", endpoint);
+  
 
   if (access) {
     headers.set(
