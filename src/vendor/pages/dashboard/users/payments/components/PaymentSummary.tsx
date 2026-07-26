@@ -14,6 +14,7 @@ interface Props {
     overview: Overview;
 
 }
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 
 export default function PaymentSummary({
 
@@ -73,11 +74,11 @@ export default function PaymentSummary({
 
                     overview.last_payment
 
-                        ? new Date(
+                        ? formatDate(
 
                             overview.last_payment
 
-                        ).toLocaleDateString()
+                        )
 
                         : "-"
 

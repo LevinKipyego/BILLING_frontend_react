@@ -2,6 +2,8 @@ import ServiceCard from "../cards/ServiceCard";
 
 import type { UserProfile } from "../types/types";
 
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
+
 interface Props {
     profile: UserProfile;
 }
@@ -10,8 +12,8 @@ export default function CurrentServicesSection({
     profile,
 }: Props) {
 
-    const hotspotAccounts = profile.hotspot.accounts ?? [];
-    const pppoeAccounts = profile.pppoe.accounts ?? [];
+    const hotspotAccounts = Array.isArray(profile.hotspot.accounts) ? profile.hotspot.accounts : [];
+    const pppoeAccounts = Array.isArray(profile.pppoe.accounts) ? profile.pppoe.accounts : [];
 
     const hasServices =
         hotspotAccounts.length > 0 ||
@@ -69,9 +71,9 @@ export default function CurrentServicesSection({
                             username={account.credential?.username ?? "unknown"}
                             expires={
                                 account.current_subscription?.end_at
-                                    ? new Date(
+                                    ? formatDate(
                                           account.current_subscription.end_at
-                                      ).toLocaleString()
+                                      )
                                     : null
                             }
                         />
@@ -94,9 +96,9 @@ export default function CurrentServicesSection({
                             username={account.credential?.username ?? "unknown"}
                             expires={
                                 account.current_subscription?.end_at
-                                    ? new Date(
+                                    ? formatDate (
                                           account.current_subscription.end_at
-                                      ).toLocaleString()
+                                      )
                                     : null
                             }
                         />

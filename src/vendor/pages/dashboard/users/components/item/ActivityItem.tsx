@@ -3,6 +3,7 @@ import { Clock } from "lucide-react";
 import type { Activity } from "../types/types";
 
 import { activityIcon } from "../utils/activityIcons";
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 
 interface Props {
 
@@ -79,7 +80,7 @@ export default function ActivityItem({
 
                         <Clock size={14} />
 
-                        {new Date(activity.created_at).toLocaleString()}
+                        {formatDate(activity.created_at)}
 
                     </div>
 

@@ -12,7 +12,7 @@ interface Props {
     payment: Payment;
 
 }
-
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 export default function PaymentItem({
 
     payment,
@@ -100,9 +100,9 @@ export default function PaymentItem({
 
                 <p className="text-sm text-slate-500 mt-1">
 
-                    {new Date(
+                    { formatDate(
                         payment.created_at
-                    ).toLocaleString()}
+                    )}
 
                 </p>
 

@@ -3,6 +3,8 @@ import {
     UserCircle2,
 } from "lucide-react";
 
+
+
 import StatusBadge from "../StatusBadge";
 
 interface Props {
@@ -82,7 +84,7 @@ export default function ServiceCard({
                 <div className="flex gap-2">
 
                     <Calendar size={16}/>
-
+                    Expires-
                     {expires ?? "-"}
 
                 </div>

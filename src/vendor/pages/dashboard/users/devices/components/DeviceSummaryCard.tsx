@@ -14,6 +14,7 @@ interface Props {
     summary: DeviceSummary;
 
 }
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 
 export default function DeviceSummaryCard({
 
@@ -83,7 +84,7 @@ export default function DeviceSummaryCard({
 
                         summary.last_seen
 
-                            ? new Date(summary.last_seen).toLocaleString()
+                            ? formatDate (summary.last_seen)
 
                             : "-"
 

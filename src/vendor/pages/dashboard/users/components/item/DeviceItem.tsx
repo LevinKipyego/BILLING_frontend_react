@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import type { CurrentDevice } from "../types/types";
-
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 interface Props {
     device: CurrentDevice;
 }
@@ -129,9 +129,9 @@ export default function DeviceItem({
                 <Info
                     icon={<Clock size={16} />}
                     label="Connected Since"
-                    value={new Date(
+                    value={ formatDate(
                         device.connected_since
-                    ).toLocaleString()}
+                    )}
                 />
 
                 <Info

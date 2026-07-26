@@ -13,7 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import type { User, Overview } from "./types/types";
-
+import { formatDate } from "../../CustomerPage/renewsubscriptions/utils/date";
 import StatCard from "./cards/StatCard";
 import StatusBadge from "./StatusBadge";
 import InfoRow from "./InfoRow";
@@ -87,7 +87,7 @@ export function UserHeader({
                             <InfoRow
                                 icon={<Calendar size={14} className="opacity-80 text-white" />}
                                 label="Customer Since"
-                                value={overview.customer_since}
+                                value={formatDate(overview.customer_since)}
                             />
                         </div>
                     </div>
@@ -120,14 +120,14 @@ export function UserHeader({
                 <div className="col-span-2 sm:col-span-1 " >
                     <StatCard
                         title="Customer Since"
-                        value={overview.customer_since}
+                        value={formatDate(overview.customer_since)}
                         icon={<Calendar size={24} className="text-pink-500" />}
                     />
                 </div>
                 <div className="col-span-2 sm:col-span-1">
                     <StatCard
                         title="Last Seen"
-                        value={overview.last_seen ?? "uknown"}
+                        value={overview.last_seen ?? "__"}
                         icon={<Clock size={24} className="text-amber-500" />}
                     />
                 </div>

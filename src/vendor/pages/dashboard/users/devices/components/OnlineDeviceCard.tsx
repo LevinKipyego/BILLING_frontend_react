@@ -9,7 +9,7 @@ import {
     ArrowUp,
     Globe,
 } from "lucide-react";
-
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 import type { CurrentDevice } from "../../components/types/types";
 
 interface Props {
@@ -103,7 +103,7 @@ export default function OnlineDeviceCard({
                     label="Connected"
                     value={
                         device.connected_since
-                            ? new Date(device.connected_since).toLocaleString()
+                            ? formatDate(device.connected_since)
                             : "-"
                     }
                 />

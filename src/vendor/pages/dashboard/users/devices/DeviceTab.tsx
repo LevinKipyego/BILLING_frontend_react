@@ -23,7 +23,9 @@ export default function DeviceTab({
                 summary={devices.summary}
             />
 
-           
+            <OnlineDevicesSection
+                devices={devices.current}
+            />
 
             <DeviceHistoryTable
                 devices={devices.history}

@@ -10,7 +10,7 @@ import {
 import ProgressBar from "../ProgressBar";
 import StatusBadge from "../StatusBadge";
 import InfoRow from "../InfoRow";
-
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 import type { BaseSubscription } from "../../components/types/subscription";
 
 interface Props {
@@ -209,11 +209,11 @@ export default function SubscriptionHistoryCard({
 
                         value={
 
-                            new Date(
+                            formatDate(
 
                                 start_at
 
-                            ).toLocaleString()
+                            )
 
                         }
 

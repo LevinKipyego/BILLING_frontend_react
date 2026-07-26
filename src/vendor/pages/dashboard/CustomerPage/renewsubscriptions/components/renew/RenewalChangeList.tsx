@@ -11,7 +11,7 @@ interface RenewalChangeListProps {
     changes: SubscriptionChange[];
     className?: string;
 }
-import { formatDate } from "../../utils/date";
+
 export default function RenewalChangeList({
     changes,
     className = "",

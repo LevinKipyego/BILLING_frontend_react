@@ -11,7 +11,7 @@ import {
 
 import StatusBadge from "../StatusBadge";
 import InfoRow from "../InfoRow";
-
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 import type { ConnectionStatus } from "../types/types";
 
 interface Props {
@@ -166,11 +166,11 @@ export default function ConnectionStatusCard({
 
                     value={
 
-                        new Date(
+                        formatDate (
 
                             connection.login_time
 
-                        ).toLocaleString()
+                        )
 
                     }
 
@@ -238,11 +238,11 @@ export default function ConnectionStatusCard({
 
                     value={
 
-                        new Date(
+                        formatDate (
 
                             connection.last_seen
 
-                        ).toLocaleString()
+                        )
 
                     }
 

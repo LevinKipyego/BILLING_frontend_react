@@ -9,6 +9,7 @@ interface Props {
     activity: Activity;
 
 }
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 
 export default function ActivityCard({
 
@@ -66,7 +67,7 @@ export default function ActivityCard({
 
                 <div className="mt-4 text-xs text-slate-400">
 
-                    {new Date(
+                    {formatDate(
 
                         activity.created_at
 

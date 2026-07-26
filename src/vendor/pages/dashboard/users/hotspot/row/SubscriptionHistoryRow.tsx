@@ -1,5 +1,5 @@
 import {
-    Calendar,
+    
     CheckCircle2,
     XCircle,
 } from "lucide-react";
@@ -11,7 +11,7 @@ interface Props {
     subscription: HotspotSubscription;
 
 }
-
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 export default function SubscriptionHistoryRow({
 
     subscription,
@@ -44,11 +44,11 @@ export default function SubscriptionHistoryRow({
 
                 {
 
-                    new Date(
+                    formatDate(
 
                         subscription.start_at
 
-                    ).toLocaleDateString()
+                    )
 
                 }
 
@@ -58,12 +58,11 @@ export default function SubscriptionHistoryRow({
 
                 {
 
-                    new Date(
+                    formatDate(
 
                         subscription.end_at
 
-                    ).toLocaleDateString()
-
+                    )
                 }
 
             </td>

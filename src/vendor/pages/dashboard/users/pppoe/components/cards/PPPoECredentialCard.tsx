@@ -138,14 +138,14 @@ const PPPoECredentialCard: FC<Props> = ({ profile }) => {
                 <Row
                     icon={<Router size={18} />}
                     label="Router"
-                    value={credential.mikrotik}
+                    value={credential.mikrotik as string | undefined}
                 />
 
                 <Row
                     icon={<Wifi size={18} />}
                     label="Plan"
                     value={
-                        profile.pppoe.current_subscription?.plan_name
+                        profile.pppoe.accounts.current_subscription?.plan_name
                     }
                 />
 

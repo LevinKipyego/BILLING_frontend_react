@@ -3,6 +3,7 @@ import { Calendar } from "lucide-react";
 import type { BaseSubscription } from "../types/subscription";
 
 import SubscriptionStatusBadge from "./SubscriptionStatusBadge";
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 
 interface Props {
 
@@ -38,12 +39,12 @@ export default function SubscriptionRow({
             <td className="px-5 py-4">
                 <div className="flex items-center gap-2">
                     <Calendar size={15} />
-                    {new Date(subscription.start_at).toLocaleDateString()}
+                    {formatDate (subscription.start_at)}
                 </div>
             </td>
 
             <td className="px-5 py-4">
-                {new Date(subscription.end_at).toLocaleDateString()}
+                {formatDate (subscription.end_at)}
             </td>
 
             <td className="px-5 py-4">

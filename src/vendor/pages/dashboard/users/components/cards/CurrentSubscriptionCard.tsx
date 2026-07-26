@@ -9,7 +9,7 @@ import {
 import ProgressBar from "../../components/ProgressBar";
 import StatusBadge from "../../components/StatusBadge";
 import InfoRow from "../../components/InfoRow";
-
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 import type  { BaseSubscription } from "../../components/types/subscription";
 
 interface Props {
@@ -241,11 +241,11 @@ export default function CurrentSubscriptionCard({
 
                         value={
 
-                            new Date(
+                            formatDate (
 
                                 start_at
 
-                            ).toLocaleString()
+                            )
 
                         }
 
@@ -259,11 +259,11 @@ export default function CurrentSubscriptionCard({
 
                         value={
 
-                            new Date(
+                            formatDate(
 
                                 end_at
 
-                            ).toLocaleString()
+                            )
 
                         }
 

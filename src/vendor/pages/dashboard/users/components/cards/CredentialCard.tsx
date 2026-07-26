@@ -9,6 +9,7 @@ import {
 
 import CopyButton from "../../components/common/CopyButton";
 import StatusBadge from "../StatusBadge";
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 
 interface Credential {
 
@@ -203,11 +204,11 @@ export default function CredentialCard({
 
                     label="Created"
 
-                    value={new Date(
+                    value={formatDate (
 
                         credential.created_at
 
-                    ).toLocaleDateString()}
+                    )}
 
                 />
 

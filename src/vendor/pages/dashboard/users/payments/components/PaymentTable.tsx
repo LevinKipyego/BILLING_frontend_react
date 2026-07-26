@@ -1,11 +1,11 @@
 import {
-    Copy,
+    
     ExternalLink,
 } from "lucide-react";
 
 import StatusBadge from "../../components/StatusBadge";
 import CopyButton from "../../components/common/CopyButton";
-
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 import type { Payment } from "./types/types";
 
 interface Props {
@@ -96,11 +96,12 @@ export default function PaymentTable({
 
                             <td className="px-6 py-4">
 
-                                {new Date(
+                                {formatDate(
 
                                     payment.created_at
 
-                                ).toLocaleDateString()}
+                                )
+                                }
 
                             </td>
 

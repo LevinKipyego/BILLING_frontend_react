@@ -2,11 +2,12 @@ import { HardDrive } from "lucide-react";
 
 import DeviceHistoryRow from "./DeviceHistoryRow";
 
-import type { DeviceHistoryItem } from "../../components/types/types";
+//import type { DeviceItem as  DeviceHistoryItem} from "../../components/types/types";
 
+import type { DeviceHistory } from "../../components/types/types";
 interface Props {
 
-    devices: DeviceHistoryItem[];
+    devices: DeviceHistory[];
 
 }
 

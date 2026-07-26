@@ -11,6 +11,8 @@ import CustomerActions from "./CustomerActions";
 import ServiceBadge from "./ServiceBadge";
 import StatusBadge from "./StatusBadge";
 
+import { formatDate } from "../renewsubscriptions/utils/date";
+
 interface Props {
 
     customer: Customer;
@@ -120,9 +122,9 @@ export default function CustomerRow({
 
                             Expires{" "}
 
-                            {new Date(
+                            {formatDate(
                                 customer.expires_at,
-                            ).toLocaleDateString()}
+                            )}
 
                         </p>
 

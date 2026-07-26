@@ -4,6 +4,7 @@ import ServiceBadge from "./ServiceBadge";
 import StatusBadge from "./StatusBadge";
 import { Cpu, Wifi, Tag, ShieldAlert } from "lucide-react";
 import type { Customer } from "../types/types";
+import { formatDate } from "../renewsubscriptions/utils/date";
 
 
 interface Props {
@@ -139,7 +140,7 @@ export default function CustomerTable({
                                     </p>
                                     {customer.expires_at && (
                                         <p className="text-[10px] text-slate-500 mt-0.5">
-                                            Expires {new Date(customer.expires_at).toLocaleDateString()}
+                                            Expires(d) {formatDate(customer.expires_at)}
                                         </p>
                                     )}
                                 </div>

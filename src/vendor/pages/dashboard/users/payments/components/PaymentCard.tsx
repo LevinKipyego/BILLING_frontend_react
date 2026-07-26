@@ -12,6 +12,7 @@ import {
 
 } from "lucide-react";
 
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 import StatusBadge from "../../components/StatusBadge";
 import InfoRow from "../../components/InfoRow";
 
@@ -135,11 +136,11 @@ export default function PaymentCard({
 
                         value={
 
-                            new Date(
+                            formatDate(
 
                                 payment.created_at
 
-                            ).toLocaleString()
+                            )
 
                         }
 

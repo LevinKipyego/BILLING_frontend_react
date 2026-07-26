@@ -5,7 +5,7 @@ import {
     Clock,
     Wifi,
 } from "lucide-react";
-
+import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 import type { DeviceHistory } from "../../components/types/types";
 
 interface Props {
@@ -146,7 +146,7 @@ export default function DeviceHistoryRow({
 
                     <Clock size={15} />
 
-                    {device.last_seen ? new Date(device.last_seen).toLocaleString() : "-"}
+                    {device.last_seen ? formatDate (device.last_seen) : "-"}
 
                 </div>
 
