@@ -34,7 +34,9 @@ export default function HotspotCredentialCard({
 
 }: Props) {
 
-    const credential = profile.hotspot.credential;
+    
+
+    const credential = profile.hotspot.accounts[0]?.credential
 
     const connection = profile.connection;
 

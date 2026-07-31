@@ -8,7 +8,7 @@ import {
   Cog6ToothIcon, CommandLineIcon, 
   GlobeAltIcon, CheckCircleIcon, ExclamationTriangleIcon, 
   BeakerIcon, ArrowPathIcon, LockClosedIcon, BuildingOfficeIcon,
-  FingerPrintIcon, ServerIcon
+  ServerIcon
 } from "@heroicons/react/24/outline";
 
 export default function MpesaConfig() {

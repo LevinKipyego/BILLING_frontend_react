@@ -252,7 +252,7 @@ export interface PPPoESummary {
 
 export interface PPPoEProfile {
     summary: PPPoESummary;
-    accounts: PPPoEAccount;
+    accounts: PPPoEAccount[];
 }
 
 /* =========================================================

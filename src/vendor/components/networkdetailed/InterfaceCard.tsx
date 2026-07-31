@@ -7,7 +7,7 @@ interface InterfaceProps {
     rx_rate: number;
     tx_rate: number;
     capacity_mbps: number;
-    
+    isUplink: boolean;
     risk_level: 'low' | 'medium' | 'high' | 'critical';
     predicted_30min: number;
     alerts: string[];

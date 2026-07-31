@@ -1,1 +1,1 @@
-export const BaseUrl = "http://192.168.100.88:8000";
+export const BaseUrl = import.meta.env.VITE_API_BASE;

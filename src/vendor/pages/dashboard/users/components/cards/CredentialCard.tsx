@@ -7,7 +7,7 @@ import {
     ShieldX,
 } from "lucide-react";
 
-import CopyButton from "../../components/common/CopyButton";
+import CopyButton from "../common/CopyButton";
 import StatusBadge from "../StatusBadge";
 import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
 

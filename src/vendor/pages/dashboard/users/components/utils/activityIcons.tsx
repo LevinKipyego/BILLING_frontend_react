@@ -1,11 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
     CreditCard,
-    Wifi,
+    
     Network,
-    LogIn,
+    
     LogOut,
-    Smartphone,
+    
     Settings,
     SubscriptIcon,
     
@@ -22,23 +22,19 @@ export function activityIcon(type: Activity["type"]): LucideIcon {
         case "PAYMENT":
             return CreditCard;
 
-        case "HOTSPOT_LOGIN":
-            return Wifi;
-
-        case "PPPOE_LOGIN":
+    
+        case "NETWORK_LOGIN":
             return Network;
 
-        //case "login":
-           // return LogIn;
+        case "PPPOE_SUBSCRIPTION":
+            return SubscriptIcon;
 
-        case "HOTSPOT_LOGOUT":
+        case "NETWORK_LOGOUT":
             return LogOut;
 
-        case "PPPOE_LOGOUT":
-            return LogOut;
+        
 
-
-        case "SUBSCRIPTION":
+        case "HOTSPOT_SUBSCRIPTION":
             return SubscriptIcon
 
         //case "device":

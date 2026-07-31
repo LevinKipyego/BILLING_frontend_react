@@ -57,7 +57,7 @@ export default function NetworkHealth() {
       });
 
     } catch (e) {
-      console.error("❌ Critical Load Failed:", e);
+      //console.error("❌ Critical Load Failed:", e);
       if (isMounted) {
         setError("Telemetry link interrupted.");
         setLoading(false);
@@ -71,12 +71,13 @@ export default function NetworkHealth() {
 
     // Use the explicit IP if localhost is causing issues, 
     // but window.location.hostname is usually best.
-    const host = window.location.hostname; 
-    const wsUrl = `ws://${host}:8000/ws/routers/?token=${token}`;
+    const WS_URL = import.meta.env.VITE_WS_BASE;
+    //const host = window.location.hostname; 
+    const wsUrl = `${WS_URL}/routers/?token=${token}`;
     
     socket = new WebSocket(wsUrl);
 
-    socket.onopen = () => console.log("🔌 Connected to Network Stream");
+   // socket.onopen = () => console.log("🔌 Connected to Network Stream");
 
     socket.onmessage = (event) => {
       if (!isMounted) return;
@@ -95,17 +96,18 @@ export default function NetworkHealth() {
           setStats(message.data);
         }
       } catch (err) {
-        console.error("📩 WS Parsing Error:", err);
+        //console.error("📩 WS Parsing Error:", err);
       }
     };
 
     socket.onerror = (e) => {
-      console.error("❌ WS Socket Error:", e);
+      e
+      //console.error("❌ WS Socket Error:", e);
       // If WS fails, we don't necessarily want to break the whole UI
     };
 
     socket.onclose = () => {
-      console.warn("⚠️ Stream Disconnected");
+      //console.warn("⚠️ Stream Disconnected");
       // Optional: Add a timeout to reconnect here
     };
   };
@@ -117,7 +119,7 @@ export default function NetworkHealth() {
     isMounted = false;
     if (socket) {
       socket.close();
-      console.log("🔌 Stream Closed");
+     // console.log("🔌 Stream Closed");
     }
   };
 }, []);

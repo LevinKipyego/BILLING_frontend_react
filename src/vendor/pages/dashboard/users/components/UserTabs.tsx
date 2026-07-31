@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
 
-import type { UserProfile } from "../components/types/types";
+import type { UserProfile } from "./types/types";
 
 import OverviewTab from "./tabs/OverviewTab";
 import HotspotTab from "../hotspot/HotspotTab";

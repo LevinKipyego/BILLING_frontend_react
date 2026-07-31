@@ -6,11 +6,11 @@ import {
     CreditCard,
 } from "lucide-react";
 
-import ProgressBar from "../../components/ProgressBar";
-import StatusBadge from "../../components/StatusBadge";
-import InfoRow from "../../components/InfoRow";
+import ProgressBar from "../ProgressBar";
+import StatusBadge from "../StatusBadge";
+import InfoRow from "../InfoRow";
 import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
-import type  { BaseSubscription } from "../../components/types/subscription";
+import type  { BaseSubscription } from "../types/subscription";
 
 interface Props {
 

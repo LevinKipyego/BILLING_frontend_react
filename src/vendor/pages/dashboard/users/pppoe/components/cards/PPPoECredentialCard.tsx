@@ -145,7 +145,7 @@ const PPPoECredentialCard: FC<Props> = ({ profile }) => {
                     icon={<Wifi size={18} />}
                     label="Plan"
                     value={
-                        profile.pppoe.accounts.current_subscription?.plan_name
+                        profile.pppoe.accounts[0].current_subscription?.plan_name
                     }
                 />
 

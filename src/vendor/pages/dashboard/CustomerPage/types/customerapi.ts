@@ -4,7 +4,7 @@ import type {
     Customer,
     CreatePPPoEPayload,
     PPPoEProvisionResponse,
-} from "../types/types";
+} from "./types";
 
 /* ===========================================
    CUSTOMER PROFILE

@@ -1,39 +1,6 @@
-{/*import GaugeComponent from "react-gauge-component";
 
-const UplinkSpeedGauge = ({ uplink }: any) => {
-
-  if (!uplink) return null
-
-  const speed = uplink.rx_rate + uplink.tx_rate
-  const capacity = uplink.capacity_mbps || 1000
-
-  return (
-    <div className="bg-white p-4 rounded-xl shadow">
-      <h2 className="font-semibold">Uplink Utilization</h2>
-
-      <GaugeComponent
-        value={(speed / capacity) * 100}
-        labels={{
-          valueLabel: {
-            formatTextValue: () =>
-              `${speed.toFixed(2)} Mbps`
-          }
-        }}
-      />
-
-      <div className="text-sm mt-2">
-        RX: {uplink.rx_rate} Mbps  
-        TX: {uplink.tx_rate} Mbps
-      </div>
-    </div>
-  )
-}
-
-export default UplinkSpeedGauge
-*/}
-import React from 'react';
 import GaugeComponent from "react-gauge-component";
-import { Zap, Activity, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { Zap, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 
 const UplinkSpeedGauge = ({ uplink }: any) => {
   if (!uplink) return null;

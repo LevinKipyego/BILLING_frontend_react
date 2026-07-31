@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { ShieldAlert, Terminal, Search, Hash } from 'lucide-react';
 
 const IdlePorts = ({ ports }: { ports: string[] }) => {

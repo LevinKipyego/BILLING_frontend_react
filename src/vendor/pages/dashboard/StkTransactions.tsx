@@ -12,7 +12,9 @@ import {
   CheckCircleIcon,
   XCircleIcon,
   ClockIcon,
-  ArrowsUpDownIcon
+  ArrowsUpDownIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon
 } from "@heroicons/react/24/outline";
 
 export default function StkTransactions() {
@@ -28,17 +30,27 @@ export default function StkTransactions() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
-  useEffect(() => {
-    const loadTransactions = async () => {
-      try {
-        const data = await fetchTransactions();
-        setTransactions(data);
-      } catch (err) {
+  // Extracted load function for initial fetch and retry action
+  const loadTransactions = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const data = await fetchTransactions();
+      setTransactions(data);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else if (typeof err === "string") {
+        setError(err);
+      } else {
         setError("Failed to sync with transaction node.");
-      } finally {
-        setLoading(false);
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadTransactions();
   }, []);
 
@@ -90,6 +102,34 @@ export default function StkTransactions() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-900 p-4 lg:p-8 text-[12px] lg:text-sm transition-colors duration-500">
  
+      {/* ERROR DISPLAY BANNER */}
+      {error && (
+        <div className="mb-6 p-4 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-700 dark:text-rose-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <ExclamationTriangleIcon className="w-5 h-5 text-rose-500 shrink-0" />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider">Sync Error</p>
+              <p className="text-sm font-medium">{error}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <button
+              onClick={loadTransactions}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-all shadow-sm"
+            >
+              <ArrowPathIcon className="w-3.5 h-3.5" /> Retry
+            </button>
+            <button
+              onClick={() => setError(null)}
+              className="text-xs font-bold text-rose-400 hover:text-rose-600 dark:hover:text-rose-200 p-1"
+              title="Dismiss alert"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* HEADER SECTION */}
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
@@ -179,74 +219,88 @@ export default function StkTransactions() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {paginatedData.map((tx) => (
-              <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                <td className="p-5">
-                  <div className="flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-                    <CalendarIcon className="w-4 h-4 text-blue-500/70" />
-                    <div className="flex flex-col">
-                      <span>{new Date(tx.created_at).toLocaleDateString()}</span>
-                      <span className="text-[11px] text-gray-400 font-normal">{new Date(tx.created_at).toLocaleTimeString()}</span>
-                    </div>
-                  </div>
-                </td>
-                <td className="p-5">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">{tx.username}</span>
-                    <span className="text-xs text-gray-500 font-medium">{tx.client_phone}</span>
-                  </div>
-                </td>
-                <td className="p-5 text-sm font-bold text-gray-900 dark:text-white">
-                  KES {tx.amount}
-                </td>
-                <td className="p-5">
-                  <StatusBadge status={tx.status} />
-                </td>
-                <td className="p-5">
-                   <span className="px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/5 text-blue-600 dark:text-blue-400 text-xs font-bold font-mono border border-blue-100 dark:border-blue-500/10">
-                    {tx.mpesa_receipt || "WAITING"}
-                  </span>
-                </td>
-                <td className="p-5">
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{tx.mikrotik_name}</span>
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase">{tx.service_type}</span>
-                  </div>
+            {paginatedData.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="p-8 text-center text-gray-500 dark:text-gray-400 font-medium">
+                  {error ? "Unable to load transactions." : "No transactions match your query criteria."}
                 </td>
               </tr>
-            ))}
+            ) : (
+              paginatedData.map((tx) => (
+                <tr key={tx.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                  <td className="p-5">
+                    <div className="flex items-center gap-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <CalendarIcon className="w-4 h-4 text-blue-500/70" />
+                      <div className="flex flex-col">
+                        <span>{new Date(tx.created_at).toLocaleDateString()}</span>
+                        <span className="text-[11px] text-gray-400 font-normal">{new Date(tx.created_at).toLocaleTimeString()}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-5">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900 dark:text-white">{tx.username}</span>
+                      <span className="text-xs text-gray-500 font-medium">{tx.client_phone}</span>
+                    </div>
+                  </td>
+                  <td className="p-5 text-sm font-bold text-gray-900 dark:text-white">
+                    KES {tx.amount}
+                  </td>
+                  <td className="p-5">
+                    <StatusBadge status={tx.status} />
+                  </td>
+                  <td className="p-5">
+                    <span className="px-3 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/5 text-blue-600 dark:text-blue-400 text-xs font-bold font-mono border border-blue-100 dark:border-blue-500/10">
+                      {tx.mpesa_receipt || "WAITING"}
+                    </span>
+                  </td>
+                  <td className="p-5">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-gray-600 dark:text-gray-400">{tx.mikrotik_name}</span>
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500 uppercase">{tx.service_type}</span>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
       {/* MOBILE CARDS */}
       <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {paginatedData.map((tx) => (
-          <div key={tx.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
-            <div className="flex justify-between items-start mb-5">
-              <StatusBadge status={tx.status} />
-              <p className="text-sm font-bold text-gray-900 dark:text-white">KES {tx.amount}</p>
-            </div>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold text-gray-400 uppercase">Subscriber</span>
-                <span className="text-xs font-bold text-gray-900 dark:text-white">{tx.username}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold text-gray-400 uppercase">Phone</span>
-                <span className="text-xs font-bold text-gray-900 dark:text-white">{tx.client_phone}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold text-gray-400 uppercase">Receipt</span>
-                <span className="text-[11px] font-mono font-bold text-blue-600 dark:text-blue-400">{tx.mpesa_receipt || "PENDING"}</span>
-              </div>
-              <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
-                 <span className="text-[10px] text-gray-400">{new Date(tx.created_at).toLocaleString()}</span>
-                 <span className="text-[10px] font-bold text-gray-500 uppercase">{tx.service_type}</span>
-              </div>
-            </div>
+        {paginatedData.length === 0 ? (
+          <div className="col-span-full p-8 text-center bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-500 dark:text-gray-400 font-medium">
+            {error ? "Unable to load transactions." : "No transactions match your query criteria."}
           </div>
-        ))}
+        ) : (
+          paginatedData.map((tx) => (
+            <div key={tx.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm">
+              <div className="flex justify-between items-start mb-5">
+                <StatusBadge status={tx.status} />
+                <p className="text-sm font-bold text-gray-900 dark:text-white">KES {tx.amount}</p>
+              </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold text-gray-400 uppercase">Subscriber</span>
+                  <span className="text-xs font-bold text-gray-900 dark:text-white">{tx.username}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold text-gray-400 uppercase">Phone</span>
+                  <span className="text-xs font-bold text-gray-900 dark:text-white">{tx.client_phone}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-semibold text-gray-400 uppercase">Receipt</span>
+                  <span className="text-[11px] font-mono font-bold text-blue-600 dark:text-blue-400">{tx.mpesa_receipt || "PENDING"}</span>
+                </div>
+                <div className="pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                  <span className="text-[10px] text-gray-400">{new Date(tx.created_at).toLocaleString()}</span>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase">{tx.service_type}</span>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* PAGINATION SECTION */}

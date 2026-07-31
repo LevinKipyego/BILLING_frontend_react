@@ -1,6 +1,6 @@
-import SubscriptionHistoryCard from "../../components/cards/SubscriptionHistoryCard";
+import SubscriptionHistoryCard from "../cards/SubscriptionHistoryCard";
 
-import type { BaseSubscription } from "../../components/types/subscription";
+import type { BaseSubscription } from "../types/subscription";
 
 interface Props {
 

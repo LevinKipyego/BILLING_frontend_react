@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import type { ComponentType } from "react";
 
-import type { Customer } from "../../../CustomerPage/types/types";
+import type { Customer } from "../../types/types";
 
 /* =====================================================
  * Customer Action Types

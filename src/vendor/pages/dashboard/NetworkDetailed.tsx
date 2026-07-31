@@ -148,7 +148,7 @@ const RouterDetail = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {intelligence.uplink && (
-                <InterfaceCard iface={intelligence.uplink} isUplink />
+                <InterfaceCard iface={intelligence.uplink}   />
               )}
               {intelligence.downlinks.map((iface) => (
                 <InterfaceCard key={iface.name} iface={iface} />

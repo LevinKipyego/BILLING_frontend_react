@@ -41,11 +41,7 @@ export default function Login() {
   const authRequired =
     authMessage === "authentication-required";
 
-  const loggedOut =
-    authMessage === "logged-out";
-
-  const sessionRevoked =
-    authMessage === "session-revoked";
+  
 
   // ==========================================
   // LOGIN

@@ -82,7 +82,8 @@ export interface InterfaceData {
   alerts: string[]
   anomaly_score: number
   risk_level: RiskLevel
-  capacity_mbps?: number
+  capacity_mbps: number
+  isUplink: boolean;
   throughput_24h_gb?: number
 
 }
