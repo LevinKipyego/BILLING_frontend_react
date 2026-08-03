@@ -2,8 +2,8 @@
 
 export interface MikrotikConnection {
   id: string;
-  mikrotik: string; // MikrotikDevice ID
-  host: string;
+  mikrotik: string; 
+  management_ip: string;
   port: number;
   username: string;
   hotspot_server?: string | null;
@@ -15,7 +15,7 @@ export interface MikrotikConnection {
 
 export interface MikrotikConnectionCreate {
   mikrotik: string;
-  host: string;
+  management_ip: string;
   port: number;
   username: string;
   password: string;

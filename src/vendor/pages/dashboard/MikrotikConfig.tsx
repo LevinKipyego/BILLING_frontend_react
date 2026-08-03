@@ -56,7 +56,7 @@ export default function MikrotikConnectionsPage() {
 
   const initialFormState: ExtendedMikrotikConnectionCreate = {
     mikrotik: "",
-    host: "",
+    management_ip: "",
     port: 8728,
     username: "",
     password: "",
@@ -91,7 +91,7 @@ export default function MikrotikConnectionsPage() {
 
   const filteredConnections = useMemo(() => {
     return connections.filter(c => 
-      c.host.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      c.management_ip.toLowerCase().includes(searchQuery.toLowerCase()) || 
       c.mikrotik.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [connections, searchQuery]);
@@ -151,7 +151,7 @@ export default function MikrotikConnectionsPage() {
     setEditingId(connection.id);
     setForm({
       mikrotik: connection.mikrotik,
-      host: connection.host,
+      management_ip: connection.management_ip,
       port: connection.port,
       username: connection.username,
       password: (connection as any).password || "",
@@ -289,8 +289,8 @@ export default function MikrotikConnectionsPage() {
 
               <div className="grid grid-cols-12 gap-3">
                 <div className="col-span-8 space-y-1.5">
-                  <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Host_Endpoint</label>
-                  <input name="host" placeholder="10.0.0.20" value={form.host} onChange={handleChange} required className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 dark:text-white placeholder:opacity-30" />
+                  <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Management_IP</label>
+                  <input name="management_ip" placeholder="10.0.0.20" value={form.management_ip} onChange={handleChange} required className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 dark:text-white placeholder:opacity-30" />
                 </div>
                 <div className="col-span-4 space-y-1.5">
                   <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Port</label>
@@ -397,7 +397,7 @@ export default function MikrotikConnectionsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-5">
-                    <p className="text-xs font-black text-slate-600 dark:text-slate-300 italic">{c.host}</p>
+                    <p className="text-xs font-black text-slate-600 dark:text-slate-300 italic">{c.management_ip}</p>
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Port_ {c.port}</p>
                   </td>
                   
