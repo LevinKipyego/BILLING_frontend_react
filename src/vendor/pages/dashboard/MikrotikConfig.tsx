@@ -325,20 +325,17 @@ export default function MikrotikConnectionsPage() {
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1">Hotspot_Server</label>
                 <input name="hotspot_server" placeholder="hs-prof1" value={form.hotspot_server || ""} onChange={handleChange} className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 dark:text-white" />
+              
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
                   <LinkIcon className="w-3 h-3" /> Hotspot_Login_URL
                 </label>
-                <input 
-                  name="hotspot_login_url" 
-                  placeholder="Hotspot/login/url..." 
-                  value={form.hotspot_login_url || ""} 
-                  readOnly 
-                  disabled 
-                  className="w-full bg-slate-100 dark:bg-gray-900/60 border border-slate-200 dark:border-slate-800 p-3 rounded-lg text-xs font-bold outline-none text-slate-400 dark:text-slate-600 cursor-not-allowed italic" 
-                />
+
+                <input name="hotspot_login_url" placeholder="http://10.0.0.1/login" value={form.hotspot_login_url || ""} onChange={handleChange} className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-slate-700 p-3 rounded-lg text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500/20 dark:text-white" />
+              
+                
               </div>
 
               <div className="flex items-center justify-between p-4 bg-blue-600/5 dark:bg-blue-600/10 rounded-lg border border-blue-600/10">
