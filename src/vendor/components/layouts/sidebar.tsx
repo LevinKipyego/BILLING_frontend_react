@@ -5,6 +5,7 @@ import {
   SignalIcon, KeyIcon, WifiIcon, CircleStackIcon,
   BanknotesIcon, AdjustmentsHorizontalIcon, GlobeAltIcon
 } from "@heroicons/react/24/outline";
+import { MailsIcon } from "lucide-react";
 
 interface SidebarProps {
   closeMobile?: () => void; 
@@ -90,7 +91,15 @@ const navSections: NavSection[] = [
       { to: "/dashboard/transactions", label: "Transactions", icon: BanknotesIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
       { to: "/dashboard/transactions/c2b", label: "M-Pesa C2B Trans", icon: CreditCardIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
     ]
+  },
+
+  {
+    title: "SMS Management",
+    items: [
+      { to: "/dashboard/sms/sms_providers/list", label: "SMS and Bulk SMS", icon: MailsIcon, color: "text-pink-600 dark:text-pink-400", bgHover: "hover:bg-pink-50/60 dark:hover:bg-pink-950/10 hover:text-pink-700 dark:hover:text-pink-400" },
+    ] 
   }
+
 ];
 
 const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {

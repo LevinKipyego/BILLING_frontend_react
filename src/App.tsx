@@ -41,6 +41,7 @@ import ProtectedRoute from "../ProtectedRoute";
 import AuthWatcher from "./vendor/AuthWatcher";
 import UserProfile from "./vendor/pages/dashboard/users/UserProfile";
 import CustomersPage from "./vendor/pages/dashboard/CustomerPage/CustomersPage";
+import { SMSProviderManager } from "./vendor/pages/dashboard/Sms/SmsProviderManager";
 export default function App() {
   return (
 
@@ -186,7 +187,17 @@ export default function App() {
                 path="sessions/:id"
                 element={<SessionDetail />}
               />
+
+              {/* SMS Gateway Management */}
+              <Route
+                path="sms/sms_providers/list"
+                element={<SMSProviderManager />}
+              />
+              
             </Route>
+
+            
+
           </Route>
 
           {/* =========================
