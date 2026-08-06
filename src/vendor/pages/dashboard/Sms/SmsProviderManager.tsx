@@ -6,14 +6,30 @@ import {
   updateSMSProvider,
   deleteSMSProvider,
   toggleActiveSMSProvider,
-  testSMSProvider, // Ensure testSMSProvider function is exported from ./api/sms
+  toggleSMSProviderFeature,
+  testSMSProvider,
 } from "./api/sms";
 
 const PROVIDER_DEFAULTS: Record<SMSProviderType, string> = {
   BYTEWAVE: import.meta.env.VITE_BYTEWAVE || "https://portal.bytewavenetworks.com/api/http/sms/send",
   AFRICAS_TALKING: import.meta.env.VITE_AFRICAS_TALKING || "https://api.africastalking.com/version1/messaging",
+  TALKSASA: import.meta.env.VITE_TALKSASA || "https://api.talksasa.com/v1/send/",
   TWILIO: import.meta.env.VITE_TWILIO || "https://api.twilio.com/2010-04-01/Accounts",
   GENERIC_HTTP: import.meta.env.VITE_GENERIC_HTTP || "",
+};
+
+const DEFAULT_FORM_STATE: SMSProvider = {
+  provider_type: "BYTEWAVE",
+  sender_id: "",
+  api_token: "",
+  api_url: PROVIDER_DEFAULTS.BYTEWAVE,
+  is_active: true,
+  allow_hotspot_password_recovery: true,
+  allow_hotspot_purchase_receipts: true,
+  allow_pppoe_welcome_sms: true,
+  allow_payment_receipts: true,
+  allow_expiry_reminders: true,
+  allow_bulk_promotions: false,
 };
 
 export const SMSProviderManager: React.FC = () => {
@@ -33,13 +49,7 @@ export const SMSProviderManager: React.FC = () => {
   const [testing, setTesting] = useState<boolean>(false);
   const [testResponse, setTestResponse] = useState<TestSMSResponse | null>(null);
 
-  const [formData, setFormData] = useState<SMSProvider>({
-    provider_type: "BYTEWAVE",
-    sender_id: "",
-    api_token: "",
-    api_url: PROVIDER_DEFAULTS.BYTEWAVE,
-    is_active: true,
-  });
+  const [formData, setFormData] = useState<SMSProvider>(DEFAULT_FORM_STATE);
 
   const loadProviders = async () => {
     setLoading(true);
@@ -94,6 +104,12 @@ export const SMSProviderManager: React.FC = () => {
         api_token: "", // Kept blank unless updating token
         api_url: provider.api_url,
         is_active: provider.is_active,
+        allow_hotspot_password_recovery: provider.allow_hotspot_password_recovery ?? true,
+        allow_hotspot_purchase_receipts: provider.allow_hotspot_purchase_receipts ?? true,
+        allow_pppoe_welcome_sms: provider.allow_pppoe_welcome_sms ?? true,
+        allow_payment_receipts: provider.allow_payment_receipts ?? true,
+        allow_expiry_reminders: provider.allow_expiry_reminders ?? true,
+        allow_bulk_promotions: provider.allow_bulk_promotions ?? false,
       });
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -101,13 +117,7 @@ export const SMSProviderManager: React.FC = () => {
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setFormData({
-      provider_type: "BYTEWAVE",
-      sender_id: "",
-      api_token: "",
-      api_url: PROVIDER_DEFAULTS.BYTEWAVE,
-      is_active: true,
-    });
+    setFormData(DEFAULT_FORM_STATE);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -120,7 +130,7 @@ export const SMSProviderManager: React.FC = () => {
         if (!payload.api_token) delete payload.api_token;
 
         await updateSMSProvider(editingId, payload);
-        showFeedback("success", "SMS provider updated successfully.");
+        showFeedback("success", "SMS provider configuration updated.");
       } else {
         await createSMSProvider(formData);
         showFeedback("success", "SMS provider created successfully.");
@@ -138,15 +148,38 @@ export const SMSProviderManager: React.FC = () => {
   const handleToggleActive = async (id: number) => {
     try {
       await toggleActiveSMSProvider(id);
-      showFeedback("success", "Gateway activated successfully.");
+      showFeedback("success", "Default gateway updated.");
       loadProviders();
     } catch (err: any) {
       showFeedback("error", "Failed to switch active gateway.");
     }
   };
 
+  const handleQuickFeatureToggle = async (
+    id: number,
+    feature: keyof Pick<
+      SMSProvider,
+      | "is_active"
+      | "allow_hotspot_password_recovery"
+      | "allow_hotspot_purchase_receipts"
+      | "allow_pppoe_welcome_sms"
+      | "allow_payment_receipts"
+      | "allow_expiry_reminders"
+      | "allow_bulk_promotions"
+    >,
+    currentValue: boolean
+  ) => {
+    try {
+      await toggleSMSProviderFeature(id, feature, !currentValue);
+      showFeedback("success", "Preference updated.");
+      loadProviders();
+    } catch (err: any) {
+      showFeedback("error", "Failed to update feature toggle.");
+    }
+  };
+
   const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this gateway?")) return;
+    if (!window.confirm("Are you sure you want to delete this gateway configuration?")) return;
     try {
       await deleteSMSProvider(id);
       showFeedback("success", "Gateway deleted.");
@@ -159,7 +192,7 @@ export const SMSProviderManager: React.FC = () => {
   const handleRunTest = async (e: FormEvent) => {
     e.preventDefault();
     if (!testPayload.recipient || !testPayload.message) {
-      showFeedback("error", "Recipient number and message are required for testing.");
+      showFeedback("error", "Recipient number and message body are required.");
       return;
     }
     setTesting(true);
@@ -189,8 +222,10 @@ export const SMSProviderManager: React.FC = () => {
     <div className="max-w-4xl mx-auto p-4 sm:p-6 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">SMS Gateway Management</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Configure, activate, and test API SMS gateways.</p>
+          <h2 className="text-2xl font-bold tracking-tight">SMS Gateway & Cost Control</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Configure gateways and manage notification preferences to optimize SMS costs.
+          </p>
         </div>
       </div>
 
@@ -216,94 +251,200 @@ export const SMSProviderManager: React.FC = () => {
       {/* Configuration Form */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm rounded-xl p-5 sm:p-6 mb-8">
         <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-slate-200">
-          {editingId ? "Edit SMS Gateway" : "Add SMS Gateway"}
+          {editingId ? "Edit Gateway Settings" : "Add SMS Gateway"}
         </h3>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                Provider Type
-              </label>
-              <select
-                name="provider_type"
-                value={formData.provider_type}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              >
-                <option value="BYTEWAVE">Bytewave Networks</option>
-                <option value="AFRICAS_TALKING">Africa's Talking</option>
-                <option value="TWILIO">Twilio</option>
-                <option value="GENERIC_HTTP">Custom HTTP Gateway</option>
-              </select>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Main Credentials */}
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                  Provider Type
+                </label>
+                <select
+                  name="provider_type"
+                  value={formData.provider_type}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="BYTEWAVE">Bytewave Networks</option>
+                  <option value="AFRICAS_TALKING">Africa's Talking</option>
+                  <option value="TALKSASA">Talksasa</option>
+                  <option value="TWILIO">Twilio</option>
+                  <option value="GENERIC_HTTP">Custom HTTP Gateway</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                  Sender ID / Shortcode
+                </label>
+                <input
+                  type="text"
+                  name="sender_id"
+                  value={formData.sender_id}
+                  onChange={handleInputChange}
+                  placeholder="e.g. VegoNet"
+                  required
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-                Sender ID / Shortcode
+                API Endpoint URL
               </label>
               <input
-                type="text"
-                name="sender_id"
-                value={formData.sender_id}
+                type="url"
+                name="api_url"
+                value={formData.api_url}
                 onChange={handleInputChange}
-                placeholder="e.g. VegoNet"
                 required
-                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
+                API Token / Secret Key{" "}
+                {editingId && (
+                  <span className="normal-case font-normal text-slate-500 dark:text-slate-400">
+                    (Leave blank to keep existing key)
+                  </span>
+                )}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type={showToken ? "text" : "password"}
+                  name="api_token"
+                  value={formData.api_token}
+                  onChange={handleInputChange}
+                  required={!editingId}
+                  placeholder="Paste Secret Token"
+                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowToken(!showToken)}
+                  className="px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  {showToken ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-              API Endpoint URL
-            </label>
-            <input
-              type="url"
-              name="api_url"
-              value={formData.api_url}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-            />
-          </div>
+          {/* Master Switch & Granular Feature Toggles */}
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-4 space-y-4">
+            <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 uppercase tracking-wider text-xs">
+              SMS Notification & Cost Rules
+            </h4>
 
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-              API Token / Secret Key{" "}
-              {editingId && <span className="normal-case font-normal text-slate-500 dark:text-slate-400">(Leave blank to retain current)</span>}
-            </label>
-            <div className="flex gap-2">
-              <input
-                type={showToken ? "text" : "password"}
-                name="api_token"
-                value={formData.api_token}
-                onChange={handleInputChange}
-                required={!editingId}
-                placeholder="Paste API Secret / Token"
-                className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              />
-              <button
-                type="button"
-                onClick={() => setShowToken(!showToken)}
-                className="px-4 py-2 text-sm font-medium border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
-              >
-                {showToken ? "Hide" : "Show"}
-              </button>
+            {/* Master Toggle */}
+            <div className="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-lg border border-slate-200 dark:border-slate-800">
+              <label className="inline-flex items-center gap-3 cursor-pointer text-sm font-medium text-slate-800 dark:text-slate-200">
+                <input
+                  type="checkbox"
+                  name="is_active"
+                  checked={formData.is_active}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500"
+                />
+                <span>Set as Default Active Gateway</span>
+              </label>
             </div>
-          </div>
 
-          <div className="pt-2">
-            <label className="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300">
-              <input
-                type="checkbox"
-                name="is_active"
-                checked={formData.is_active}
-                onChange={handleInputChange}
-                className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 dark:bg-slate-800"
-              />
-              <span>Set as default active gateway</span>
-            </label>
+            {/* Category 1: Hotspot Settings */}
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                Hotspot Services
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                <label className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="allow_hotspot_password_recovery"
+                    checked={formData.allow_hotspot_password_recovery}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Allow Hotspot Password Recovery via SMS</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="allow_hotspot_purchase_receipts"
+                    checked={formData.allow_hotspot_purchase_receipts}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Send Hotspot Purchase Confirmations</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Category 2: PPPoE / Static Customer Settings */}
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                PPPoE & Billing
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                <label className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="allow_pppoe_welcome_sms"
+                    checked={formData.allow_pppoe_welcome_sms}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Send PPPoE Account Welcome SMS</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="allow_payment_receipts"
+                    checked={formData.allow_payment_receipts}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Send M-Pesa Payment Receipts</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="allow_expiry_reminders"
+                    checked={formData.allow_expiry_reminders}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Send Expiry Reminder SMS</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Category 3: Promotional */}
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
+                Marketing & System
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                <label className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="allow_bulk_promotions"
+                    checked={formData.allow_bulk_promotions}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Enable Bulk Promotional Broadcasts</span>
+                </label>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
@@ -312,7 +453,7 @@ export const SMSProviderManager: React.FC = () => {
               disabled={submitting}
               className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 rounded-lg transition-colors disabled:opacity-50"
             >
-              {submitting ? "Saving..." : editingId ? "Update Configuration" : "Save Gateway"}
+              {submitting ? "Saving..." : editingId ? "Update Gateway & Preferences" : "Save Gateway"}
             </button>
 
             {editingId && (
@@ -330,7 +471,9 @@ export const SMSProviderManager: React.FC = () => {
 
       {/* Configured Gateways List */}
       <div className="mb-8">
-        <h3 className="text-lg font-semibold mb-3 text-slate-800 dark:text-slate-200">Configured Gateways</h3>
+        <h3 className="text-lg font-semibold mb-3 text-slate-800 dark:text-slate-200">
+          Configured Gateways & Active Preferences
+        </h3>
         {loading ? (
           <div className="p-6 text-center text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
             Loading gateways...
@@ -341,12 +484,13 @@ export const SMSProviderManager: React.FC = () => {
           </div>
         ) : (
           <div className="w-full overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-            <table className="w-full min-w-[600px] text-left text-sm">
+            <table className="w-full min-w-[700px] text-left text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-semibold uppercase text-xs tracking-wider">
                 <tr>
                   <th className="px-4 py-3">Provider</th>
                   <th className="px-4 py-3">Sender ID</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Hotspot Password SMS</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -369,6 +513,32 @@ export const SMSProviderManager: React.FC = () => {
                         </span>
                       )}
                     </td>
+                    <td className="px-4 py-3">
+                      {p.id && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleQuickFeatureToggle(
+                              p.id!,
+                              "allow_hotspot_password_recovery",
+                              p.allow_hotspot_password_recovery
+                            )
+                          }
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer ${
+                            p.allow_hotspot_password_recovery
+                              ? "bg-blue-100 text-blue-800 dark:bg-blue-950/80 dark:text-blue-300 hover:bg-blue-200"
+                              : "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 hover:bg-amber-200"
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              p.allow_hotspot_password_recovery ? "bg-blue-500" : "bg-amber-500"
+                            }`}
+                          ></span>
+                          {p.allow_hotspot_password_recovery ? "Enabled (SMS)" : "Disabled (Screen Fallback)"}
+                        </button>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right whitespace-nowrap space-x-1">
                       {!p.is_active && p.id && (
                         <button
@@ -376,7 +546,6 @@ export const SMSProviderManager: React.FC = () => {
                           title="Set as active default gateway"
                           className="p-1.5 inline-flex items-center justify-center text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors"
                         >
-                          {/* Active Power/Check Icon Replacement */}
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -384,7 +553,7 @@ export const SMSProviderManager: React.FC = () => {
                       )}
                       <button
                         onClick={() => handleEdit(p)}
-                        title="Edit configuration"
+                        title="Edit configuration & preferences"
                         className="p-1.5 inline-flex items-center justify-center text-slate-500 hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -418,7 +587,7 @@ export const SMSProviderManager: React.FC = () => {
             Test SMS Dispatch
           </h3>
           <span className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 font-medium px-2.5 py-1 rounded-md border border-blue-200 dark:border-blue-800">
-            Interactive Test Console
+            Interactive Console
           </span>
         </div>
 
@@ -450,7 +619,7 @@ export const SMSProviderManager: React.FC = () => {
                 type="text"
                 value={testPayload.recipient}
                 onChange={(e) => setTestPayload((prev) => ({ ...prev, recipient: e.target.value }))}
-                placeholder="e.g. +254712345678"
+                placeholder="e.g. 254712345678"
                 required
                 className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />

@@ -44,6 +44,24 @@ export function toggleActiveSMSProvider(id: number): Promise<{ status: string; m
   });
 }
 
+/* TOGGLE SPECIFIC FEATURE / BOOLEAN PREFERENCE */
+export function toggleSMSProviderFeature(
+  id: number,
+  feature: keyof Pick<
+    SMSProvider,
+    | "is_active"
+    | "allow_hotspot_password_recovery"
+    | "allow_hotspot_purchase_receipts"
+    | "allow_pppoe_welcome_sms"
+    | "allow_payment_receipts"
+    | "allow_expiry_reminders"
+    | "allow_bulk_promotions"
+  >,
+  value: boolean
+): Promise<SMSProvider> {
+  return updateSMSProvider(id, { [feature]: value });
+}
+
 /* TEST SMS DISPATCH */
 export function testSMSProvider(
   data: TestSMSPayload,
