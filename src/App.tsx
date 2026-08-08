@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 //import AppVendor from "./vendor/AppVendor";
 
-
 import Login from "./vendor/pages/Login";
 import Signup from "./vendor/pages/SignUp";
 import Home from "./vendor/pages/Home";
@@ -42,52 +41,64 @@ import AuthWatcher from "./vendor/AuthWatcher";
 import UserProfile from "./vendor/pages/dashboard/users/UserProfile";
 import CustomersPage from "./vendor/pages/dashboard/CustomerPage/CustomersPage";
 import { SMSProviderManager } from "./vendor/pages/dashboard/Sms/SmsProviderManager";
+
+// Onboarding Guard & Wizard Imports
+import OnboardingGuard from "./vendor/pages/dashboard/onboarding/OnboardingGuard";
+import OnboardingWizard from "./vendor/pages/dashboard/onboarding/OnboardingWizard";
+
 export default function App() {
   return (
-
-    
     <Router>
-      
-     
       <AuthWatcher />
-        <Routes>
-          {/* =========================
-              PUBLIC ROUTES
-          ========================= */}
+      <Routes>
+        {/* =========================
+            PUBLIC ROUTES
+        ========================= */}
 
-          <Route index element={<Home />} />
+        <Route index element={<Home />} />
 
+        <Route
+          path="signup"
+          element={<Signup />}
+        />
+
+        <Route
+          path="login"
+          element={<Login />}
+        />
+
+        {/* =========================
+            PROTECTED ROUTES
+        ========================= */}
+
+        <Route element={<ProtectedRoute />}>
+          
+          {/* Onboarding Wizard Standalone Route */}
           <Route
-            path="signup"
-            element={<Signup />}
+            path="onboarding"
+            element={<OnboardingWizard />}
           />
 
           <Route
-            path="login"
-            element={<Login />}
-          />
-
-          {/* =========================
-              PROTECTED ROUTES
-          ========================= */}
-
-          <Route element={<ProtectedRoute />}>
+            path="dashboard"
+            element={<DashboardLayout />}
+          >
+            {/* Dashboard Home - ACCESSIBLE WITHOUT ONBOARDING */}
             <Route
-              path="dashboard"
-              element={<DashboardLayout />}
-            >
-              {/* Dashboard Home */}
-              <Route
-                index
-                element={<DashboardHome />}
-              />
+              index
+              element={<DashboardHome />}
+            />
 
-              {/* Vendor Profile */}
-              <Route
-                path="profile"
-                element={<VendorProfilePage />}
-              />
+            {/* Vendor Profile - ACCESSIBLE WITHOUT ONBOARDING */}
+            <Route
+              path="profile"
+              element={<VendorProfilePage />}
+            />
 
+            {/* ====================================================
+                ROUTES REQUIRING COMPLETED ONBOARDING
+            ==================================================== */}
+            <Route element={<OnboardingGuard />}>
               {/* Plans */}
               <Route
                 path="plans"
@@ -162,8 +173,8 @@ export default function App() {
               />
 
               <Route
-                  path="users/detailed/:id"
-                  element={<UserProfile />}
+                path="users/detailed/:id"
+                element={<UserProfile />}
               />
 
               {/* Network */}
@@ -193,24 +204,19 @@ export default function App() {
                 path="sms/sms_providers/list"
                 element={<SMSProviderManager />}
               />
-              
             </Route>
-
-            
-
           </Route>
+        </Route>
 
-          {/* =========================
-              FALLBACK
-          ========================= */}
+        {/* =========================
+            FALLBACK
+        ========================= */}
 
-          <Route
-            path="*" element={<NotFound />}
-          />
-        </Routes>
-     
+        <Route
+          path="*"
+          element={<NotFound />}
+        />
+      </Routes>
     </Router>
   );
 }
-    
-  

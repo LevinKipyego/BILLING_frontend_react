@@ -1,13 +1,13 @@
+import AppFooter from "./AppFooter";
 import React, { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import {
-  Mail,
-  Lock,
   Eye,
   EyeOff,
-  ArrowRight,
   ShieldCheck,
   AlertCircle,
+  Github,
+  Chrome,
 } from "lucide-react";
 
 import { BaseUrl } from "../../BaseUrl";
@@ -19,37 +19,23 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [showPassword, setShowPassword] =
-    useState(false);
-
-  const [error, setError] =
-    useState<string | null>(null);
-
-  const [loading, setLoading] =
-    useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   // ==========================================
   // AUTH MESSAGE
   // ==========================================
 
-  const authMessage =
-    searchParams.get("message");
-
-  const sessionExpired =
-    authMessage === "session-expired";
-
-  const authRequired =
-    authMessage === "authentication-required";
-
-  
+  const authMessage = searchParams.get("message");
+  const sessionExpired = authMessage === "session-expired";
+  const authRequired = authMessage === "authentication-required";
 
   // ==========================================
   // LOGIN
   // ==========================================
 
-  const handleSubmit = async (
-    e: React.FormEvent
-  ) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (loading) return;
@@ -58,226 +44,399 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${BaseUrl}/api/login/`,
-        {
-          method: "POST",
+      const response = await fetch(`${BaseUrl}/api/login/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+        }),
+      });
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify({
-            email: email.trim().toLowerCase(),
-            password,
-          }),
-        }
-      );
-
-      const data =
-        await response.json().catch(() => ({}));
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(
-          data.message ||
-            "Invalid email or password."
-        );
+        throw new Error(data.message || "Invalid email or password.");
       }
 
-      if (
-        !data?.tokens?.access ||
-        !data?.tokens?.refresh
-      ) {
-        throw new Error(
-          "Authentication failed."
-        );
+      if (!data?.tokens?.access || !data?.tokens?.refresh) {
+        throw new Error("Authentication failed.");
       }
 
-      // ==========================================
-      // SAVE TOKENS
-      // ==========================================
+      localStorage.setItem("access_token", data.tokens.access);
+      localStorage.setItem("refresh_token", data.tokens.refresh);
+      localStorage.setItem("auth_ready", "true");
 
-      localStorage.setItem(
-        "access_token",
-        data.tokens.access
-      );
+      localStorage.removeItem("logout_event");
 
-      localStorage.setItem(
-        "refresh_token",
-        data.tokens.refresh
-      );
-
-      localStorage.setItem(
-        "auth_ready",
-        "true"
-      );
-
-      // Remove any previous logout notification
-      localStorage.removeItem(
-        "logout_event"
-      );
-
-      // Notify AuthWatcher
-      window.dispatchEvent(
-        new Event("auth-changed")
-      );
-
-      // ==========================================
-      // REDIRECT
-      // ==========================================
+      // Store onboarding status from backend response
+      localStorage.setItem("onboarding_complete", String(data.vendor.is_onboarded));
+      console.log("Onboarding status stored:", data);
+      window.dispatchEvent(new Event("auth-changed"));
 
       navigate("/dashboard", {
         replace: true,
       });
     } catch (err: any) {
-      setError(
-        err?.message ||
-          "Unable to connect to the server."
-      );
+      setError(err?.message || "Unable to connect to the server.");
     } finally {
       setLoading(false);
     }
   };
+
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-[#090d16] ">
-      
-      {/* LEFT SIDE - Centered Form Card */}
-      <div className="flex flex-1 items-center justify-center px-6 py-12 lg:px-16 xl:px-24 z-10">
-        <div className="w-full max-w-md bg-white dark:bg-[#111827]/40 p-8 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800/60 backdrop-blur-md">
-          
-          {/* Header */}
-          <div className="mb-8">
-            <div className="h-10 w-10 bg-indigo-600/10 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center mb-4 border border-indigo-500/20">
-              <ShieldCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Admin Gateway
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
-              Securely access your core dashboard manager.
-            </p>
+    <main className="min-h-screen bg-white text-slate-900 dark:bg-[#0d1117] dark:text-slate-100">
+      <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-5 py-8 sm:px-6">
+
+        {/* ==========================================
+            HEADER
+        ========================================== */}
+
+        <div className="mb-7 text-center">
+          <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-700 dark:border-slate-700 dark:text-slate-300">
+            <ShieldCheck className="h-5 w-5" />
           </div>
 
-          {/* SESSION EXPIRED MESSAGE */}
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            Sign in to Admin Gateway
+          </h1>
+
+          <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+            Manage your ISP network and services
+          </p>
+        </div>
+
+        {/* ==========================================
+            STATUS MESSAGES
+        ========================================== */}
+
+        <div className="mb-5 space-y-3">
+
           {sessionExpired && !error && (
-            <div className="mb-5 flex items-center gap-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 text-amber-700 dark:text-amber-400 text-sm p-4">
-              <AlertCircle size={18} className="shrink-0" />
-              <span>Your session has expired. Please log in again to continue.</span>
+            <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/20 dark:text-amber-300">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                Your session has expired. Please sign in again.
+              </span>
             </div>
           )}
 
-          {/* AUTHENTICATION REQUIRED MESSAGE */}
           {authRequired && !error && (
-            <div className="mb-5 flex items-center gap-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 text-amber-700 dark:text-amber-400 text-sm p-4">
-              <AlertCircle size={18} className="shrink-0" />
-              <span>Authentication required.</span>
+            <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/20 dark:text-amber-300">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                Authentication is required to continue.
+              </span>
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
-            <div className="mb-5 flex items-center gap-3 rounded-xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 text-rose-600 dark:text-rose-400 text-sm p-4">
-              <AlertCircle size={18} className="shrink-0" />
+            <div className="flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-3 text-xs text-rose-700 dark:border-rose-800/60 dark:bg-rose-950/20 dark:text-rose-300">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{error}</span>
             </div>
           )}
 
-          {/* FORM */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            
-            {/* Email Field */}
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                Email Address
-              </label>
-              <div className="flex items-center bg-slate-50 dark:bg-[#111827]/60 border border-slate-200 dark:border-slate-800 rounded-xl focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all duration-200 px-3.5 group">
-                <Mail className="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors mr-3" />
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  className="w-full bg-transparent py-3 text-sm outline-none text-slate-900 dark:text-white placeholder-slate-400"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
+        </div>
 
-            {/* Password Field */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Password
-                </label>
-                <Link to="/forgot-password" hidden={true} className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
-                  Forgot?
-                </Link>
-              </div>
-              <div className="flex items-center bg-slate-50 dark:bg-[#111827]/60 border border-slate-200 dark:border-slate-800 rounded-xl focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all duration-200 px-3.5 group">
-                <Lock className="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors mr-3" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  className="w-full bg-transparent py-3 text-sm outline-none text-slate-900 dark:text-white placeholder-slate-400"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors ml-2"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
+        {/* ==========================================
+            LOGIN FORM
+        ========================================== */}
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full mt-2 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-medium py-3 rounded-xl shadow-lg shadow-indigo-600/20 dark:shadow-none transition-all duration-150 disabled:opacity-50"
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5 rounded-xl border border-slate-200 p-5 dark:border-slate-700 sm:p-6"
+        >
+
+          {/* Email */}
+
+          <div className="space-y-2">
+            <label
+              htmlFor="email"
+              className="block text-xs font-medium text-slate-700 dark:text-slate-300"
             >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  Log in <ArrowRight size={16} className="ml-1" />
-                </>
-              )}
-            </button>
-          </form>
+              Email address
+            </label>
 
-          {/* Footer Link */}
-          <p className="mt-8 text-sm text-center text-slate-500 dark:text-slate-400">
-            Don’t have an account?{" "}
-            <Link to="/signup" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
-              Create one
-            </Link>
-          </p>
-        </div>
-      </div>
-
-      {/* RIGHT SIDE - DECORATIVE HERO BRANDING */}
-      <div className="hidden lg:flex flex-1 relative items-center justify-center bg-[#060913] text-white p-16 overflow-hidden">
-        {/* Ambient background blur circles */}
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]" />
-        
-        <div className="max-w-md relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 text-xs font-medium mb-6 backdrop-blur-md">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> Live ISP Orchestration
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="
+                h-11
+                w-full
+                rounded-lg
+                border
+                border-slate-300
+                bg-transparent
+                px-3.5
+                text-sm
+                text-slate-900
+                outline-none
+                transition-colors
+                placeholder:text-slate-400
+                focus:border-blue-600
+                dark:border-slate-700
+                dark:text-white
+                dark:placeholder:text-slate-500
+                dark:focus:border-blue-500
+              "
+            />
           </div>
-          <h2 className="text-4xl font-extrabold tracking-tight mb-4 leading-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-            Manage your network effortlessly
-          </h2>
-          <p className="text-slate-400 text-base leading-relaxed">
-            Monitor client MikroTik authentications, run automated billing hooks, and supervise active GenieACS server parameters inside a single interface.
-          </p>
+
+          {/* Password */}
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <label
+                htmlFor="password"
+                className="text-xs font-medium text-slate-700 dark:text-slate-300"
+              >
+                Password
+              </label>
+
+              <Link
+                to="#"
+                className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="
+                  h-11
+                  w-full
+                  rounded-lg
+                  border
+                  border-slate-300
+                  bg-transparent
+                  pl-3.5
+                  pr-11
+                  text-sm
+                  text-slate-900
+                  outline-none
+                  transition-colors
+                  placeholder:text-slate-400
+                  focus:border-blue-600
+                  dark:border-slate-700
+                  dark:text-white
+                  dark:placeholder:text-slate-500
+                  dark:focus:border-blue-500
+                "
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={
+                  showPassword ? "Hide password" : "Show password"
+                }
+                className="
+                  absolute
+                  right-0
+                  top-0
+                  flex
+                  h-11
+                  w-11
+                  items-center
+                  justify-center
+                  text-slate-400
+                  transition-colors
+                  hover:text-slate-700
+                  dark:hover:text-slate-200
+                "
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Submit */}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="
+              flex
+              h-11
+              w-full
+              items-center
+              justify-center
+              rounded-lg
+              bg-blue-600
+              px-4
+              text-sm
+              font-semibold
+              text-white
+              transition-colors
+              hover:bg-blue-700
+              focus:outline-none
+              focus:ring-2
+              focus:ring-blue-600/30
+              disabled:cursor-not-allowed
+              disabled:opacity-60
+              dark:bg-blue-600
+              dark:hover:bg-blue-500
+            "
+          >
+            {loading ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            ) : (
+              "Sign in"
+            )}
+          </button>
+
+          {/* Divider */}
+
+          <div className="relative flex items-center py-1">
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+
+            <span className="px-3 text-[10px] font-medium uppercase tracking-wider text-slate-400">
+              or continue with
+            </span>
+
+            <div className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+          </div>
+
+          {/* ==========================================
+              SOCIAL LOGIN ILLUSION
+          ========================================== */}
+
+          <div className="grid grid-cols-2 gap-3">
+
+            <button
+              type="button"
+              className="
+                flex
+                h-10
+                items-center
+                justify-center
+                gap-2
+                rounded-lg
+                border
+                border-slate-300
+                bg-transparent
+                px-3
+                text-xs
+                font-medium
+                text-slate-700
+                transition-colors
+                hover:bg-slate-50
+                dark:border-slate-700
+                dark:text-slate-300
+                dark:hover:bg-slate-800
+              "
+            >
+              <Github className="h-4 w-4" />
+              GitHub
+            </button>
+
+            <button
+              type="button"
+              className="
+                flex
+                h-10
+                items-center
+                justify-center
+                gap-2
+                rounded-lg
+                border
+                border-slate-300
+                bg-transparent
+                px-3
+                text-xs
+                font-medium
+                text-slate-700
+                transition-colors
+                hover:bg-slate-50
+                dark:border-slate-700
+                dark:text-slate-300
+                dark:hover:bg-slate-800
+              "
+            >
+              <Chrome className="h-4 w-4" />
+              Google
+            </button>
+
+          </div>
+
+        </form>
+
+        {/* ==========================================
+            SIGN UP
+        ========================================== */}
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 mt-5">
+        <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
+          New here?{" "}
+          <Link
+            to="/signup"
+            className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+          >
+            Create an account
+          </Link>
+        </p>
+
+
+        <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
+          Main Page?{" "}
+          <Link
+            to="/"
+            className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+          >
+            Go to main page
+          </Link>
+        </p>
+
         </div>
+
+        {/* Footer */}
+
+        <p className="mt-8 text-center text-[10px] text-slate-400 dark:text-slate-600">
+          Secure administrator access
+        </p>
+
+        <AppFooter
+            compact
+            appName="VeeGO"
+            description="ISP billing and network management."
+            version="1.0.0"
+            links={[
+              {
+                label: "Privacy",
+                href: "#",
+              },
+              {
+                label: "Terms",
+                href: "#",
+              },
+              {
+                label: "Contact",
+                href: "#",
+              },
+            ]}
+          />
+
       </div>
-    </div>
+    </main>
   );
 }
+

@@ -178,7 +178,7 @@ export default function CustomerTable({
             </div>
 
             {/* 🖥️ DESKTOP TABLE VIEW: Shown on medium screens (768px) and up */}
-            <div className="hidden md:block overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <div className="hidden md:block overflow-visible rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50">

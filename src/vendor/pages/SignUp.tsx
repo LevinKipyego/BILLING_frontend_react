@@ -1,15 +1,13 @@
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
-  User,
-  Mail,
-  Phone,
-  Lock,
   Eye,
   EyeOff,
-  ArrowRight,
   ShieldCheck,
+  AlertCircle,
 } from "lucide-react";
+
 import { BaseUrl } from "../../BaseUrl";
 
 const Signup = () => {
@@ -19,199 +17,464 @@ const Signup = () => {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // ==========================================
+  // SIGNUP
+  // ==========================================
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+
+    if (loading) return;
+
     setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const response = await fetch(`${BaseUrl}/api/signup/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, email, password }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          phone: phone.trim(),
+          email: email.trim().toLowerCase(),
+          password,
+        }),
       });
 
+      const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Signup failed");
+        throw new Error(data.message || "Signup failed.");
       }
 
-      navigate("/login", { replace: true });
+      navigate("/login", {
+        replace: true,
+      });
     } catch (err: any) {
-      setError(err.message);
+      setError(err?.message || "Unable to connect to the server.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-[#090d16] ">
-      
-      {/* LEFT SIDE - FORM */}
-      <div className="flex flex-1 items-center justify-center px-6 py-12 lg:px-16 xl:px-24 z-10">
-        <div className="w-full max-w-md bg-white dark:bg-[#111827]/40 p-8 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800/60 backdrop-blur-md">
-          
-          {/* Header */}
-          <div className="mb-8">
-            <div className="h-10 w-10 bg-indigo-600/10 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center mb-4 border border-indigo-500/20">
-              <ShieldCheck className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Create your account
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5">
-              Start managing your network infrastructure today.
-            </p>
+    <main className="min-h-screen bg-white text-slate-900 dark:bg-[#0d1117] dark:text-slate-100">
+      <div
+        className="
+          mx-auto
+          flex
+          min-h-screen
+          w-full
+          max-w-md
+          flex-col
+          justify-center
+          px-4
+          py-8
+          sm:px-6
+          sm:py-10
+        "
+      >
+        {/* ==========================================
+            HEADER
+        ========================================== */}
+
+        <div className="mb-7 text-center">
+          <div
+            className="
+              mx-auto
+              mb-4
+              flex
+              h-11
+              w-11
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-slate-200
+              text-slate-700
+              dark:border-slate-700
+              dark:text-slate-300
+            "
+          >
+            <ShieldCheck className="h-5 w-5" />
           </div>
 
-          {/* Error Container */}
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            Create your account
+          </h1>
+
+          <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+            Set up your administrator account
+          </p>
+        </div>
+
+        {/* ==========================================
+            FORM OUTLINE
+        ========================================== */}
+
+        <div
+          className="
+            w-full
+            rounded-xl
+            border
+            border-slate-200
+            p-5
+            dark:border-slate-700
+            sm:p-6
+          "
+        >
+          {/* Error */}
+
           {error && (
-            <div className="mb-6 text-sm text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 rounded-xl p-4 animate-shake">
-              {error}
+            <div
+              className="
+                mb-5
+                flex
+                items-start
+                gap-2.5
+                rounded-lg
+                border
+                border-rose-200
+                bg-rose-50
+                px-3.5
+                py-3
+                text-xs
+                text-rose-700
+                dark:border-rose-800/60
+                dark:bg-rose-950/20
+                dark:text-rose-300
+              "
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+
+              <span>{error}</span>
             </div>
           )}
 
-          {/* FORM */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            
-            {/* Name */}
-            <CardInput
-              icon={User}
+
+            {/* ==========================================
+                FULL NAME
+            ========================================== */}
+
+            <MinimalInput
               label="Full name"
               value={name}
               onChange={setName}
               type="text"
               placeholder="John Doe"
+              autoComplete="name"
             />
 
-            {/* Phone + Email Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <CardInput
-                icon={Phone}
-                label="Phone"
-                value={phone}
-                onChange={setPhone}
-                type="tel"
-                placeholder="254..."
-              />
+            {/* ==========================================
+                PHONE
+            ========================================== */}
 
-              <CardInput
-                icon={Mail}
-                label="Email"
-                value={email}
-                onChange={setEmail}
-                type="email"
-                placeholder="you@example.com"
-              />
-            </div>
+            <MinimalInput
+              label="Phone number"
+              value={phone}
+              onChange={setPhone}
+              type="tel"
+              placeholder="254712345678"
+              autoComplete="tel"
+            />
 
-            {/* Password */}
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                Password
-              </label>
+            {/* ==========================================
+                EMAIL
+            ========================================== */}
 
-              <div className="flex items-center bg-slate-50 dark:bg-[#111827]/60 border border-slate-200 dark:border-slate-800 rounded-xl focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all duration-200 px-3.5 group">
-                <Lock className="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors mr-3" />
+            <MinimalInput
+              label="Email address"
+              value={email}
+              onChange={setEmail}
+              type="email"
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
 
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className="w-full bg-transparent py-3 text-sm outline-none text-slate-900 dark:text-white placeholder-slate-400"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+            {/* ==========================================
+                PASSWORD
+            ========================================== */}
 
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors ml-2"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
+            <PasswordInput
+              label="Password"
+              value={password}
+              onChange={setPassword}
+              showPassword={showPassword}
+              setShowPassword={setShowPassword}
+              autoComplete="new-password"
+            />
 
-            {/* Submit Button */}
+            {/* ==========================================
+                CONFIRM PASSWORD
+            ========================================== */}
+
+            <PasswordInput
+              label="Confirm password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              showPassword={showConfirmPassword}
+              setShowPassword={setShowConfirmPassword}
+              autoComplete="new-password"
+            />
+
+            {/* ==========================================
+                SUBMIT
+            ========================================== */}
+
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-medium py-3 rounded-xl shadow-lg shadow-indigo-600/20 dark:shadow-none transition-all duration-150 disabled:opacity-50"
+              className="
+                mt-2
+                flex
+                h-11
+                w-full
+                items-center
+                justify-center
+                rounded-lg
+                bg-blue-600
+                px-4
+                text-sm
+                font-semibold
+                text-white
+                transition-colors
+                hover:bg-blue-700
+                focus:outline-none
+                focus:ring-2
+                focus:ring-blue-600/30
+                disabled:cursor-not-allowed
+                disabled:opacity-60
+                dark:bg-blue-600
+                dark:hover:bg-blue-500
+              "
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                <span
+                  className="
+                    h-4
+                    w-4
+                    animate-spin
+                    rounded-full
+                    border-2
+                    border-white/40
+                    border-t-white
+                  "
+                />
               ) : (
-                <>
-                  Create account <ArrowRight size={16} className="ml-1" />
-                </>
+                "Create account"
               )}
             </button>
           </form>
-
-          {/* Footer Link */}
-          <p className="mt-8 text-sm text-center text-slate-500 dark:text-slate-400">
-            Already have an account?{" "}
-            <Link to="/login" className="font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">
-              Sign in
-            </Link>
-          </p>
         </div>
-      </div>
 
-      {/* RIGHT SIDE - DECORATIVE HERO BRANDING */}
-      <div className="hidden lg:flex flex-1 relative items-center justify-center bg-[#060913] text-white p-16 overflow-hidden">
-        {/* Subtle background ambient mesh */}
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px]" />
-        
-        <div className="max-w-md relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-400/20 text-indigo-300 text-xs font-medium mb-6 backdrop-blur-md">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" /> Next-Gen ISP Infrastructure
-          </div>
-          <h2 className="text-4xl font-extrabold tracking-tight mb-4 leading-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
-            Build your smart ISP platform
-          </h2>
-          <p className="text-slate-400 text-base leading-relaxed">
-            Automate billing operations, seamless MikroTik orchestration, and granular GenieACS client device provision tracking inside a centralized visual control board.
-          </p>
-        </div>
+        {/* ==========================================
+            LOGIN LINK
+        ========================================== */}
+
+        <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="
+              font-medium
+              text-blue-600
+              hover:underline
+              dark:text-blue-400
+            "
+          >
+            Sign in
+          </Link>
+        </p>
+
+        {/* ==========================================
+            FOOTER
+        ========================================== */}
+
+        <p className="mt-7 text-center text-[10px] text-slate-400 dark:text-slate-600">
+          Secure administrator registration
+        </p>
       </div>
-    </div>
+    </main>
   );
 };
 
-/* 🔹 Beautiful Reusable Card Input Component */
-const CardInput = ({
-  icon: Icon,
+/* ==================================================
+   MINIMAL INPUT
+================================================== */
+
+interface MinimalInputProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type: string;
+  placeholder: string;
+  autoComplete?: string;
+}
+
+const MinimalInput = ({
   label,
   value,
   onChange,
   type,
   placeholder,
-}: any) => (
-  <div>
-    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-      {label}
-    </label>
-
-    <div className="flex items-center bg-slate-50 dark:bg-[#111827]/60 border border-slate-200 dark:border-slate-800 rounded-xl focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/10 transition-all duration-200 px-3.5 group">
-      <Icon className="w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors mr-3" />
+  autoComplete,
+}: MinimalInputProps) => {
+  return (
+    <div className="space-y-2">
+      <label
+        className="
+          block
+          text-xs
+          font-medium
+          text-slate-700
+          dark:text-slate-300
+        "
+      >
+        {label}
+      </label>
 
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        autoComplete={autoComplete}
         required
-        className="w-full bg-transparent py-3 text-sm outline-none text-slate-900 dark:text-white placeholder-slate-400"
+        className="
+          h-11
+          w-full
+          rounded-lg
+          border
+          border-slate-300
+          bg-transparent
+          px-3.5
+          text-sm
+          text-slate-900
+          outline-none
+          transition-colors
+          placeholder:text-slate-400
+          focus:border-blue-600
+          dark:border-slate-700
+          dark:text-white
+          dark:placeholder:text-slate-500
+          dark:focus:border-blue-500
+        "
       />
     </div>
-  </div>
-);
+  );
+};
+
+/* ==================================================
+   PASSWORD INPUT
+================================================== */
+
+interface PasswordInputProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  showPassword: boolean;
+  setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
+  autoComplete?: string;
+}
+
+const PasswordInput = ({
+  label,
+  value,
+  onChange,
+  showPassword,
+  setShowPassword,
+  autoComplete,
+}: PasswordInputProps) => {
+  return (
+    <div className="space-y-2">
+      <label
+        className="
+          block
+          text-xs
+          font-medium
+          text-slate-700
+          dark:text-slate-300
+        "
+      >
+        {label}
+      </label>
+
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="••••••••"
+          autoComplete={autoComplete}
+          required
+          className="
+            h-11
+            w-full
+            rounded-lg
+            border
+            border-slate-300
+            bg-transparent
+            pl-3.5
+            pr-11
+            text-sm
+            text-slate-900
+            outline-none
+            transition-colors
+            placeholder:text-slate-400
+            focus:border-blue-600
+            dark:border-slate-700
+            dark:text-white
+            dark:placeholder:text-slate-500
+            dark:focus:border-blue-500
+          "
+        />
+
+        <button
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+          aria-label={showPassword ? "Hide password" : "Show password"}
+          className="
+            absolute
+            right-0
+            top-0
+            flex
+            h-11
+            w-11
+            items-center
+            justify-center
+            text-slate-400
+            transition-colors
+            hover:text-slate-700
+            dark:hover:text-slate-200
+          "
+        >
+          {showPassword ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export default Signup;
+

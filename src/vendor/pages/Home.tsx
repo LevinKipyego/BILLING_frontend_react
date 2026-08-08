@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import {
@@ -10,153 +11,207 @@ import {
   ArrowRight,
   BookOpen,
   HelpCircle,
-  Activity
+  Activity,
+  Server,
+  Map,
+  Network,
+  WalletCards,
 } from "lucide-react";
+
+import AppFooter from "./AppFooter";
 
 const Home: React.FC = () => {
   const location = useLocation();
-  // FIXED: Now checks for root path so your lander content actually displays by default
   const isRoot = location.pathname === "/" || location.pathname === "";
+
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-[#0b0f19]">
+    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-[#0b0f19] text-gray-900 dark:text-gray-100">
+      {/* =========================================================
+          NAVBAR
+      ========================================================= */}
+      <header className="sticky top-0 z-50 border-b border-gray-200/80 dark:border-gray-800 bg-white/90 dark:bg-[#0b0f19]/90 backdrop-blur">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="h-16 flex items-center justify-between">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2.5 shrink-0">
+              <div className="bg-blue-600 p-2 rounded-lg">
+                <Cpu className="w-5 h-5 text-white" />
+              </div>
 
-      {/* NAVBAR */}
-      <header className="sticky top-0 z-50 backdrop-blur bg-white/70 dark:bg-[#0b0f19]/70 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-blue-600 p-2 rounded-md">
-              <Cpu className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-semibold text-gray-900 dark:text-white">
-              VendHub
-            </span>
-          </Link>
-
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8 text-sm text-gray-600 dark:text-gray-300">
-            <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
-            <a href="#security" className="hover:text-blue-600 transition-colors">Security</a>
-            <Link to="/login" className="hover:text-blue-600 transition-colors">Login</Link>
-            <Link
-              to="/signup"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-            >
-              Get Started
+              <span className="text-base sm:text-lg font-medium text-gray-900 dark:text-white">
+                Veego
+              </span>
             </Link>
-          </nav>
 
-          {/* Mobile Menu Button Toggle */}
-          <button 
-            onClick={() => setOpen(!open)} 
-            className="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition"
-          >
-            {open ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-
-        {/* UPDATED: Structured Mobile Dropdown Context with future placeholders */}
-        {open && (
-          <div className="md:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0b0f19] px-4 py-4 space-y-4 shadow-xl">
-            <div className="space-y-1">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">Explore</p>
-              <a 
-                href="#features" 
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-2 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg text-sm"
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-7 text-sm text-gray-600 dark:text-gray-300">
+              <a
+                href="#features"
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                <Cpu size={16} className="text-blue-500" /> Features
+                Features
               </a>
-              <a 
-                href="#security" 
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-2 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg text-sm"
+
+              <a
+                href="#security"
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
-                <ShieldCheck size={16} className="text-emerald-500" /> Security
+                Security
               </a>
-            </div>
 
-            {/* Future Additions Expansion Tier */}
-            <div className="space-y-1">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">Resources</p>
-              <Link 
-                to="/docs" 
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-2 py-2 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg text-sm"
-              >
-                <BookOpen size={16} /> API Docs (Future)
-              </Link>
-              <Link 
-                to="/status" 
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-2 py-2 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg text-sm"
-              >
-                <Activity size={16} /> System Status (Future)
-              </Link>
-              <Link 
-                to="/support" 
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-2 py-2 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-lg text-sm"
-              >
-                <HelpCircle size={16} /> Help Center (Future)
-              </Link>
-            </div>
-
-            <hr className="border-gray-200 dark:border-gray-800" />
-
-            {/* Authentication Core Group */}
-            <div className="space-y-2 pt-1">
-              <Link 
-                to="/login" 
-                onClick={() => setOpen(false)}
-                className="block text-center text-sm font-medium text-gray-600 dark:text-gray-300 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition"
+              <Link
+                to="/login"
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
                 Login
               </Link>
+
               <Link
                 to="/signup"
-                onClick={() => setOpen(false)}
-                className="block text-center text-sm font-medium bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
               >
                 Get Started
               </Link>
-            </div>
+            </nav>
+
+            {/* Mobile Menu Button */}
+            <button
+              type="button"
+              onClick={() => setOpen(!open)}
+              className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+              aria-label="Toggle navigation"
+            >
+              {open ? <X size={21} /> : <Menu size={21} />}
+            </button>
           </div>
-        )}
+
+          {/* =====================================================
+              MOBILE MENU
+          ===================================================== */}
+          {open && (
+            <div className="md:hidden border-t border-gray-200 dark:border-gray-800 py-4">
+              <div className="space-y-1">
+                <p className="px-2 pb-2 text-[11px] font-medium uppercase tracking-wider text-gray-400">
+                  Explore
+                </p>
+
+                <a
+                  href="#features"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <Cpu size={17} className="text-blue-500" />
+                  Features
+                </a>
+
+                <a
+                  href="#security"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <ShieldCheck size={17} className="text-emerald-500" />
+                  Security
+                </a>
+              </div>
+
+              <div className="mt-5 space-y-1">
+                <p className="px-2 pb-2 text-[11px] font-medium uppercase tracking-wider text-gray-400">
+                  Resources
+                </p>
+                
+                <Link
+                  to="/#"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <BookOpen size={17} />
+                  API Docs
+                </Link>
+
+                <Link
+                  to="/#"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <Activity size={17} />
+                  System Status
+                </Link>
+
+                <Link
+                  to="/#"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <HelpCircle size={17} />
+                  Help Center
+                </Link>
+              </div>
+
+              <div className="mt-5 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+                <Link
+                  to="/login"
+                  onClick={() => setOpen(false)}
+                  className="block w-full text-center text-sm text-gray-600 dark:text-gray-300 py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  Login
+                </Link>
+
+                <Link
+                  to="/signup"
+                  onClick={() => setOpen(false)}
+                  className="block w-full text-center text-sm bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition"
+                >
+                  Get Started
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
       </header>
 
-      <header />
-
+      {/* =========================================================
+          MAIN
+      ========================================================= */}
       <main className="flex-1">
         {isRoot ? (
           <>
-            {/* HERO */}
-            <section className="py-20 text-center">
-              <div className="max-w-4xl mx-auto px-4">
-                <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
+            {/* =====================================================
+                HERO
+            ===================================================== */}
+            <section className="py-14 sm:py-20 lg:py-24">
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-5 rounded-full border border-blue-200 dark:border-blue-900/60 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 text-xs">
+                  <Activity size={13} />
+                  ISP Network Management Platform
+                </div>
+
+                <h1 className="text-3xl sm:text-4xl lg:text-6xl font-medium sm:font-semibold text-gray-900 dark:text-white leading-tight tracking-tight">
                   Manage your MikroTik network
-                  <span className="text-blue-600"> in one place</span>
+                  <span className="block sm:inline text-blue-600">
+                    {" "}
+                    in one place
+                  </span>
                 </h1>
 
-                <p className="mt-6 text-lg text-gray-500 max-w-2xl mx-auto">
-                  Control bandwidth, automate M-Pesa billing, and monitor
-                  your ISP infrastructure in real-time.
+                <p className="mt-5 sm:mt-6 max-w-2xl mx-auto text-base sm:text-lg leading-7 text-gray-500 dark:text-gray-400">
+                  Control bandwidth, automate M-Pesa billing, manage customers,
+                  and monitor your ISP infrastructure from one platform.
                 </p>
 
-                <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+                <div className="mt-7 sm:mt-8 flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
                   <Link
                     to="/signup"
-                    className="flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition text-sm"
                   >
-                    Get Started <ArrowRight size={16} />
+                    Get Started
+                    <ArrowRight size={16} />
                   </Link>
 
                   <Link
-                    to="/onboarding"
-                    className="px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                    to="/#"
+                    className="w-full sm:w-auto px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-sm"
                   >
                     View Demo
                   </Link>
@@ -164,55 +219,139 @@ const Home: React.FC = () => {
               </div>
             </section>
 
-            {/* FEATURES */}
-            <section id="features" className="py-20">
-              <div className="max-w-6xl mx-auto px-4">
+            {/* =====================================================
+                FEATURES
+            ===================================================== */}
+            <section id="features" className="py-14 sm:py-20">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+                  <p className="text-sm text-blue-600 dark:text-blue-400 mb-2">
+                    Platform capabilities
+                  </p>
 
-                <div className="text-center mb-16">
-                  <h2 className="text-3xl font-semibold text-gray-900 dark:text-white">
+                  <h2 className="text-2xl sm:text-3xl font-medium text-gray-900 dark:text-white">
                     Everything you need to run your ISP
                   </h2>
-                  <p className="text-gray-500 mt-2">
-                    Built for performance, scale, and automation
+
+                  <p className="mt-3 text-sm sm:text-base text-gray-500 dark:text-gray-400">
+                    Built around network management, automation, billing, and
+                    customer operations.
                   </p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-8">
+                {/* Feature Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                   <Feature
                     icon={CreditCard}
                     title="Payments"
-                    desc="Automate M-Pesa billing and instantly activate users."
+                    desc="Automate M-Pesa billing and activate customers after successful payments."
                   />
+
                   <Feature
                     icon={Cpu}
                     title="Router Control"
-                    desc="Push configs and manage MikroTik devices in real-time."
+                    desc="Manage MikroTik devices and push network configurations from one place."
                   />
+
                   <Feature
                     icon={BarChart3}
                     title="Analytics"
-                    desc="Track usage, revenue, and network performance."
+                    desc="Monitor revenue, usage, subscribers, and overall network performance."
+                  />
+
+                  <Feature
+                    icon={Server}
+                    title="GenieACS"
+                    desc="Manage supported customer devices and automate TR-069 provisioning."
+                  />
+
+                  <Feature
+                    icon={Map}
+                    title="GeoMapping"
+                    desc="Visualize customers, network locations, and infrastructure on a map."
+                  />
+
+                  <Feature
+                    icon={Network}
+                    title="VLAN Management"
+                    desc="Organize network segments and simplify VLAN-based service management."
+                  />
+
+                  <Feature
+                    icon={WalletCards}
+                    title="Money Mapping"
+                    desc="Connect payments, customers, plans, and transactions for clearer financial tracking."
+                  />
+
+                  <Feature
+                    icon={ShieldCheck}
+                    title="Security"
+                    desc="Protect platform access and network operations with secure authentication."
                   />
                 </div>
               </div>
             </section>
 
-            {/* SECURITY */}
-            <section id="security" className="py-20 bg-white dark:bg-[#0b0f19] border-t border-gray-200 dark:border-gray-800">
-              <div className="max-w-3xl mx-auto text-center px-4">
-                <div className="flex justify-center mb-6">
-                  <div className="bg-green-100 dark:bg-green-900/20 p-4 rounded-full">
-                    <ShieldCheck className="text-green-600" />
+            {/* =====================================================
+                PLATFORM SUMMARY
+            ===================================================== */}
+            <section className="py-14 sm:py-20 border-y border-gray-200 dark:border-gray-800">
+              <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      Network
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
+                      Manage routers, bandwidth, services, VLANs, and network
+                      infrastructure.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      Customers
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
+                      Manage subscribers, packages, access credentials, and
+                      customer locations.
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      Business
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-gray-400">
+                      Track payments, subscriptions, revenue, and operational
+                      activity from one dashboard.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* =====================================================
+                SECURITY
+            ===================================================== */}
+            <section
+              id="security"
+              className="py-14 sm:py-20 bg-white dark:bg-[#0b0f19]"
+            >
+              <div className="max-w-3xl mx-auto text-center px-4 sm:px-6">
+                <div className="flex justify-center mb-5">
+                  <div className="p-3 rounded-full border border-green-200 dark:border-green-900/60 bg-green-50 dark:bg-green-900/20">
+                    <ShieldCheck className="w-6 h-6 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
 
-                <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-2xl sm:text-3xl font-medium text-gray-900 dark:text-white">
                   Security you can trust
                 </h3>
 
-                <p className="text-gray-500 mt-4">
-                  We use strong encryption and a zero-trust architecture to keep
-                  your data safe at all times.
+                <p className="mt-4 text-sm sm:text-base leading-7 text-gray-500 dark:text-gray-400">
+                  Secure authentication and controlled access help protect your
+                  customer, billing, and network information.
                 </p>
               </div>
             </section>
@@ -222,37 +361,80 @@ const Home: React.FC = () => {
         )}
       </main>
 
-      {/* FOOTER */}
-      <footer className="border-t border-gray-200 dark:border-gray-800 py-10">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <p>© {new Date().getFullYear()} VendHub VeeGoStems</p>
-
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-blue-600">Privacy</a>
-            <a href="#" className="hover:text-blue-600">Terms</a>
-            <a href="#" className="hover:text-blue-600">API</a>
-          </div>
-        </div>
-      </footer>
+      {/* =========================================================
+          FOOTER
+      ========================================================= */}
+      <AppFooter
+        appName="Veego"
+        description="Complete billing, customer and network management for ISPs."
+        email="vee@veegostems.com"
+        phone="+254 712 083 124"
+        location=""
+        website="https://veegostems.com"
+        version="1.0.0"
+        links={[
+          {
+            label: "Documentation",
+            href: "/#",
+          },
+          {
+            label: "Support",
+            href: "/#",
+          },
+          {
+            label: "Privacy Policy",
+            href: "/#",
+          },
+          {
+            label: "Terms of Service",
+            href: "/#",
+          },
+        ]}
+        social={{
+          github: "",
+          facebook: "",
+          twitter: "",
+        }}
+      />
     </div>
   );
 };
 
-const Feature = ({ icon: Icon, title, desc }: any) => (
-  <div className="bg-white dark:bg-[#111827] border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-lg transition">
+/* ===============================================================
+   FEATURE CARD
+=============================================================== */
 
-    <div className="w-10 h-10 flex items-center justify-center bg-blue-100 dark:bg-blue-900/30 rounded-lg mb-4">
-      <Icon className="text-blue-600 w-5 h-5" />
+interface FeatureProps {
+  icon: React.ElementType;
+  title: string;
+  desc: string;
+}
+
+const Feature = ({ icon: Icon, title, desc }: FeatureProps) => (
+  <div
+    className="
+      h-full
+      rounded-xl
+      border border-gray-200 dark:border-gray-800
+      bg-white dark:bg-[#111827]
+      p-5 sm:p-6
+      transition-colors
+      hover:border-blue-300 dark:hover:border-blue-800
+    "
+  >
+    <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/20 mb-4">
+      <Icon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
     </div>
 
-    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+    <h4 className="text-base font-medium text-gray-900 dark:text-white">
       {title}
     </h4>
 
-    <p className="text-sm text-gray-500 mt-2">
+    <p className="mt-2 text-sm leading-6 font-normal text-gray-500 dark:text-gray-400">
       {desc}
     </p>
   </div>
 );
 
 export default Home;
+

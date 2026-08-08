@@ -68,13 +68,13 @@ export default function CustomerActions({
             </button>
 
             {open && (
-                <div 
-                    className={`absolute right-0 z-50 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900 ${
-                        openUpward 
-                            ? "bottom-full mb-2 origin-bottom" 
-                            : "top-full mt-2 origin-top"
-                    }`}
-                >
+               <div 
+  className={`absolute right-0 z-[9999] w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900 ${
+    openUpward 
+      ? "bottom-full mb-2 origin-bottom" 
+      : "top-full mt-2 origin-top"
+  }`}
+>
                     {/* View */}
                     <MenuItem
                         icon={<Eye size={16} />}

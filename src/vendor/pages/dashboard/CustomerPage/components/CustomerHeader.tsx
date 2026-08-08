@@ -1,4 +1,4 @@
-import { Search , Wifi, Router } from "lucide-react";
+import { Search , Router } from "lucide-react";
 import type { FC } from "react";
 
 interface Props {
@@ -33,7 +33,7 @@ const CustomerHeader: FC<Props> = ({
     vendor,
     onVendorChange,
     vendors = [],
-    onCreateHotspot,
+    //onCreateHotspot,
     onCreatePPPoE,
 }) => {
     return (
@@ -57,14 +57,7 @@ const CustomerHeader: FC<Props> = ({
 
                 <div className="flex flex-wrap gap-3">
 
-                    <button
-                        onClick={onCreateHotspot}
-                        className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-white transition hover:bg-blue-700"
-                    >
-                        <Wifi size={18} />
-                        New Hotspot
-                    </button>
-
+                    
                     <button
                         onClick={onCreatePPPoE}
                         className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-white transition hover:bg-emerald-700"

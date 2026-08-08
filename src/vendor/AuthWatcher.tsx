@@ -7,6 +7,34 @@ type JwtPayload = {
 };
 
 const LOGIN_PATH = "/login";
+const ONBOARDING_PATH = "/onboarding";
+
+// Paths that un-onboarded users are permitted to visit
+const ALLOWED_UNONBOARDED_PATHS = [
+  LOGIN_PATH,
+  ONBOARDING_PATH,
+  "/dashboard",
+  "/dashboard/profile",
+  "/dashboard/plans",
+  "/dashboard/nas",
+  "/dashboard/mikrotik",
+  "/dashboard/mikrotik/configurations",
+  "/dashboard/mpesa",
+  "/dashboard/mpesa/c2b",
+  "/dashboard/transactions",
+  "/dashboard/transactions/c2b",
+  "/dashboard/pppoe/credentials/list",
+  "/dashboard/pppoe/subscriptions/list",
+  "/dashboard/hotspot/credentials/list",
+  "/dashboard/hotspot/subscriptions/list",
+  "/dashboard/users",
+  "/dashboard/users/detailed",
+  "/dashboard/network",
+  "/dashboard/routers",
+  "/dashboard/sessions/dashboard",
+  "/dashboard/sessions",
+  "/dashboard/sms/sms_providers/list",
+];
 
 export default function AuthWatcher() {
   const timerRef = useRef<number | null>(null);
@@ -15,6 +43,27 @@ export default function AuthWatcher() {
     if (timerRef.current !== null) {
       window.clearTimeout(timerRef.current);
       timerRef.current = null;
+    }
+  }, []);
+
+  /**
+   * Verify onboarding completion status.
+   * Redirects users to /onboarding if they navigate to paths outside the allowed list.
+   */
+  const checkOnboarding = useCallback(() => {
+    const token = localStorage.getItem("access_token");
+    const isOnboardingComplete = localStorage.getItem("onboarding_complete") === "true";
+    const currentPath = window.location.pathname;
+
+    if (token && !isOnboardingComplete) {
+      // Check if current path matches or is a sub-path of an allowed route
+      const isAllowed = ALLOWED_UNONBOARDED_PATHS.some(
+        (path) => currentPath === path || currentPath.startsWith(`${path}/`)
+      );
+
+      if (!isAllowed) {
+        window.location.replace(ONBOARDING_PATH);
+      }
     }
   }, []);
 
@@ -45,10 +94,13 @@ export default function AuthWatcher() {
       timerRef.current = window.setTimeout(() => {
         logout(false);
       }, delay);
+
+      // Verify onboarding configuration state
+      checkOnboarding();
     } catch {
       logout(false);
     }
-  }, [clearTimer]);
+  }, [clearTimer, checkOnboarding]);
 
   /**
    * Verify the refresh token whenever the tab becomes active.
@@ -77,13 +129,17 @@ export default function AuthWatcher() {
     scheduleLogout();
 
     /**
-     * Another tab updated tokens or logged out.
+     * Another tab updated tokens, onboarding status, or logged out.
      */
     const handleStorage = (event: StorageEvent) => {
       switch (event.key) {
         case "refresh_token":
         case "access_token":
           scheduleLogout();
+          break;
+
+        case "onboarding_complete":
+          checkOnboarding();
           break;
 
         case "logout_event":
@@ -109,14 +165,14 @@ export default function AuthWatcher() {
     };
 
     /**
-     * Refresh timer after successful token refresh.
+     * Refresh timer & check onboarding state after authentication update.
      */
     const handleAuthChanged = () => {
       scheduleLogout();
     };
 
     /**
-     * Check expiry after computer sleep/tab inactivity.
+     * Check expiry & onboarding status after computer sleep/tab inactivity.
      */
     const handleFocus = () => verifySession();
 
@@ -151,6 +207,7 @@ export default function AuthWatcher() {
     clearTimer,
     scheduleLogout,
     verifySession,
+    checkOnboarding,
   ]);
 
   return null;

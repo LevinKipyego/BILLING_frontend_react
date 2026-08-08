@@ -8,10 +8,13 @@ import CreatePPPoECustomerModal from "./modal/CreatePPPoECustomerModal";
 
 import CustomerStats from "./components/CustomerStats";
 import CustomerTable from "./components/CustomerTable";
+
 import PPPoECreateDrawer, {
     type CreatePPPoEPayload,
 } from "./components/PPPoECreateDrawer";
+
 import PPPoEProvisionSuccessModal from "./modal/PppoeProvisionSuccessModal";
+
 import CustomerActionCenter from "./renewsubscriptions/CustomerActionCenter/CustomerActionCenter";
 
 import type { CustomerActionType } from "./renewsubscriptions/CustomerActionCenter/actionRegistry";
@@ -20,152 +23,60 @@ import useCustomers from "./hooks/useRenewal";
 
 import type {
     Customer,
-    
     PPPoEProvisionResponse,
 } from "./types/types";
 
 
-
 export default function CustomersPage() {
 
+    const navigate = useNavigate();
+
+    // ============================================================
+    // CUSTOMER DATA
+    // ============================================================
+
     const {
-
         customers,
-
         stats,
-
         loading,
-
         mikrotiks,
-
         plans,
-
         refresh,
-
         createPPPoE,
-
     } = useCustomers();
 
-    const [
 
-    drawerCustomer,
+    // ============================================================
+    // CUSTOMER DRAWER / ACTION STATE
+    // ============================================================
 
-    setDrawerCustomer,
-
-    ] = useState<Customer | null>(null);
-
-    const [
-
-        actionCustomer,
-
-        setActionCustomer,
-
-    ] = useState<Customer | null>(null);
-
-    const [
-
-        customerAction,
-
-        setCustomerAction,
-
-    ] = useState<CustomerActionType | null>(null);
+    const [drawerCustomer, setDrawerCustomer] =
+        useState<Customer | null>(null);
 
     const [drawerOpen, setDrawerOpen] =
         useState(false);
+
+    const [actionCustomer, setActionCustomer] =
+        useState<Customer | null>(null);
+
+    const [customerAction, setCustomerAction] =
+        useState<CustomerActionType | null>(null);
+
+
+    // ============================================================
+    // PPPOE PROVISIONING STATE
+    // ============================================================
 
     const [successOpen, setSuccessOpen] =
         useState(false);
 
     const [provisionResult, setProvisionResult] =
-    useState<PPPoEProvisionResponse | null>(null);
+        useState<PPPoEProvisionResponse | null>(null);
 
-    const openPPPoEDrawer = (
 
-        customer: Customer,
-
-    ) => {
-
-        setDrawerCustomer(customer);
-
-        setDrawerOpen(true);
-
-    };
-
-    const closeDrawer = () => {
-
-        setDrawerOpen(false);
-
-        setDrawerCustomer(null);
-
-    };
-
-    const closeSuccess = () => {
-
-        setSuccessOpen(false);
-
-        setProvisionResult(null);
-
-        refresh();
-
-    };
-
-    const handleProvision = async (
-        payload: CreatePPPoEPayload
-        ) => {
-
-            if (!drawerCustomer) {
-
-        return;
-
-}
-
-        const result = await createPPPoE(
-
-            drawerCustomer.id,
-
-            payload,
-
-        );
-
-        if (!result) return;
-
-        setProvisionResult(result);
-
-        setDrawerOpen(false);
-
-        setSuccessOpen(true);
-
-    };
-    
-    function openCustomerAction(
-
-        customer: Customer,
-
-        action: CustomerActionType,
-
-    ) {
-
-        setActionCustomer(customer);
-
-        setCustomerAction(action);
-
-    }
-
-    function closeCustomerAction() {
-
-        setActionCustomer(null);
-
-        setCustomerAction(null);
-
-    }
-
-    const [search, setSearch] = useState("");
-
-    const [service, setService] = useState("");
-
-    const [status, setStatus] = useState("");
-
-    const [vendor, setVendor] = useState("");
+    // ============================================================
+    // CREATE MODAL STATE
+    // ============================================================
 
     const [hotspotModalOpen, setHotspotModalOpen] =
         useState(false);
@@ -174,117 +85,272 @@ export default function CustomersPage() {
         useState(false);
 
 
+    // ============================================================
+    // FILTER STATE
+    // ============================================================
 
-    
+    const [search, setSearch] = useState("");
+    const [service, setService] = useState("");
+    const [status, setStatus] = useState("");
+    const [vendor, setVendor] = useState("");
+
+
+    // ============================================================
+    // PPPOE DRAWER
+    // ============================================================
+
+    const openPPPoEDrawer = (customer: Customer) => {
+        setDrawerCustomer(customer);
+        setDrawerOpen(true);
+    };
+
+
+    const closeDrawer = () => {
+        setDrawerOpen(false);
+        setDrawerCustomer(null);
+    };
+
+
+    // ============================================================
+    // PPPOE PROVISION
+    // ============================================================
+
+    const handleProvision = async (
+        payload: CreatePPPoEPayload
+    ) => {
+
+        if (!drawerCustomer) {
+            return;
+        }
+
+        const result = await createPPPoE(
+            drawerCustomer.id,
+            payload
+        );
+
+        if (!result) {
+            return;
+        }
+
+        setProvisionResult(result);
+
+        setDrawerOpen(false);
+
+        setSuccessOpen(true);
+    };
+
+
+    // ============================================================
+    // PROVISION SUCCESS
+    // ============================================================
+
+    const closeSuccess = async () => {
+
+        setSuccessOpen(false);
+
+        setProvisionResult(null);
+
+        // Refresh customer list and statistics
+        // after successful provisioning.
+        await refresh();
+    };
+
+
+    // ============================================================
+    // CUSTOMER ACTION CENTER
+    // ============================================================
+
+    const openCustomerAction = (
+        customer: Customer,
+        action: CustomerActionType
+    ) => {
+
+        setActionCustomer(customer);
+
+        setCustomerAction(action);
+    };
+
+
+    const closeCustomerAction = () => {
+
+        setActionCustomer(null);
+
+        setCustomerAction(null);
+    };
+
+
+    const handleCustomerActionCompleted = async () => {
+
+        // Refresh FIRST so the table contains the
+        // latest customer state.
+        await refresh();
+
+        // Then close the action center.
+        closeCustomerAction();
+    };
+
+
+    // ============================================================
+    // HOTSPOT CREATE MODAL
+    // ============================================================
+
+    const openHotspotModal = () => {
+        setHotspotModalOpen(true);
+    };
+
+
+    const closeHotspotModal = async () => {
+
+        setHotspotModalOpen(false);
+
+        // Refresh after create/update/delete performed
+        // inside the modal.
+        await refresh();
+    };
+
+
+    // ============================================================
+    // PPPOE CREATE MODAL
+    // ============================================================
+
+    const openPPPoEModal = () => {
+        setPPPoEModalOpen(true);
+    };
+
+
+    const closePPPoEModal = async () => {
+
+        setPPPoEModalOpen(false);
+
+        // Refresh after create/update performed
+        // inside the modal.
+        await refresh();
+    };
+
+
+    // ============================================================
+    // FILTERED CUSTOMERS
+    // ============================================================
+
     const filteredCustomers = useMemo(() => {
 
-        return customers.filter(customer => {
+        const normalizedSearch =
+            search.trim().toLowerCase();
+
+        return customers.filter((customer) => {
 
             const matchesSearch =
+                !normalizedSearch ||
+
                 customer.full_name
                     .toLowerCase()
-                    .includes(search.toLowerCase()) ||
+                    .includes(normalizedSearch) ||
 
-                customer.phone.includes(search) ||
+                customer.phone
+                    .toLowerCase()
+                    .includes(normalizedSearch) ||
 
                 customer.username
                     .toLowerCase()
-                    .includes(search.toLowerCase());
+                    .includes(normalizedSearch);
+
 
             const matchesService =
                 !service ||
                 customer.service_type === service;
 
+
             const matchesStatus =
                 !status ||
                 customer.session_status === status;
+
 
             const matchesVendor =
                 !vendor ||
                 customer.vendor_name === vendor;
 
-            return (
 
+            return (
                 matchesSearch &&
                 matchesService &&
                 matchesStatus &&
                 matchesVendor
-
             );
-
         });
 
     }, [
-
         customers,
-
         search,
-
         service,
-
         status,
-
         vendor,
-
     ]);
 
 
-    const navigate = useNavigate();
-
+    // ============================================================
+    // VIEW CUSTOMER
+    // ============================================================
 
     const handleViewCustomer = (
-
         customer: Customer
-
     ) => {
 
         navigate(
-
             `/dashboard/users/detailed/${customer.id}`
-
         );
-
     };
+
+
+    // ============================================================
+    // RENDER
+    // ============================================================
 
     return (
 
         <div className="space-y-6">
 
+            {/* ==================================================
+                HEADER
+            ================================================== */}
+
             <CustomerHeader
 
                 search={search}
-
                 onSearchChange={setSearch}
 
                 service={service}
-
                 onServiceChange={setService}
 
                 status={status}
-
                 onStatusChange={setStatus}
 
                 vendor={vendor}
-
                 onVendorChange={setVendor}
 
                 vendors={[]}
 
-                onCreateHotspot={() =>
-                    setHotspotModalOpen(true)
+                onCreateHotspot={
+                    openHotspotModal
                 }
 
-                onCreatePPPoE={() =>
-                    setPPPoEModalOpen(true)
+                onCreatePPPoE={
+                    openPPPoEModal
                 }
-
             />
+
+
+            {/* ==================================================
+                STATISTICS
+            ================================================== */}
 
             <CustomerStats
-
                 stats={stats}
-
             />
+
+
+            {/* ==================================================
+                CUSTOMER TABLE
+            ================================================== */}
 
             <CustomerTable
 
@@ -292,95 +358,90 @@ export default function CustomersPage() {
 
                 loading={loading}
 
-                onViewCustomer={handleViewCustomer}
+                onViewCustomer={
+                    handleViewCustomer
+                }
 
-                onCreatePPPoE={openPPPoEDrawer}
+                onCreatePPPoE={
+                    openPPPoEDrawer
+                }
 
                 onRenewCustomer={(customer) =>
-
                     openCustomerAction(
-
                         customer,
-
-                        "renew",
-
+                        "renew"
                     )
-
                 }
 
                 onSuspendCustomer={(customer) =>
-
                     openCustomerAction(
-
                         customer,
-
-                        "suspend",
-
+                        "suspend"
                     )
-
                 }
 
                 onDeleteCustomer={(customer) =>
-
                     openCustomerAction(
-
                         customer,
-
-                        "delete",
-
+                        "delete"
                     )
-
                 }
-
             />
 
-            {
 
-                drawerCustomer && (
+            {/* ==================================================
+                PPPOE PROVISION DRAWER
+            ================================================== */}
 
-                    <PPPoECreateDrawer
+            {drawerCustomer && (
 
-                        open={drawerOpen}
+                <PPPoECreateDrawer
 
-                        onClose={closeDrawer}
+                    open={drawerOpen}
 
-                        customer={drawerCustomer}
+                    onClose={closeDrawer}
 
-                        mikrotiks={mikrotiks}
+                    customer={drawerCustomer}
 
-                        plans={plans}
+                    mikrotiks={mikrotiks}
 
-                        loading={loading}
+                    plans={plans}
 
-                        onSubmit={handleProvision}
+                    loading={loading}
 
-                    />
-
-                )
-
-            }
+                    onSubmit={handleProvision}
+                />
+            )}
 
 
-            {
+            {/* ==================================================
+                CUSTOMER ACTION CENTER
+            ================================================== */}
 
-            actionCustomer &&
-
-            customerAction && (
+            {actionCustomer && customerAction && (
 
                 <CustomerActionCenter
+
                     open={customerAction !== null}
+
                     customer={actionCustomer}
+
                     action={customerAction}
-                    onClose={closeCustomerAction}
-                    onCompleted={() => {
-                        refresh();
-                        closeCustomerAction();
-                    }}
+
+                    onClose={
+                        closeCustomerAction
+                    }
+
+                    onCompleted={
+                        handleCustomerActionCompleted
+                    }
                 />
+            )}
 
-            )
 
-        }
+            {/* ==================================================
+                PPPOE PROVISION SUCCESS
+            ================================================== */}
 
             <PPPoEProvisionSuccessModal
 
@@ -389,31 +450,36 @@ export default function CustomersPage() {
                 onClose={closeSuccess}
 
                 result={provisionResult}
-
             />
+
+
+            {/* ==================================================
+                CREATE HOTSPOT CUSTOMER
+            ================================================== */}
 
             <CreateHotspotCustomerModal
 
                 open={hotspotModalOpen}
 
-                onClose={() =>
-                    setHotspotModalOpen(false)
+                onClose={
+                    closeHotspotModal
                 }
-
             />
 
-        <CreatePPPoECustomerModal
 
-            open={pppoeModalOpen}
+            {/* ==================================================
+                CREATE PPPOE CUSTOMER
+            ================================================== */}
 
-            onClose={() =>
-                setPPPoEModalOpen(false)
-            }
+            <CreatePPPoECustomerModal
 
-        />
+                open={pppoeModalOpen}
+
+                onClose={
+                    closePPPoEModal
+                }
+            />
 
         </div>
-
     );
-
 }
