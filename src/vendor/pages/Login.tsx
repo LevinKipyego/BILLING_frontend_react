@@ -6,6 +6,7 @@ import {
   EyeOff,
   ShieldCheck,
   AlertCircle,
+  CheckCircle2,
   Github,
   Chrome,
 } from "lucide-react";
@@ -24,12 +25,32 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   // ==========================================
-  // AUTH MESSAGE
+  // QUERY PARAMETERS FROM BACKEND
   // ==========================================
 
   const authMessage = searchParams.get("message");
   const sessionExpired = authMessage === "session-expired";
   const authRequired = authMessage === "authentication-required";
+
+  // Email Verification Callbacks
+  const isVerified = searchParams.get("verified") === "true";
+  const verificationError = searchParams.get("error");
+
+  // Map backend verification error codes to human-readable text
+  const getVerificationErrorMessage = (code: string | null) => {
+    switch (code) {
+      case "link-expired":
+        return "Your email verification link has expired. Please sign in or register again.";
+      case "invalid-token":
+        return "Invalid email verification token. Please check your link.";
+      case "missing-token":
+        return "Verification token is missing. Please click the full link in your email.";
+      default:
+        return null;
+    }
+  };
+
+  const verificationErrorMessage = getVerificationErrorMessage(verificationError);
 
   // ==========================================
   // LOGIN
@@ -58,7 +79,7 @@ export default function Login() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Invalid email or password.");
+        throw new Error(data.message || data.detail || "Login failed. Please check your credentials.");
       }
 
       if (!data?.tokens?.access || !data?.tokens?.refresh) {
@@ -114,6 +135,24 @@ export default function Login() {
 
         <div className="mb-5 space-y-3">
 
+          {/* Email Verified Success Banner */}
+          {isVerified && !error && (
+            <div className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-3 text-xs text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/20 dark:text-emerald-300">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                Your email has been verified successfully! You can now sign in.
+              </span>
+            </div>
+          )}
+
+          {/* Email Verification Error Banner */}
+          {verificationErrorMessage && !error && (
+            <div className="flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-3 text-xs text-rose-700 dark:border-rose-800/60 dark:bg-rose-950/20 dark:text-rose-300">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{verificationErrorMessage}</span>
+            </div>
+          )}
+
           {sessionExpired && !error && (
             <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-xs text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/20 dark:text-amber-300">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -132,6 +171,7 @@ export default function Login() {
             </div>
           )}
 
+          {/* Direct API Error Banner */}
           {error && (
             <div className="flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-3 text-xs text-rose-700 dark:border-rose-800/60 dark:bg-rose-950/20 dark:text-rose-300">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -382,30 +422,29 @@ export default function Login() {
         </form>
 
         {/* ==========================================
-            SIGN UP
+            SIGN UP / NAVIGATION LINKS
         ========================================== */}
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 mt-5">
-        <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
-          New here?{" "}
-          <Link
-            to="/signup"
-            className="font-medium text-blue-600 hover:underline dark:text-blue-400"
-          >
-            Create an account
-          </Link>
-        </p>
 
+        <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3">
+          <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+            New here?{" "}
+            <Link
+              to="/signup"
+              className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+            >
+              Create an account
+            </Link>
+          </p>
 
-        <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
-          Main Page?{" "}
-          <Link
-            to="/"
-            className="font-medium text-blue-600 hover:underline dark:text-blue-400"
-          >
-            Go to main page
-          </Link>
-        </p>
-
+          <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+            Main Page?{" "}
+            <Link
+              to="/"
+              className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+            >
+              Go to main page
+            </Link>
+          </p>
         </div>
 
         {/* Footer */}
@@ -415,28 +454,27 @@ export default function Login() {
         </p>
 
         <AppFooter
-            compact
-            appName="VeeGO"
-            description="ISP billing and network management."
-            version="1.0.0"
-            links={[
-              {
-                label: "Privacy",
-                href: "#",
-              },
-              {
-                label: "Terms",
-                href: "#",
-              },
-              {
-                label: "Contact",
-                href: "#",
-              },
-            ]}
-          />
+          compact
+          appName="VeeGO"
+          description="ISP billing and network management."
+          version="1.0.0"
+          links={[
+            {
+              label: "Privacy",
+              href: "#",
+            },
+            {
+              label: "Terms",
+              href: "#",
+            },
+            {
+              label: "Contact",
+              href: "#",
+            },
+          ]}
+        />
 
       </div>
     </main>
   );
 }
-

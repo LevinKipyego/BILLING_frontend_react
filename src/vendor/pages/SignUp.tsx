@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -6,9 +5,23 @@ import {
   EyeOff,
   ShieldCheck,
   AlertCircle,
+  MailCheck,
+  ArrowRight,
 } from "lucide-react";
 
 import { BaseUrl } from "../../BaseUrl";
+
+interface VendorData {
+  name: string;
+  email: string;
+  status: string;
+  is_verified: boolean;
+}
+
+interface SignupResponse {
+  message: string;
+  vendor: VendorData;
+}
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -24,6 +37,7 @@ const Signup = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successData, setSuccessData] = useState<SignupResponse | null>(null);
 
   // ==========================================
   // SIGNUP
@@ -60,21 +74,19 @@ const Signup = () => {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Signup failed.");
+        throw new Error(data.message || data.detail || "Signup failed.");
       }
 
-      navigate("/login", {
-        replace: true,
-      });
+      setSuccessData(data);
     } catch (err: any) {
-      setError(err?.message || "Unable to connect to the server.");
+      setError(err?.message || err?.detail || "Unable to connect to the server.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-white text-slate-900 dark:bg-[#0d1117] dark:text-slate-100">
+    <main className="min-h-screen bg-white text-slate-900 dark:bg-[#0d1117] dark:text-slate-100 relative">
       <div
         className="
           mx-auto
@@ -168,7 +180,6 @@ const Signup = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-
             {/* ==========================================
                 FULL NAME
             ========================================== */}
@@ -311,6 +322,98 @@ const Signup = () => {
           Secure administrator registration
         </p>
       </div>
+
+      {/* ==========================================
+          SUCCESS MODAL CARD
+      ========================================== */}
+
+      {successData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div
+            className="
+              w-full
+              max-w-md
+              rounded-2xl
+              border
+              border-slate-200
+              bg-white
+              p-6
+              shadow-xl
+              dark:border-slate-800
+              dark:bg-[#161b22]
+              sm:p-8
+            "
+          >
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+              <MailCheck className="h-7 w-7" />
+            </div>
+
+            <h2 className="text-center text-xl font-bold text-slate-900 dark:text-white">
+              Check your email
+            </h2>
+
+            <p className="mt-2 text-center text-xs text-slate-600 dark:text-slate-300">
+              {successData.message}
+            </p>
+
+            <div className="mt-6 space-y-2.5 rounded-xl border border-slate-100 bg-slate-50 p-4 text-xs dark:border-slate-800/80 dark:bg-slate-900/50">
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">
+                  Account Name:
+                </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {successData.vendor.name}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">
+                  Email:
+                </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">
+                  {successData.vendor.email}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">
+                  Account Status:
+                </span>
+                <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
+                  {successData.vendor.status}
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigate("/login", { replace: true })}
+              className="
+                mt-6
+                flex
+                h-11
+                w-full
+                items-center
+                justify-center
+                gap-2
+                rounded-lg
+                bg-blue-600
+                px-4
+                text-sm
+                font-semibold
+                text-white
+                transition-colors
+                hover:bg-blue-700
+                focus:outline-none
+                focus:ring-2
+                focus:ring-blue-600/30
+                dark:bg-blue-600
+                dark:hover:bg-blue-500
+              "
+            >
+              <span>Go to Sign in</span>
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
@@ -477,4 +580,3 @@ const PasswordInput = ({
 };
 
 export default Signup;
-
