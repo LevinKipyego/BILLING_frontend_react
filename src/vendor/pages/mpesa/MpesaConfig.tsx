@@ -1,11 +1,14 @@
-
 import { useEffect, useState, useMemo } from "react";
 import {
   getMpesaConfig,
   createMpesaConfig,
   updateMpesaConfig,
   deleteMpesaConfig,
+  testMpesaConfig,
 } from "../../api/mpesa";
+
+
+
 
 import { 
   ShieldCheckIcon, 
@@ -20,7 +23,9 @@ import {
   MagnifyingGlassIcon,
   FunnelIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  CommandLineIcon,
+  PaperAirplaneIcon
 } from "@heroicons/react/24/outline";
 
 import type { MpesaConfigPayload } from "../../api/mpesa";
@@ -40,6 +45,7 @@ export default function Mpesa() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
+  // Form State
   const [form, setForm] = useState({
     business_shortcode: "",
     passkey: "",
@@ -48,6 +54,16 @@ export default function Mpesa() {
     callback_url: "",
     environment: "SANDBOX" as MpesaEnvironment,
   });
+
+  // --- STK Push Tester Modal State ---
+  const [isTesting, setIsTesting] = useState(false);
+  const [activeTestConfig, setActiveTestConfig] = useState<any>(null);
+  const [testPhoneNumber, setTestPhoneNumber] = useState("");
+  const [testAmount, setTestAmount] = useState("1");
+  const [testIsSandbox, setTestIsSandbox] = useState(true);
+  const [testLoading, setTestLoading] = useState(false);
+  const [testResult, setTestResult] = useState<any>(null);
+  const [testError, setTestError] = useState("");
 
   async function loadConfig() {
     setLoading(true);
@@ -93,7 +109,6 @@ export default function Mpesa() {
   const totalPages = Math.ceil(filteredConfigs.length / itemsPerPage);
   const paginatedConfigs = filteredConfigs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  // Reset pagination on search modifications
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, envFilter]);
@@ -127,6 +142,44 @@ export default function Mpesa() {
       setError(err.message);
     }
   }
+
+  // Open Tester Modal
+  const openTesterModal = (config: any) => {
+    setActiveTestConfig(config);
+    setTestIsSandbox((config.environment || "SANDBOX").toUpperCase() !== "PRODUCTION");
+    setTestPhoneNumber("");
+    setTestAmount("1");
+    setTestResult(null);
+    setTestError("");
+    setIsTesting(true);
+  };
+
+  // Submit STK Push Test Execution
+  const handleRunStkTest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeTestConfig) return;
+
+    setTestLoading(true);
+    setTestResult(null);
+    setTestError("");
+
+    const payload = {
+      vendor_id: activeTestConfig.business_shortcode,
+      phone_number: testPhoneNumber.trim(),
+      amount: testAmount.trim(),
+      is_sandbox: testIsSandbox,
+    };
+
+    try {
+      // Execute using apiFetch via testMpesaConfig service helper
+      const data = await testMpesaConfig(payload as any);
+      setTestResult(data);
+    } catch (err: any) {
+      setTestError(err.message || "Execution request failed.");
+    } finally {
+      setTestLoading(false);
+    }
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center h-64 dark:bg-gray-900 min-h-screen">
@@ -165,7 +218,7 @@ export default function Mpesa() {
         </div>
       )}
 
-      {/* DETACHED FILTER PANEL STRUCTURE */}
+      {/* FILTER PANEL */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
         <div className="flex flex-1 flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:max-w-xs">
@@ -198,11 +251,10 @@ export default function Mpesa() {
         </div>
       </div>
 
-      {/* FIXED POSITION FORM OVERLAY POPUP */}
+      {/* FORM OVERLAY POPUP */}
       {isEditing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/70 backdrop-blur-xs animate-fadeIn">
           <section className="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-xl shadow-2xl border border-slate-200 dark:border-gray-700/80 overflow-hidden animate-scaleUp max-h-[92vh] flex flex-col">
-            
             <div className="p-4 md:p-5 border-b border-slate-100 dark:border-gray-700/60 bg-slate-50/50 dark:bg-gray-800/80 flex items-center justify-between sticky top-0 z-10">
               <h2 className="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
                 <ShieldCheckIcon className="w-5 h-5 text-blue-600 stroke-[2.5]" />
@@ -300,7 +352,140 @@ export default function Mpesa() {
         </div>
       )}
 
-      {/* 1. INDEPENDENT VIEW CARDS FOR MOBILE DISPLAY */}
+      {/* --- STK PUSH TESTER MODAL OVERLAY --- */}
+      {isTesting && activeTestConfig && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 dark:bg-black/80 backdrop-blur-xs animate-fadeIn">
+          <section className="bg-white dark:bg-gray-800 w-full max-w-xl rounded-xl shadow-2xl border border-slate-200 dark:border-gray-700/80 overflow-hidden animate-scaleUp max-h-[92vh] flex flex-col">
+            
+            {/* Modal Top Bar */}
+            <div className="p-4 md:p-5 border-b border-slate-100 dark:border-gray-700/60 bg-slate-50/80 dark:bg-gray-800/80 flex items-center justify-between sticky top-0 z-10">
+              <div className="flex items-center gap-2">
+                <CommandLineIcon className="w-5 h-5 text-emerald-600 stroke-[2.5]" />
+                <h2 className="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em]">
+                  STK Push Gateway Diagnostic Terminal
+                </h2>
+              </div>
+              <button 
+                onClick={() => setIsTesting(false)} 
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-md transition-colors"
+              >
+                <XMarkIcon className="w-5 h-5 stroke-[2.5]" />
+              </button>
+            </div>
+
+            <form onSubmit={handleRunStkTest} className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
+              
+              {/* Target Gateway Info Bar */}
+              <div className="flex items-center justify-between p-3 bg-slate-100 dark:bg-gray-900/70 rounded-lg border border-slate-200/60 dark:border-gray-700/50">
+                <div className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">
+                  Target Shortcode: <span className="text-blue-600 dark:text-blue-400 font-mono text-xs">{activeTestConfig.business_shortcode}</span>
+                </div>
+                
+                {/* Environment Selector Toggle Switch */}
+                <div className="flex items-center gap-2">
+                  <span className={`text-[9px] font-black uppercase ${testIsSandbox ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`}>
+                    Sandbox
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      className="sr-only peer"
+                      checked={!testIsSandbox}
+                      onChange={(e) => setTestIsSandbox(!e.target.checked)}
+                    />
+                    <div className="w-9 h-5 bg-blue-600 peer-focus:outline-none rounded-full peer dark:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                  </label>
+                  <span className={`text-[9px] font-black uppercase ${!testIsSandbox ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400'}`}>
+                    Production
+                  </span>
+                </div>
+              </div>
+
+              {/* Mode Banner */}
+              <div className={`p-2.5 rounded-lg border text-[10px] font-black uppercase tracking-wider text-center ${
+                testIsSandbox 
+                  ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800/40' 
+                  : 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800/40'
+              }`}>
+                Active Mode: {testIsSandbox ? "SANDBOX SIMULATION" : "LIVE PRODUCTION GATEWAY"}
+              </div>
+
+              {/* Form Input Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Phone Number</label>
+                  <input
+                    type="text"
+                    placeholder="254712345678"
+                    className="w-full bg-slate-50 dark:bg-gray-900/50 border border-slate-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none"
+                    value={testPhoneNumber}
+                    onChange={(e) => setTestPhoneNumber(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Amount (KES)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="1"
+                    className="w-full bg-slate-50 dark:bg-gray-900/50 border border-slate-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none"
+                    value={testAmount}
+                    onChange={(e) => setTestAmount(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Error Output */}
+              {testError && (
+                <div className="p-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-900/30 rounded-lg text-[10px] font-black uppercase text-rose-600 dark:text-rose-400">
+                  {testError}
+                </div>
+              )}
+
+              {/* Success Result Terminal Output */}
+              {testResult && (
+                <div className="space-y-1.5 pt-2">
+                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Execution Response Payload</label>
+                  <pre className="p-3 bg-slate-900 text-emerald-400 font-mono text-[11px] rounded-lg overflow-x-auto max-h-48 border border-slate-800 leading-relaxed">
+                    {JSON.stringify(testResult, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* Submit Actions */}
+              <div className="pt-4 border-t border-slate-100 dark:border-gray-700/60 flex items-center justify-end gap-3 bg-white dark:bg-gray-800 sticky bottom-0">
+                <button 
+                  type="button"
+                  onClick={() => setIsTesting(false)}
+                  className="px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-700/60 transition-all outline-none"
+                >
+                  Close
+                </button>
+                <button 
+                  type="submit"
+                  disabled={testLoading}
+                  className={`px-5 py-2.5 text-white font-black rounded-lg shadow-md transition-all uppercase text-xs tracking-widest flex items-center gap-2 outline-none ${
+                    testIsSandbox ? 'bg-blue-600 hover:bg-black' : 'bg-purple-600 hover:bg-black'
+                  }`}
+                >
+                  {testLoading ? (
+                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <PaperAirplaneIcon className="w-4 h-4" />
+                  )}
+                  <span>{testLoading ? "Executing..." : "Trigger STK Push"}</span>
+                </button>
+              </div>
+
+            </form>
+          </section>
+        </div>
+      )}
+
+      {/* MOBILE LIST VIEW CARDS */}
       <div className="block md:hidden space-y-3 mx-1">
         {paginatedConfigs.length > 0 ? paginatedConfigs.map((config, idx) => (
           <div 
@@ -330,6 +515,13 @@ export default function Mpesa() {
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-gray-700/50">
               <button 
+                onClick={() => openTesterModal(config)}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-md"
+              >
+                <CommandLineIcon className="w-3.5 h-3.5" />
+                <span>Test STK</span>
+              </button>
+              <button 
                 onClick={() => {
                   setForm({...config, passkey: "", consumer_key: "", consumer_secret: ""});
                   setIsEditing(true);
@@ -355,7 +547,7 @@ export default function Mpesa() {
         )}
       </div>
 
-      {/* 2. DESKTOP SYSTEM VIEW HOUSING TERMINAL */}
+      {/* DESKTOP SYSTEM TABLE VIEW */}
       <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-slate-100 dark:border-slate-700 overflow-hidden mx-1">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -389,6 +581,13 @@ export default function Mpesa() {
                   <td className="px-8 py-4 text-right">
                     <div className="flex justify-end gap-2">
                       <button 
+                        onClick={() => openTesterModal(config)}
+                        title="Test STK Push Gateway"
+                        className="p-2 text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
+                      >
+                        <CommandLineIcon className="w-4 h-4 stroke-[2]" />
+                      </button>
+                      <button 
                         onClick={() => {
                           setForm({...config, passkey: "", consumer_key: "", consumer_secret: ""});
                           setIsEditing(true);
@@ -418,7 +617,7 @@ export default function Mpesa() {
         </div>
       </div>
 
-      {/* Pagination Housing Module */}
+      {/* Pagination Module */}
       {filteredConfigs.length > 0 && (
         <div className="px-5 md:px-8 py-4 border border-slate-150 dark:border-slate-700 rounded-lg flex items-center justify-between bg-white dark:bg-gray-800 mx-1">
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">

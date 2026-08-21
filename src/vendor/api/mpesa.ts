@@ -11,12 +11,22 @@ export type MpesaConfigPayload = {
   environment: "SANDBOX" | "PRODUCTION";
 };
 
+
+
 export async function getMpesaConfig() {
   return apiFetch("/stk_config/list/");
 }
 
 export async function createMpesaConfig(data: MpesaConfigPayload) {
   return apiFetch("/create/", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+
+export async function testMpesaConfig(data: MpesaConfigPayload) {
+  return apiFetch("/v1/mpesa/test/stk-push/", {
     method: "POST",
     body: JSON.stringify(data),
   });

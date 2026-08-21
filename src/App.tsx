@@ -16,7 +16,7 @@ import Mikrotiks from "./vendor/pages/dashboard/Mikrotiks";
 import Nas from "./vendor/pages/dashboard/Nas";
 import MikrotikConfig from "./vendor/pages/dashboard/MikrotikConfig";
 
-import Mpesa from "./vendor/pages/dashboard/MpesaConfig";
+import Mpesa from "./vendor/pages/mpesa/MpesaConfig";
 import C2BConfig from "./vendor/pages/dashboard/C2BConfig";
 
 //import UsersPage from "./vendor/pages/dashboard/Users";
