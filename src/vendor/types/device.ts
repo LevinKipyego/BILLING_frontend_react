@@ -7,6 +7,10 @@ export interface MikrotikDevice {
   api_ip: string;
   created_at?: string;
   mikrotik?: string;
+  
+  enabled?:boolean;
+  status?:string;
+  site_name?: string
 }
 
 export function listMikrotiks(): Promise<MikrotikDevice[]> {

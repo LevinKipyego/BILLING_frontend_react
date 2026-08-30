@@ -94,7 +94,7 @@ export default function Login() {
 
       // Store onboarding status from backend response
       localStorage.setItem("onboarding_complete", String(data.vendor.is_onboarded));
-      console.log("Onboarding status stored:", data);
+      
       window.dispatchEvent(new Event("auth-changed"));
 
       navigate("/dashboard", {

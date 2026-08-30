@@ -46,6 +46,12 @@ import { SMSProviderManager } from "./vendor/pages/dashboard/Sms/SmsProviderMana
 import OnboardingGuard from "./vendor/pages/dashboard/onboarding/OnboardingGuard";
 import OnboardingWizard from "./vendor/pages/dashboard/onboarding/OnboardingWizard";
 
+
+//Load BAlANCER
+import DeploymentCreate from "./vendor/pages/dashboard/NetworkDeployments/DeploymentCreate";
+import DeploymentPreview from "./vendor/pages/dashboard/NetworkDeployments/DeploymentPreview";
+import DeploymentProgress from "./vendor/pages/dashboard/NetworkDeployments/DeploymentProgress";
+
 export default function App() {
   return (
     <Router>
@@ -203,6 +209,28 @@ export default function App() {
               <Route
                 path="sms/sms_providers/list"
                 element={<SMSProviderManager />}
+              />
+
+              {/* Load Balancers */}
+              <Route
+                path="network-deployments/create"
+                element={
+                  <DeploymentCreate />
+                }
+              />
+
+              <Route
+                path="network-deployments/:deploymentId/preview"
+                element={
+                  <DeploymentPreview />
+                }
+              />
+
+              <Route
+                path="network-deployments/:deploymentId/progress"
+                element={
+                  <DeploymentProgress />
+                }
               />
             </Route>
           </Route>
