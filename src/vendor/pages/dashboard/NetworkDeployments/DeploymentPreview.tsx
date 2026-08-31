@@ -54,7 +54,8 @@ export default function DeploymentPreview() {
 
 
   const {
-    apply,
+    //apply,
+
     applying,
     previewing,
     rollback,
@@ -205,7 +206,9 @@ export default function DeploymentPreview() {
 
   async function handleApply() {
 
-    if (!deploymentId) {
+    console.log("coming soon")
+
+    /*if (!deploymentId) {
       return;
     }
 
@@ -228,7 +231,7 @@ export default function DeploymentPreview() {
       /*
        * Only navigate after the backend has
        * accepted and started the deployment.
-       */
+       
 
       navigate(
         `/dashboard/network-deployments/${deploymentId}/progress`,
@@ -241,8 +244,8 @@ export default function DeploymentPreview() {
           ? err.message
           : "Unable to apply deployment.",
       );
-    }
-  }
+    }*/
+  } 
 
 
   /* -------------------------------------------------- */
@@ -435,8 +438,15 @@ export default function DeploymentPreview() {
    * can safely use the same execution capability.
    */
 
-  const canExecute =
-    can_execute === true;
+
+
+  
+
+  //const canExecute =
+    //can_execute === true;
+
+
+
 
 
   /* -------------------------------------------------- */

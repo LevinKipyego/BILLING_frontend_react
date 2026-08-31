@@ -15,6 +15,9 @@ export default interface Transaction {
   amount: string; // ⚠️ comes as string from API
   status: string;
 
+  result_code: string;
+  result_description:string;
+  
   merchant_request_id: string;
   checkout_request_id: string;
   mpesa_receipt: string;

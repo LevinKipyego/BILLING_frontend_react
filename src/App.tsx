@@ -8,7 +8,7 @@ import NotFound from "./vendor/pages/NotFound";
 
 import DashboardLayout from "./vendor/components/layouts/DashboardLayout";
 
-import DashboardHome from "./vendor/pages/dashboard/DashboardHome";
+import DashboardHome from "./vendor/pages/dashboard/overview/DashboardHome";
 import VendorProfilePage from "./vendor/pages/dashboard/VendorProfile";
 
 import Plans from "./vendor/pages/dashboard/Plans";
@@ -27,7 +27,7 @@ import NetworkDetailed from "./vendor/pages/dashboard/NetworkDetailed";
 import SessionDetail from "./vendor/pages/dashboard/SessionDetail";
 import SessionsPage from "./vendor/pages/dashboard/SessionPage";
 
-import StkTransactions from "./vendor/pages/dashboard/StkTransactions";
+import StkTransactions from "./vendor/pages/mpesa/StkTransactions/StkTransactions";
 import C2bTransactions from "./vendor/pages/dashboard/C2bTransactions";
 
 import PPPoESubscriptionPage from "./vendor/pages/dashboard/PpoeSubsicriptions";
