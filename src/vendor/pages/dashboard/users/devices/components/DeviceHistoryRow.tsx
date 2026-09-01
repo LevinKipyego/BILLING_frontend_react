@@ -5,7 +5,7 @@ import {
     Clock,
     Wifi,
 } from "lucide-react";
-import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
+import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
 import type { DeviceHistory } from "../../components/types/types";
 
 interface Props {

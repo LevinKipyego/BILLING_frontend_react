@@ -13,7 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import type { User, Overview } from "./types/types";
-import { formatDate } from "../../CustomerPage/renewsubscriptions/utils/date";
+import { formatDate } from "../../CustomerEntryPage/renewsubscriptions/utils/date";
 import StatCard from "./cards/StatCard";
 import StatusBadge from "./StatusBadge";
 import InfoRow from "./InfoRow";

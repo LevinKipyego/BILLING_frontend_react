@@ -89,10 +89,10 @@ export default function CustomersPage() {
     // FILTER STATE
     // ============================================================
 
-    const [search, setSearch] = useState("");
-    const [service, setService] = useState("");
-    const [status, setStatus] = useState("");
-    const [vendor, setVendor] = useState("");
+    const [search] = useState("");
+    const [service] = useState("");
+    const [status] = useState("");
+    const [vendor] = useState("");
 
 
     // ============================================================
@@ -314,28 +314,8 @@ export default function CustomersPage() {
             ================================================== */}
 
             <CustomerHeader
-
-                search={search}
-                onSearchChange={setSearch}
-
-                service={service}
-                onServiceChange={setService}
-
-                status={status}
-                onStatusChange={setStatus}
-
-                vendor={vendor}
-                onVendorChange={setVendor}
-
-                vendors={[]}
-
-                onCreateHotspot={
-                    openHotspotModal
-                }
-
-                onCreatePPPoE={
-                    openPPPoEModal
-                }
+                onCreateHotspot={openHotspotModal}
+                onCreatePPPoE={openPPPoEModal}
             />
 
 

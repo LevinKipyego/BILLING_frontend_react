@@ -14,7 +14,7 @@ interface Props {
     overview: Overview;
 
 }
-import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
+import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
 
 export default function PaymentSummary({
 

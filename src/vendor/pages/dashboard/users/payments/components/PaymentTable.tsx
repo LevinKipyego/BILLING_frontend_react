@@ -5,7 +5,7 @@ import {
 
 import StatusBadge from "../../components/StatusBadge";
 import CopyButton from "../../components/common/CopyButton";
-import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
+import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
 import type { Payment } from "./types/types";
 
 interface Props {

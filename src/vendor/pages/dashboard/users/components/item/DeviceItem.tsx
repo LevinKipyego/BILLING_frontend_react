@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import type { CurrentDevice } from "../types/types";
-import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
+import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
 interface Props {
     device: CurrentDevice;
 }

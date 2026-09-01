@@ -12,7 +12,7 @@ import {
 
 } from "lucide-react";
 
-import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
+import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
 import StatusBadge from "../../components/StatusBadge";
 import InfoRow from "../../components/InfoRow";
 

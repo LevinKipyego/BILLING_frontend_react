@@ -9,7 +9,7 @@ interface Props {
     activity: Activity;
 
 }
-import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
+import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
 
 export default function ActivityCard({
 

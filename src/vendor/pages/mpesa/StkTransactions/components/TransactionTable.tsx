@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatDate } from '../../../dashboard/CustomerPage/renewsubscriptions/utils/date';
+import { formatDate } from '../../../dashboard/CustomerEntryPage/renewsubscriptions/utils/date';
 export interface Transaction {
   id: string | number;
   transaction_uuid?: string;

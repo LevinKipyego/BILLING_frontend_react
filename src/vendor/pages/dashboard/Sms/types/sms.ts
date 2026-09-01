@@ -26,6 +26,10 @@ export interface SMSProvider {
   // System & Admin Toggles
   allow_bulk_promotions: boolean;
 
+  allow_renew_message: boolean;
+  allow_DS_message: boolean;
+  allow_cancel_message: boolean;
+
   created_at?: string;
   updated_at?: string;
 }

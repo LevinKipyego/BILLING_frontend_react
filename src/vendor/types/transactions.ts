@@ -12,7 +12,7 @@ export default interface Transaction {
   service_type: string;
   payment_mode: string;
 
-  amount: string; // ⚠️ comes as string from API
+  amount: string; 
   status: string;
 
   result_code: string;

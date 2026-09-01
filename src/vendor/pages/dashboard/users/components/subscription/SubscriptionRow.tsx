@@ -3,7 +3,7 @@ import { Calendar } from "lucide-react";
 import type { BaseSubscription } from "../types/subscription";
 
 import SubscriptionStatusBadge from "./SubscriptionStatusBadge";
-import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
+import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
 
 interface Props {
 

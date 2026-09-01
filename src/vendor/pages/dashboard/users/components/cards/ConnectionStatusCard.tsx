@@ -11,7 +11,7 @@ import {
 
 import StatusBadge from "../StatusBadge";
 import InfoRow from "../InfoRow";
-import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
+import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
 import type { ConnectionStatus } from "../types/types";
 
 interface Props {

@@ -39,7 +39,7 @@ import HotspotCredentialPage from "./vendor/pages/dashboard/HotspotCredentials";
 import ProtectedRoute from "../ProtectedRoute";
 import AuthWatcher from "./vendor/AuthWatcher";
 import UserProfile from "./vendor/pages/dashboard/users/UserProfile";
-import CustomersPage from "./vendor/pages/dashboard/CustomerPage/CustomersPage";
+import CustomersPage from "./vendor/pages/dashboard/CustomerEntryPage/CustomersPage";
 import { SMSProviderManager } from "./vendor/pages/dashboard/Sms/SmsProviderManager";
 
 // Onboarding Guard & Wizard Imports

@@ -30,6 +30,10 @@ const DEFAULT_FORM_STATE: SMSProvider = {
   allow_payment_receipts: true,
   allow_expiry_reminders: true,
   allow_bulk_promotions: false,
+  allow_renew_message: false,
+  allow_DS_message: false,
+  allow_cancel_message: false,
+
 };
 
 export const SMSProviderManager: React.FC = () => {
@@ -110,6 +114,9 @@ export const SMSProviderManager: React.FC = () => {
         allow_payment_receipts: provider.allow_payment_receipts ?? true,
         allow_expiry_reminders: provider.allow_expiry_reminders ?? true,
         allow_bulk_promotions: provider.allow_bulk_promotions ?? false,
+        allow_renew_message: provider.allow_renew_message ?? false,
+        allow_DS_message: provider.allow_DS_message ?? false,
+        allow_cancel_message: provider.allow_cancel_message ?? false,
       });
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -157,20 +164,28 @@ export const SMSProviderManager: React.FC = () => {
 
   const handleQuickFeatureToggle = async (
     id: number,
-    feature: keyof Pick<
-      SMSProvider,
-      | "is_active"
-      | "allow_hotspot_password_recovery"
-      | "allow_hotspot_purchase_receipts"
-      | "allow_pppoe_welcome_sms"
-      | "allow_payment_receipts"
-      | "allow_expiry_reminders"
-      | "allow_bulk_promotions"
-    >,
+    feature:
+      | keyof Pick<
+          SMSProvider,
+          | "is_active"
+          | "allow_hotspot_password_recovery"
+          | "allow_hotspot_purchase_receipts"
+          | "allow_pppoe_welcome_sms"
+          | "allow_payment_receipts"
+          | "allow_expiry_reminders"
+          | "allow_bulk_promotions"
+        >
+      | "allow_renew_message"
+      | "allow_DS_message"
+      | "allow_cancel_message",
     currentValue: boolean
   ) => {
     try {
-      await toggleSMSProviderFeature(id, feature, !currentValue);
+      await (toggleSMSProviderFeature as (
+        providerId: number,
+        providerFeature: keyof SMSProvider,
+        value: boolean
+      ) => Promise<SMSProvider>) (id, feature as keyof SMSProvider, !currentValue);
       showFeedback("success", "Preference updated.");
       loadProviders();
     } catch (err: any) {
@@ -356,6 +371,47 @@ export const SMSProviderManager: React.FC = () => {
               </label>
             </div>
 
+            {/* Granular Feature Toggles */}
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">
+                Notification & Cost Rules
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                <label className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="allow_renew_message"
+                    checked={formData.allow_renew_message}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                  />
+                  <span>Send Renewal Notifications</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="allow_DS_message"
+                    checked={formData.allow_DS_message}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                  />
+                  <span>Send DStimeout Notifications</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 border border-slate-200 dark:border-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="allow_cancel_message"
+                    checked={formData.allow_cancel_message}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500"
+                  />
+                  <span>Send Cancellation Notifications</span>
+                </label>
+              </div>
+            </div>
+
             {/* Category 1: Hotspot Settings */}
             <div className="space-y-2">
               <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
@@ -453,7 +509,7 @@ export const SMSProviderManager: React.FC = () => {
               disabled={submitting}
               className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 rounded-lg transition-colors disabled:opacity-50"
             >
-              {submitting ? "Saving..." : editingId ? "Update Gateway & Preferences" : "Save Gateway"}
+              {submitting ? "Saving..." : editingId ? "Update Provider" : "Save Gateway"}
             </button>
 
             {editingId && (

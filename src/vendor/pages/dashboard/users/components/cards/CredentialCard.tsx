@@ -9,7 +9,7 @@ import {
 
 import CopyButton from "../common/CopyButton";
 import StatusBadge from "../StatusBadge";
-import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
+import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
 
 interface Credential {
 

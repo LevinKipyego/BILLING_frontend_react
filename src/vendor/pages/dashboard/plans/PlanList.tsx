@@ -16,7 +16,7 @@ interface PlanListProps {
   onExportTxt?: () => void;
   onExportRsc?: () => void;
 }
-import { formatDuration } from  "../CustomerPage/renewsubscriptions/utils/date";
+import { formatDuration } from  "../CustomerEntryPage/renewsubscriptions/utils/date";
 
 
 export default function PlanList({

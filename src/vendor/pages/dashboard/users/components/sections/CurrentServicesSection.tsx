@@ -2,7 +2,7 @@ import ServiceCard from "../cards/ServiceCard";
 
 import type { UserProfile } from "../types/types";
 
-import { formatDate } from "../../../CustomerPage/renewsubscriptions/utils/date";
+import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
 
 interface Props {
     profile: UserProfile;
