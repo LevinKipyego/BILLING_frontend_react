@@ -10,18 +10,21 @@ import {
 import { BaseUrl } from "../../../../BaseUrl";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { StatCard } from "./components/StatCard";
-import { TrafficThroughputChart } from "./components/TrafficThroughputChart";
+import {
+  TrafficThroughputChart,
+  type TrafficItem,
+} from "./components/TrafficThroughputChart";
 import { PlanMarketShareChart } from "./components/PlanMarketShareChart";
 import { InfrastructureVitals } from "./components/InfrastructureVitals";
 
-interface TelemetryData {
+export interface TelemetryData {
   stats: {
     active_plans: { value: number; trend: string };
     mikrotik_nodes: { value: number; status: string };
     active_users: { value: number; trend: string };
     daily_revenue: { value: number; currency: string };
   };
-  traffic_throughput: Array<{ name: string; usage: number; peak_bytes?: number }>;
+  traffic_throughput: TrafficItem[];
   plan_market_share: Array<{ name: string; value: number }>;
   infrastructure_vitals: {
     cpu_overhead: { value: number; status: string; progress: number };

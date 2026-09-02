@@ -99,7 +99,7 @@ export default function CustomerTable({
         <div className="h-16 w-full animate-pulse rounded-xl border border-slate-200/80 bg-slate-100 dark:border-slate-800 dark:bg-slate-800/40" />
 
         {/* Desktop Table Skeleton */}
-        <div className="hidden md:block overflow-hidden rounded-xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="hidden md:block overflow-visible rounded-xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900">
           <div className="p-4 space-y-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center justify-between gap-4 animate-pulse">
@@ -291,8 +291,8 @@ export default function CustomerTable({
           </div>
 
           {/* 🖥️ DESKTOP TABLE VIEW */}
-          <div className="hidden md:block overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="overflow-x-auto">
+          <div className="hidden md:block overflow-visible rounded-xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="overflow-visible rounded-xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200/80 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">

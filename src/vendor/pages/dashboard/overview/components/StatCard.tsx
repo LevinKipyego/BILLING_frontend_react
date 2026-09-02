@@ -11,7 +11,7 @@ interface StatCardProps {
 
 export function StatCard({ title, value, icon: Icon, trend, loading }: StatCardProps) {
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 font-sans rounded-md border border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-colors">
+    <div className="bg-white dark:bg-gray-800 p-4  rounded-md border border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-colors">
       <div className="flex justify-between items-start">
         <div className="p-2 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
           <Icon className="w-4 h-4" />
