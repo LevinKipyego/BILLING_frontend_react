@@ -1,4 +1,11 @@
-import type { SMSProvider, TestSMSPayload, TestSMSResponse } from "../types/sms";
+import type {
+  SMSProvider,
+  TestSMSPayload,
+  TestSMSResponse,
+  SMSMessage,
+  SMSMessageCreatePayload,
+  SMSAnalyticsResponse,
+} from "../types/sms";
 import { apiFetch } from "../../../../api/client";
 
 /* READ ALL */
@@ -75,4 +82,53 @@ export function testSMSProvider(
     method: "POST",
     body: JSON.stringify(data),
   });
+}
+
+/* ============================================================================
+ * SMS TEMPLATES (SMSMessage) ENDPOINTS
+ * ============================================================================ */
+
+/* READ ALL TEMPLATES */
+export function fetchSMSTemplates(): Promise<SMSMessage[]> {
+  return apiFetch("/sms/v1/sms-templates/");
+}
+
+/* READ SINGLE TEMPLATE */
+export function fetchSMSTemplate(id: number): Promise<SMSMessage> {
+  return apiFetch(`/sms/v1/sms-templates/${id}/`);
+}
+
+/* CREATE TEMPLATE */
+export function createSMSTemplate(data: SMSMessageCreatePayload): Promise<SMSMessage> {
+  return apiFetch("/sms/v1/sms-templates/", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+/* UPDATE TEMPLATE (PATCH) */
+export function updateSMSTemplate(
+  id: number,
+  data: Partial<SMSMessageCreatePayload>
+): Promise<SMSMessage> {
+  return apiFetch(`/sms/v1/sms-templates/${id}/`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+/* DELETE TEMPLATE */
+export function deleteSMSTemplate(id: number): Promise<void> {
+  return apiFetch(`/sms/v1/sms-templates/${id}/`, {
+    method: "DELETE",
+  });
+}
+
+/* ============================================================================
+ * SMS ANALYTICS ENDPOINTS
+ * ============================================================================ */
+
+/* FETCH ANALYTICS REPORT & CHART METRICS */
+export function fetchSMSAnalytics(days: number = 30): Promise<SMSAnalyticsResponse> {
+  return apiFetch(`/sms/v1/sms-analytics/?days=${days}`);
 }

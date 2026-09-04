@@ -5,7 +5,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { GitFork, ShieldCheck, Users, Wifi,
         Boxes,  BarChart3 ,CreditCard, ArrowLeftRight, 
-        MessageSquarePlus, Activity, Cog, Network, Split,} from "lucide-react";
+        MessageSquarePlus, Activity, Cog, Network, Split,
+        FileText,} from "lucide-react";
 import { SiMikrotik } from 'react-icons/si'
 import { FaServer } from "react-icons/fa";
 import { TbLockCheck } from "react-icons/tb";
@@ -99,10 +100,29 @@ const navSections: NavSection[] = [
   {
     title: "SMS Management",
     items: [
-      { to: "/dashboard/sms/sms_providers/list", label: "SMS and Bulk SMS", icon: MessageSquarePlus, color: "text-pink-600 dark:text-pink-400", bgHover: "hover:bg-pink-50/60 dark:hover:bg-pink-950/10 hover:text-pink-700 dark:hover:text-pink-400" },
+      { 
+        to: "/dashboard/sms/sms_providers/list", 
+        label: "Gateways & Providers", 
+        icon: MessageSquarePlus, 
+        color: "text-pink-600 dark:text-pink-400", 
+        bgHover: "hover:bg-pink-50/60 dark:hover:bg-pink-950/10 hover:text-pink-700 dark:hover:text-pink-400" 
+      },
+      { 
+        to: "/dashboard/sms/templates", 
+        label: "Message Templates", 
+        icon: FileText, 
+        color: "text-purple-600 dark:text-purple-400", 
+        bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" 
+      },
+      { 
+        to: "/dashboard/sms/analytics", 
+        label: "SMS Analytics & Logs", 
+        icon: BarChart3, 
+        color: "text-indigo-600 dark:text-indigo-400", 
+        bgHover: "hover:bg-indigo-50/60 dark:hover:bg-indigo-950/10 hover:text-indigo-700 dark:hover:text-indigo-400" 
+      },
     ] 
   },
-
 
   {
   title: "balancers",

@@ -51,6 +51,8 @@ import OnboardingWizard from "./vendor/pages/dashboard/onboarding/OnboardingWiza
 import DeploymentCreate from "./vendor/pages/dashboard/NetworkDeployments/DeploymentCreate";
 import DeploymentPreview from "./vendor/pages/dashboard/NetworkDeployments/DeploymentPreview";
 import DeploymentProgress from "./vendor/pages/dashboard/NetworkDeployments/DeploymentProgress";
+import { SmsTemplateManager } from "./vendor/pages/dashboard/Sms/SmsTemplateManager";
+import { SmsAnalyticsDashboard } from "./vendor/pages/dashboard/Sms/SmsAnalyticsDashboard";
 
 export default function App() {
   return (
@@ -210,6 +212,14 @@ export default function App() {
                 path="sms/sms_providers/list"
                 element={<SMSProviderManager />}
               />
+
+              <Route
+                path="sms/templates"
+                element={<SmsTemplateManager />}
+              />
+
+
+            <Route path="/dashboard/sms/analytics" element={<SmsAnalyticsDashboard />} />
 
               {/* Load Balancers */}
               <Route
