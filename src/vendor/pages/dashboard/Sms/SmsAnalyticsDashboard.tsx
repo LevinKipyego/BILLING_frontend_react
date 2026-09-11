@@ -17,6 +17,7 @@ import {
 import type { SMSAnalyticsResponse } from "./types/sms";
 import { fetchSMSAnalytics } from "./api/sms";
 import SmsRecentLogsTable from "./components/SmsRecentLogsTable";
+
 export const SmsAnalyticsDashboard: React.FC = () => {
   const [days, setDays] = useState<number>(30);
   const [analytics, setAnalytics] = useState<SMSAnalyticsResponse | null>(null);
@@ -78,11 +79,16 @@ export const SmsAnalyticsDashboard: React.FC = () => {
   }
 
   const { summary, failure_analysis, charts } = analytics;
+  const recentLogs =
+    (analytics as any).recent_logs ||
+    (analytics as any).recent_dispatch_logs ||
+    (analytics as any).logs ||
+    [];
 
   const STATUS_COLORS = {
-    successful: "#10B981", // Emerald 500
-    failed: "#EF4444",     // Red 500
-    pending: "#F59E0B",    // Amber 500
+    successful: "#10B981", 
+    failed: "#EF4444",     
+    pending: "#F59E0B",   
   };
 
   const statusPieData = [
@@ -394,13 +400,13 @@ export const SmsAnalyticsDashboard: React.FC = () => {
             </ul>
           )}
         </div>
-
-        
       </div>
-      {/* 3. Recent 5 Logs Table */}
+
+      {/* Recent SMS Logs Table */}
       <SmsRecentLogsTable
+        logs={recentLogs}
+        
         onViewAllClick={() => {
-          // Navigate to full logs route if applicable
           console.log("Navigating to full logs...");
         }}
       />

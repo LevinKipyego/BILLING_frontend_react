@@ -2,14 +2,17 @@ import { NavLink } from "react-router-dom";
 import { 
   CircleStackIcon,
   BanknotesIcon,
+  BookOpenIcon,
+  ReceiptPercentIcon
 } from "@heroicons/react/24/outline";
 import { GitFork, ShieldCheck, Users, Wifi,
         Boxes,  BarChart3 ,CreditCard, ArrowLeftRight, 
         MessageSquarePlus, Activity, Cog, Network, Split,
-        FileText,} from "lucide-react";
-import { SiMikrotik } from 'react-icons/si'
+        FileText } from "lucide-react";
+import { SiMikrotik } from 'react-icons/si';
 import { FaServer } from "react-icons/fa";
 import { TbLockCheck } from "react-icons/tb";
+
 interface SidebarProps {
   closeMobile?: () => void; 
   isOpen: boolean; 
@@ -18,7 +21,7 @@ interface SidebarProps {
 interface NavItem {
   to: string;
   label: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  icon: React.ComponentType<any>;
   color: string;
   bgHover?: string;
 }
@@ -90,10 +93,29 @@ const navSections: NavSection[] = [
     items: [
       { to: "/dashboard/plans", label: "Packages", icon: Boxes, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
       { to: "/dashboard/mpesa/c2b", label: "C2B Configs", icon: CircleStackIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
-     
       { to: "/dashboard/mpesa", label: "M-Pesa STK Configs", icon: ArrowLeftRight, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
-      { to: "/dashboard/transactions", label: "M-pesa STk Transactions", icon: BanknotesIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
+      { to: "/dashboard/transactions", label: "M-Pesa STK Transactions", icon: BanknotesIcon, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
       { to: "/dashboard/transactions/c2b", label: "M-Pesa C2B Transactions", icon: CreditCard, color: "text-purple-600 dark:text-purple-400", bgHover: "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400" },
+    ]
+  },
+
+  {
+    title: "Vendor & Finance",
+    items: [
+      { 
+        to: "/dashboard/vendor/ledgers", 
+        label: "Ledgers", 
+        icon: BookOpenIcon, 
+        color: "text-teal-600 dark:text-teal-400", 
+        bgHover: "hover:bg-teal-50/60 dark:hover:bg-teal-950/10 hover:text-teal-700 dark:hover:text-teal-400" 
+      },
+      { 
+        to: "/dashboard/vendor/payouts", 
+        label: "Disbursement Payouts", 
+        icon: ReceiptPercentIcon, 
+        color: "text-teal-600 dark:text-teal-400", 
+        bgHover: "hover:bg-teal-50/60 dark:hover:bg-teal-950/10 hover:text-teal-700 dark:hover:text-teal-400" 
+      },
     ]
   },
 
@@ -125,27 +147,22 @@ const navSections: NavSection[] = [
   },
 
   {
-  title: "balancers",
-
-  items: [
-    {
-      to: "/dashboard/network-deployments/create",
-      label: "PCC based balancer",
-      icon: Split,
-      color:
-        "text-pink-600 dark:text-pink-400",
-      bgHover:
-        "hover:bg-pink-50/60 dark:hover:bg-pink-950/10 hover:text-pink-700 dark:hover:text-pink-400",
-    },
-  ],
-},
-
+    title: "Balancers",
+    items: [
+      {
+        to: "/dashboard/network-deployments/create",
+        label: "PCC Based Balancer",
+        icon: Split,
+        color: "text-pink-600 dark:text-pink-400",
+        bgHover: "hover:bg-pink-50/60 dark:hover:bg-pink-950/10 hover:text-pink-700 dark:hover:text-pink-400",
+      },
+    ],
+  },
 ];
 
 const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
   return (
     <>
-      {/* Dynamic style block targeting mobile browser frames exclusively */}
       <style>{`
         @media (max-width: 1023px) {
           .mobile-no-scroll {
@@ -160,10 +177,6 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
         }
       `}</style>
 
-      {/* - applied w-[88vw] sm:w-[350px] for wider mobile panels, leaving lg layouts intact
-        - injected mobile-no-scroll to selectively target responsive scroll containers
-        - switched font styling directly to Figtree for all devices
-      */}
       <nav className="flex-1 w-[88vw] sm:w-[350px] lg:w-full overflow-y-auto mobile-no-scroll px-3 py-6 space-y-8 font-['Gummymimimal']">
         {navSections.map((section) => (
           <div key={section.title} className="space-y-1">
@@ -193,7 +206,6 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
               >
                 {({ isActive }) => (
                   <>
-                    {/* ICON SPECIFIC CATEGORY TINT COLOR */}
                     <item.icon className={`w-5 h-5 shrink-0 transition-colors duration-200
                       ${isActive ? item.color : "text-slate-400 group-hover:" + item.color.split(" ")[0]}
                     `} />
@@ -206,7 +218,6 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
                       </span>
                     )}
 
-                    {/* MINIMIZED TOOLTIP */}
                     {!isOpen && (
                       <div className="absolute left-16 scale-0 group-hover:scale-100 transition-all duration-200 origin-left bg-gray-900 dark:bg-slate-800 text-white text-[11px] font-bold px-3 py-2 rounded-lg shadow-xl pointer-events-none z-[100] whitespace-nowrap hidden lg:block">
                         {item.label}
@@ -214,7 +225,6 @@ const Sidebar = ({ closeMobile, isOpen }: SidebarProps) => {
                       </div>
                     )}
 
-                    {/* END BADGE DOT MATCHES ACCENT CATEGORY */}
                     {isActive && isOpen && (
                       <div className={`ml-auto w-1.5 h-1.5 rounded-full ${item.color.split(" ")[0].replace("text-", "bg-")}`} />
                     )}

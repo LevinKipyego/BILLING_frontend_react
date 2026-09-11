@@ -121,6 +121,17 @@ export interface SMSAnalyticsCharts {
   top_templates: SMSTopTemplate[];
 }
 
+export interface SMSLogEntry {
+  id: number;
+  recipient: string;
+  message_title?: string;
+  message_content?: string;
+  provider_name?: string;
+  status: "SUCCESS" | "FAILED" | "PENDING";
+  failure_reason?: string | null;
+  created_at: string;
+}
+
 export interface SMSAnalyticsResponse {
   time_frame_days: number;
   summary: SMSAnalyticsSummary;

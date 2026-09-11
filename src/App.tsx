@@ -53,6 +53,7 @@ import DeploymentPreview from "./vendor/pages/dashboard/NetworkDeployments/Deplo
 import DeploymentProgress from "./vendor/pages/dashboard/NetworkDeployments/DeploymentProgress";
 import { SmsTemplateManager } from "./vendor/pages/dashboard/Sms/SmsTemplateManager";
 import { SmsAnalyticsDashboard } from "./vendor/pages/dashboard/Sms/SmsAnalyticsDashboard";
+import { VendorDashboard } from "./vendor/pages/dashboard/B2C/components/MainVendorLedger";
 
 export default function App() {
   return (
@@ -150,6 +151,12 @@ export default function App() {
               <Route
                 path="transactions/c2b"
                 element={<C2bTransactions />}
+              />
+
+              {/* Ledgers and Payouts */}
+              <Route
+                path="vendor/ledgers"
+                element={< VendorDashboard />}
               />
 
               {/* PPPoE */}
