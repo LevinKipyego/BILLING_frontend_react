@@ -1,34 +1,48 @@
-import React, { useState, useEffect } from "react";
-import { apiGet, apiPost } from "../../../../api/client"; 
-import type { 
-  VendorDashboardData, 
-  LedgerEntry, 
-  PayoutRecord, 
-  PayoutStatus 
+import React, { useEffect, useState } from "react";
+import { apiGet, apiPost } from "../../../../api/client";
+import type {
+  VendorDashboardData,
+  LedgerEntry,
+  PayoutRecord,
+  PayoutStatus,
 } from "../types";
 import VendorPayoutConfig from "./VendorPayoutConfig";
-import { 
-  ArrowPathIcon, 
-  ExclamationCircleIcon, 
+import {
+  ArrowPathIcon,
+  ExclamationCircleIcon,
   CheckCircleIcon,
   BanknotesIcon,
   PhoneIcon,
   CreditCardIcon,
-  XMarkIcon
+  XMarkIcon,
+  ClockIcon,
+  Cog6ToothIcon,
+  QueueListIcon,
 } from "@heroicons/react/24/outline";
+
+type Tab = "ledger" | "payouts" | "config";
+
+const money = (value: number | string | null | undefined) =>
+  `KES ${Number(value || 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+const dateTime = (value: string) =>
+  new Date(value).toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
 
 export const VendorDashboard: React.FC = () => {
   const [data, setData] = useState<VendorDashboardData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // Tab State
-  const [activeTab, setActiveTab] = useState<"ledger" | "payouts" | "config">("ledger");
+  const [activeTab, setActiveTab] = useState<Tab>("ledger");
 
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [payoutAmount, setPayoutAmount] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [payoutAmount, setPayoutAmount] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [payoutError, setPayoutError] = useState<string | null>(null);
   const [payoutSuccess, setPayoutSuccess] = useState<string | null>(null);
 
@@ -36,7 +50,9 @@ export const VendorDashboard: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const responseData = await apiGet<VendorDashboardData>("/v1/vendor/payouts/dashboard/");
+      const responseData = await apiGet<VendorDashboardData>(
+        "/v1/vendor/payouts/dashboard/"
+      );
       setData(responseData);
     } catch (err: any) {
       console.error("Failed to load vendor dashboard data:", err);
@@ -50,333 +66,441 @@ export const VendorDashboard: React.FC = () => {
     fetchDashboardData();
   }, []);
 
-  // Normalizes phone numbers (e.g. 0712345678 -> 254712345678)
   const normalizePhoneNumber = (phone: string): string => {
     let cleaned = phone.replace(/\D/g, "");
+
     if (cleaned.startsWith("0")) {
       cleaned = "254" + cleaned.slice(1);
-    } else if (cleaned.startsWith("7") || cleaned.startsWith("1")) {
-      if (cleaned.length === 9) {
-        cleaned = "254" + cleaned;
-      }
+    } else if (
+      (cleaned.startsWith("7") || cleaned.startsWith("1")) &&
+      cleaned.length === 9
+    ) {
+      cleaned = "254" + cleaned;
     }
+
     return cleaned;
   };
 
-  // Handle Manual Payout Request
+  const closeModal = () => {
+    if (isSubmitting) return;
+    setIsModalOpen(false);
+    setPayoutError(null);
+    setPayoutSuccess(null);
+    setPayoutAmount("");
+  };
+
   const handleRequestPayout = async (e: React.FormEvent) => {
     e.preventDefault();
     setPayoutError(null);
     setPayoutSuccess(null);
 
+    if (!data) return;
+
     const amount = parseFloat(payoutAmount);
+
     if (isNaN(amount) || amount <= 0) {
       setPayoutError("Please enter a valid payout amount.");
       return;
     }
 
-    if (data && amount > data.summary.currentBalance) {
+    if (amount > data.summary.currentBalance) {
       setPayoutError("Requested amount exceeds your current working balance.");
       return;
     }
 
-    const formattedPhone = normalizePhoneNumber(data?.summary.payoutPhone || "");
+    const formattedPhone = normalizePhoneNumber(data.summary.payoutPhone || "");
+
     if (!/^254[71]\d{8}$/.test(formattedPhone)) {
-      setPayoutError("Please configure a valid Safaricom payout phone number first.");
+      setPayoutError(
+        "Please configure a valid Safaricom payout phone number first."
+      );
       return;
     }
 
     try {
       setIsSubmitting(true);
-      
-      const response = await apiPost<{ message: string; payout: PayoutRecord }>(
-        "/v1/vendor/payouts/request/",
-        { amount }
-      );
 
-      setPayoutSuccess(response.message || "Payout request initiated successfully!");
+      const response = await apiPost<{
+        message: string;
+        payout: PayoutRecord;
+      }>("/v1/vendor/payouts/request/", { amount });
+
+      setPayoutSuccess(
+        response.message || "Payout request initiated successfully!"
+      );
       setPayoutAmount("");
-      
-      // Refresh dashboard balances and payout records
+
       await fetchDashboardData();
 
       setTimeout(() => {
         setIsModalOpen(false);
         setPayoutSuccess(null);
       }, 1500);
-
     } catch (err: any) {
       console.error("Payout request failed:", err);
-      setPayoutError(err.message || "Failed to trigger payout. Please try again.");
+      setPayoutError(
+        err.message || "Failed to trigger payout. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (loading && !data) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500 dark:text-slate-400 font-medium text-sm md:text-base">
-        <ArrowPathIcon className="w-8 h-8 animate-spin mb-3 text-emerald-600 dark:text-emerald-400" />
-        Loading financial metrics...
-      </div>
-    );
+    return <DashboardLoader />;
   }
 
   if (error || !data) {
     return (
-      <div className="max-w-7xl mx-auto my-6 p-4 sm:p-6 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/60 rounded-2xl text-red-700 dark:text-red-300">
-        <div className="flex items-center gap-2.5 font-bold text-base sm:text-lg mb-1">
-          <ExclamationCircleIcon className="w-6 h-6 shrink-0" />
-          <span>Error Loading Dashboard</span>
+      <div className="min-h-[60vh] bg-slate-50 px-3 py-6 dark:bg-gray-900">
+        <div className="mx-auto max-w-3xl rounded-md border border-red-200 bg-red-50 p-4 text-red-700 shadow-sm dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">
+          <div className="flex items-start gap-3">
+            <ExclamationCircleIcon className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+              <h2 className="text-sm font-bold">Unable to load dashboard</h2>
+              <p className="mt-1 text-xs">
+                {error || "Failed to load vendor dashboard data."}
+              </p>
+              <button
+                onClick={fetchDashboardData}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700"
+              >
+                <ArrowPathIcon className="h-3.5 w-3.5" />
+                Try again
+              </button>
+            </div>
+          </div>
         </div>
-        <p className="text-xs sm:text-sm pl-8.5">{error || "Failed to load vendor dashboard data."}</p>
       </div>
     );
   }
 
   const { summary, ledger, payouts } = data;
 
+  const totalSettled = ledger.reduce(
+    (acc, curr) => acc + Number(curr.netAmount || 0),
+    0
+  );
+
+  const tabs: Array<{
+    id: Tab;
+    label: string;
+    mobileLabel: string;
+    count?: number;
+    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  }> = [
+    {
+      id: "ledger",
+      label: "Transaction Ledger",
+      mobileLabel: "Ledger",
+      count: ledger.length,
+      icon: QueueListIcon,
+    },
+    {
+      id: "payouts",
+      label: "Disbursement Payouts",
+      mobileLabel: "Payouts",
+      count: payouts.length,
+      icon: BanknotesIcon,
+    },
+    {
+      id: "config",
+      label: "Payout Configuration",
+      mobileLabel: "Settings",
+      icon: Cog6ToothIcon,
+    },
+  ];
+
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 md:space-y-8 font-inter text-slate-800 dark:text-slate-100 min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100">
-            {summary.name}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Billing Model:{" "}
-            <span className="font-semibold text-slate-700 dark:text-slate-300">
-              {summary.billingModel === "AGGREGATED" ? "System Paybill (Aggregated)" : "Direct Paybill"}
-            </span>
-          </p>
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-gray-900 dark:text-slate-100 transition-colors">
+      <div className="mx-auto w-full max-w-[1440px] px-3 py-4 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
+        
+        {/* Header Block */}
+        <header className="mb-4 rounded-md border border-slate-200 bg-white p-4 shadow-sm sm:mb-6 sm:p-5 dark:border-slate-800 dark:bg-gray-800 transition-colors">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <div className="mb-1 flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                  Vendor Finance
+                </span>
+              </div>
+
+              <h1 className="truncate text-lg font-bold sm:text-xl lg:text-2xl">
+                {summary.name}
+              </h1>
+
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                Billing model:{" "}
+                <span className="font-medium text-slate-700 dark:text-slate-300">
+                  {summary.billingModel === "AGGREGATED"
+                    ? "System Paybill · Aggregated"
+                    : "Direct Paybill"}
+                </span>
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsModalOpen(true)}
+              disabled={summary.currentBalance <= 0}
+              className="inline-flex min-h-[38px] w-full items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto dark:bg-emerald-500 dark:hover:bg-emerald-600"
+            >
+              <BanknotesIcon className="h-4 w-4" />
+              Request instant payout
+            </button>
+          </div>
+        </header>
+
+        {/* Financial Metrics */}
+        <section className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+          <MetricCard
+            label="Working balance"
+            value={money(summary.currentBalance)}
+            icon={BanknotesIcon}
+            tone="emerald"
+            trend={summary.billingModel === "AGGREGATED" ? "Auto-payout" : "Manual"}
+            footer={
+              summary.billingModel === "AGGREGATED" ? (
+                <>
+                  Auto-payout threshold{" "}
+                  <strong>{money(summary.payoutThreshold)}</strong>
+                  <span className="mx-1">·</span>
+                  <span className="font-mono">{summary.payoutPhone || "N/A"}</span>
+                </>
+              ) : (
+                "Available for manual settlement"
+              )
+            }
+          />
+
+          <MetricCard
+            label="Settlement target"
+            value={summary.payoutPhone || "Not configured"}
+            icon={PhoneIcon}
+            tone="slate"
+            valueClassName="text-sm sm:text-base font-bold font-mono"
+            trend={summary.autoPayoutEnabled ? "Enabled" : "Manual"}
+            footer={
+              <span className="inline-flex items-center gap-1.5">
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    summary.autoPayoutEnabled
+                      ? "animate-pulse bg-emerald-500"
+                      : "bg-amber-500"
+                  }`}
+                />
+                {summary.autoPayoutEnabled
+                  ? "Auto-payout active"
+                  : "Manual settlement only"}
+              </span>
+            }
+          />
+
+          <MetricCard
+            label="Total settled collections"
+            value={money(totalSettled)}
+            icon={CreditCardIcon}
+            tone="blue"
+            trend={`${ledger.length} TXs`}
+            className="sm:col-span-2 xl:col-span-1"
+            footer={`${ledger.length} transaction${
+              ledger.length === 1 ? "" : "s"
+            } processed`}
+          />
+        </section>
+
+        {/* Tabs Navigation */}
+        <div className="mb-4 overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-gray-800 transition-colors">
+          <nav className="grid grid-cols-3" aria-label="Vendor finance sections">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const active = activeTab === tab.id;
+
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative flex min-h-[44px] items-center justify-center gap-1.5 px-2 text-xs font-bold transition ${
+                    active
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="sm:hidden">{tab.mobileLabel}</span>
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  {typeof tab.count === "number" && (
+                    <span
+                      className={`hidden rounded px-1.5 py-0.5 text-[10px] sm:inline ${
+                        active
+                          ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400"
+                          : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  )}
+                  {active && (
+                    <span className="absolute inset-x-0 bottom-0 h-0.5 bg-emerald-600 dark:bg-emerald-400" />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Manual Payout Trigger */}
-        <button
-          onClick={() => setIsModalOpen(true)}
-          disabled={summary.currentBalance <= 0}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
-        >
-          <BanknotesIcon className="w-5 h-5 shrink-0" />
-          <span>Request Instant Payout</span>
-        </button>
-      </div>
+        {/* Main Content Area */}
+        {activeTab === "config" ? (
+          <section className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-gray-800 transition-colors">
+            <VendorPayoutConfig onConfigUpdated={fetchDashboardData} />
+          </section>
+        ) : (
+          <section className="overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-gray-800 transition-colors">
+            <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-800">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-xs font-bold sm:text-sm">
+                    {activeTab === "ledger"
+                      ? "Transaction history"
+                      : "Payout history"}
+                  </h2>
+                  <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                    {activeTab === "ledger"
+                      ? "Collections credited to your vendor balance."
+                      : "Track every disbursement request and status."}
+                  </p>
+                </div>
 
-      {/* Summary Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-        {/* Working Balance */}
-        <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">
-                Working Balance
-              </span>
-              <div className="p-2 bg-emerald-100 dark:bg-emerald-950/60 rounded-xl text-emerald-600 dark:text-emerald-400">
-                <BanknotesIcon className="w-5 h-5" />
+                <span className="rounded border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-300">
+                  {activeTab === "ledger" ? ledger.length : payouts.length} records
+                </span>
               </div>
             </div>
-            <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-3">
-              KES {summary.currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </p>
-          </div>
-          {summary.billingModel === "AGGREGATED" && (
-            <p className="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-              Auto-payout at KES {summary.payoutThreshold.toLocaleString()} to{" "}
-              <span className="font-mono font-medium text-slate-600 dark:text-slate-300">
-                {summary.payoutPhone || "N/A"}
-              </span>
-            </p>
-          )}
-        </div>
 
-        {/* Settlement Target */}
-        <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">
-                Settlement Target
-              </span>
-              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-600 dark:text-slate-400">
-                <PhoneIcon className="w-5 h-5" />
-              </div>
-            </div>
-            <p className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 mt-3 font-mono">
-              {summary.payoutPhone || "Not Configured"}
-            </p>
-          </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center space-x-2">
-            <span
-              className={`h-2.5 w-2.5 rounded-full ${
-                summary.autoPayoutEnabled ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
-              }`}
-            />
-            <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-              {summary.autoPayoutEnabled ? "Auto-payout Enabled" : "Manual Settlement Only"}
-            </span>
-          </div>
-        </div>
-
-        {/* Total Settled Collections */}
-        <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">
-                Total Settled Collections
-              </span>
-              <div className="p-2 bg-blue-100 dark:bg-blue-950/60 rounded-xl text-blue-600 dark:text-blue-400">
-                <CreditCardIcon className="w-5 h-5" />
-              </div>
-            </div>
-            <p className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100 mt-3">
-              KES{" "}
-              {ledger
-                .reduce((acc, curr) => acc + curr.netAmount, 0)
-                .toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </p>
-          </div>
-          <p className="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-            {ledger.length} total transactions processed
-          </p>
-        </div>
+            {activeTab === "ledger" ? (
+              <LedgerTable ledger={ledger} />
+            ) : (
+              <PayoutsTable payouts={payouts} />
+            )}
+          </section>
+        )}
       </div>
 
-      {/* Tab Navigation */}
-      <div className="border-b border-slate-200 dark:border-slate-800 overflow-x-auto">
-        <nav className="-mb-px flex space-x-6 sm:space-x-8 min-w-max">
-          <button
-            onClick={() => setActiveTab("ledger")}
-            className={`py-3.5 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors ${
-              activeTab === "ledger"
-                ? "border-emerald-600 text-emerald-600 dark:border-emerald-400 dark:text-emerald-400"
-                : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-            }`}
-          >
-            Transaction Ledger ({ledger.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("payouts")}
-            className={`py-3.5 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors ${
-              activeTab === "payouts"
-                ? "border-emerald-600 text-emerald-600 dark:border-emerald-400 dark:text-emerald-400"
-                : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-            }`}
-          >
-            Disbursement Payouts ({payouts.length})
-          </button>
-          <button
-            onClick={() => setActiveTab("config")}
-            className={`py-3.5 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors ${
-              activeTab === "config"
-                ? "border-emerald-600 text-emerald-600 dark:border-emerald-400 dark:text-emerald-400"
-                : "border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-            }`}
-          >
-            Payout Configuration
-          </button>
-        </nav>
-      </div>
-
-      {/* Tab View Container */}
-      {activeTab === "config" ? (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <VendorPayoutConfig onConfigUpdated={fetchDashboardData} />
-        </div>
-      ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          {activeTab === "ledger" ? (
-            <LedgerTable ledger={ledger} />
-          ) : (
-            <PayoutsTable payouts={payouts} />
-          )}
-        </div>
-      )}
-
-      {/* Instant Payout Modal */}
+      {/* Payout Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-            <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
-                Request Instant Payout
-              </h3>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="max-h-[90vh] w-full overflow-y-auto rounded-t-xl bg-white p-4 shadow-2xl sm:max-w-md sm:rounded-md sm:p-5 dark:bg-gray-800 border border-slate-200 dark:border-slate-800 transition-colors">
+            <div className="mb-4 flex items-start justify-between gap-2">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                  Disbursement
+                </span>
+                <h3 className="mt-0.5 text-base font-bold sm:text-lg">
+                  Request instant payout
+                </h3>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                  Funds will be transferred to your configured number.
+                </p>
+              </div>
+
               <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setPayoutError(null);
-                  setPayoutSuccess(null);
-                }}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg transition-colors"
+                onClick={closeModal}
+                disabled={isSubmitting}
+                className="rounded p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50 dark:hover:bg-slate-800 dark:hover:text-slate-200"
               >
-                <XMarkIcon className="w-5 h-5" />
+                <XMarkIcon className="h-5 w-5" />
               </button>
             </div>
 
             {payoutSuccess && (
-              <div className="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs sm:text-sm">
-                <CheckCircleIcon className="w-5 h-5 shrink-0" />
-                <span>{payoutSuccess}</span>
-              </div>
+              <Alert type="success" message={payoutSuccess} icon={CheckCircleIcon} />
             )}
 
             {payoutError && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-xl text-xs sm:text-sm">
-                <ExclamationCircleIcon className="w-5 h-5 shrink-0" />
-                <span>{payoutError}</span>
-              </div>
+              <Alert type="error" message={payoutError} icon={ExclamationCircleIcon} />
             )}
 
-            <form onSubmit={handleRequestPayout} className="space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Payout Phone Number
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={summary.payoutPhone || "Not set"}
-                  className="w-full px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-mono cursor-not-allowed"
-                />
+            <form onSubmit={handleRequestPayout} className="space-y-3">
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded border border-slate-200 bg-white p-2 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                    <PhoneIcon className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase text-slate-400">
+                      Payout recipient
+                    </p>
+                    <p className="truncate font-mono text-xs font-bold">
+                      {summary.payoutPhone || "Not configured"}
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div>
-                <div className="flex justify-between items-center text-xs sm:text-sm mb-1.5">
-                  <label className="font-semibold text-slate-700 dark:text-slate-300">
-                    Amount (KES)
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <label
+                    htmlFor="payout-amount"
+                    className="text-xs font-bold text-slate-700 dark:text-slate-300"
+                  >
+                    Amount
                   </label>
-                  <span className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs">
-                    Max: KES {summary.currentBalance.toLocaleString()}
+                  <span className="text-[10px] font-medium text-slate-400">
+                    Available {money(summary.currentBalance)}
                   </span>
                 </div>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="1"
-                  max={summary.currentBalance}
-                  placeholder="e.g. 5000"
-                  value={payoutAmount}
-                  onChange={(e) => setPayoutAmount(e.target.value)}
-                  className="w-full px-3.5 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs sm:text-sm text-slate-900 dark:text-slate-100"
-                  required
-                />
-              </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3">
+                <div className="relative">
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                    KES
+                  </span>
+                  <input
+                    id="payout-amount"
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min="1"
+                    max={summary.currentBalance}
+                    placeholder="0.00"
+                    value={payoutAmount}
+                    onChange={(e) => setPayoutAmount(e.target.value)}
+                    className="min-h-[40px] w-full rounded-md border border-slate-200 bg-white pl-12 pr-3 text-sm font-bold text-slate-900 outline-none transition placeholder:text-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-600"
+                    required
+                  />
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                  onClick={() => setPayoutAmount(String(summary.currentBalance))}
+                  className="mt-1.5 text-[11px] font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400"
+                >
+                  Use full available balance
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 border-t border-slate-200 pt-3 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={closeModal}
                   disabled={isSubmitting}
+                  className="min-h-[38px] rounded-md bg-slate-100 px-3 text-xs font-bold text-slate-700 transition hover:bg-slate-200 disabled:opacity-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
                   Cancel
                 </button>
+
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 rounded-xl transition-all disabled:opacity-50"
+                  className="inline-flex min-h-[38px] items-center justify-center gap-1.5 rounded-md bg-emerald-600 px-3 text-xs font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-emerald-500 dark:hover:bg-emerald-600"
                 >
-                  {isSubmitting && <ArrowPathIcon className="w-4 h-4 animate-spin" />}
-                  <span>{isSubmitting ? "Processing..." : "Confirm & Request"}</span>
+                  {isSubmitting && (
+                    <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" />
+                  )}
+                  {isSubmitting ? "Processing..." : "Confirm payout"}
                 </button>
               </div>
             </form>
@@ -387,120 +511,347 @@ export const VendorDashboard: React.FC = () => {
   );
 };
 
-// =========================================================
-// TRANSACTION LEDGER TABLE COMPONENT
-// =========================================================
+/* -------------------------------------------------------------------------- */
+/* Dashboard Loader                                                            */
+/* -------------------------------------------------------------------------- */
+
+const DashboardLoader: React.FC = () => (
+  <div className="flex min-h-[60vh] items-center justify-center bg-slate-50 px-4 dark:bg-gray-900">
+    <div className="w-full max-w-sm rounded-md border border-slate-200 bg-white p-6 text-center shadow-sm dark:border-slate-800 dark:bg-gray-800">
+      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800/50">
+        <ArrowPathIcon className="h-5 w-5 animate-spin text-emerald-600 dark:text-emerald-400" />
+      </div>
+      <p className="text-xs font-bold">Loading vendor dashboard</p>
+      <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+        Fetching your latest balances and metrics...
+      </p>
+    </div>
+  </div>
+);
+
+/* -------------------------------------------------------------------------- */
+/* Metric Card Theme Component                                                */
+/* -------------------------------------------------------------------------- */
+
+interface MetricCardProps {
+  label: string;
+  value: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  tone: "emerald" | "blue" | "slate";
+  trend?: string;
+  footer: React.ReactNode;
+  className?: string;
+  valueClassName?: string;
+}
+
+const MetricCard: React.FC<MetricCardProps> = ({
+  label,
+  value,
+  icon: Icon,
+  trend,
+  footer,
+  className = "",
+  valueClassName = "",
+}) => {
+  return (
+    <div
+      className={`bg-white dark:bg-gray-800 p-4 rounded-md border border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-colors ${className}`}
+    >
+      <div>
+        <div className="flex justify-between items-start">
+          <div className="p-2 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
+            <Icon className="w-4 h-4" />
+          </div>
+          {trend && (
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-sans text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-1.5 py-0.5 rounded">
+                {trend}
+              </span>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            {label}
+          </p>
+          <p
+            className={`mt-1 break-words text-lg font-bold tracking-tight sm:text-xl text-slate-900 dark:text-white ${valueClassName}`}
+          >
+            {value}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 border-t border-slate-100 dark:border-slate-800/60 pt-2 text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
+        {footer}
+      </div>
+    </div>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/* Alert Helper                                                               */
+/* -------------------------------------------------------------------------- */
+
+const Alert: React.FC<{
+  type: "success" | "error";
+  message: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+}> = ({ type, message, icon: Icon }) => (
+  <div
+    className={`mb-3 flex items-start gap-2 rounded border p-2.5 text-xs ${
+      type === "success"
+        ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300"
+        : "border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300"
+    }`}
+  >
+    <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+    <span>{message}</span>
+  </div>
+);
+
+/* -------------------------------------------------------------------------- */
+/* Ledger View                                                                */
+/* -------------------------------------------------------------------------- */
+
 const LedgerTable: React.FC<{ ledger: LedgerEntry[] }> = ({ ledger }) => {
   if (ledger.length === 0) {
-    return (
-      <div className="p-8 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-        No ledger transactions recorded yet.
-      </div>
-    );
+    return <EmptyState message="No ledger transactions recorded yet." />;
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-        <thead className="bg-slate-50 dark:bg-slate-800/60 text-[11px] sm:text-xs uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 font-bold">
-          <tr>
-            <th className="px-4 sm:px-6 py-3.5">Receipt No.</th>
-            <th className="px-4 sm:px-6 py-3.5">Date & Time</th>
-            <th className="px-4 sm:px-6 py-3.5">Gross Amount</th>
-            <th className="px-4 sm:px-6 py-3.5">Platform Fee</th>
-            <th className="px-4 sm:px-6 py-3.5 text-right">Net Credited</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-          {ledger.map((entry) => (
-            <tr key={entry.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-              <td className="px-4 sm:px-6 py-4 font-mono font-semibold text-slate-900 dark:text-slate-100">
-                {entry.mpesaReceiptNumber}
-              </td>
-              <td className="px-4 sm:px-6 py-4 text-slate-500 dark:text-slate-400">
-                {new Date(entry.createdAt).toLocaleString()}
-              </td>
-              <td className="px-4 sm:px-6 py-4 font-semibold text-slate-800 dark:text-slate-200">
-                KES {Number(entry.grossAmount || 0).toFixed(2)}
-              </td>
-              <td className="px-4 sm:px-6 py-4 text-red-600 dark:text-red-400 font-semibold">
-                - KES {Number(entry.platformFee || 0).toFixed(2)}
-              </td>
-              <td className="px-4 sm:px-6 py-4 text-emerald-600 dark:text-emerald-400 font-bold text-right">
-                KES {Number(entry.netAmount || 0).toFixed(2)}
-              </td>
+    <>
+      {/* Mobile Card Layout */}
+      <div className="divide-y divide-slate-100 md:hidden dark:divide-slate-800">
+        {ledger.map((entry) => (
+          <article key={entry.id} className="p-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  M-Pesa receipt
+                </p>
+                <p className="mt-0.5 truncate font-mono text-xs font-bold text-slate-800 dark:text-slate-200">
+                  {entry.mpesaReceiptNumber}
+                </p>
+              </div>
+
+              <p className="shrink-0 text-right text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                {money(entry.netAmount)}
+              </p>
+            </div>
+
+            <div className="mt-2 grid grid-cols-2 gap-2 rounded border border-slate-200 bg-slate-50 p-2 text-[11px] dark:border-slate-800 dark:bg-slate-800/40">
+              <Detail label="Date" value={dateTime(entry.createdAt)} />
+              <Detail label="Gross" value={money(entry.grossAmount)} />
+              <Detail
+                label="Platform fee"
+                value={`- ${money(entry.platformFee)}`}
+                valueClassName="text-red-600 dark:text-red-400"
+              />
+              <Detail
+                label="Net credited"
+                value={money(entry.netAmount)}
+                valueClassName="font-bold text-emerald-600 dark:text-emerald-400"
+              />
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full min-w-[640px] text-left text-xs">
+          <thead className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400">
+            <tr>
+              <th className="px-4 py-3">Receipt no.</th>
+              <th className="px-4 py-3">Date & time</th>
+              <th className="px-4 py-3">Gross amount</th>
+              <th className="px-4 py-3">Platform fee</th>
+              <th className="px-4 py-3 text-right">Net credited</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {ledger.map((entry) => (
+              <tr
+                key={entry.id}
+                className="transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+              >
+                <td className="px-4 py-3 font-mono font-bold text-slate-800 dark:text-slate-200">
+                  {entry.mpesaReceiptNumber}
+                </td>
+                <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                  {dateTime(entry.createdAt)}
+                </td>
+                <td className="px-4 py-3 font-medium">
+                  {money(entry.grossAmount)}
+                </td>
+                <td className="px-4 py-3 font-medium text-red-600 dark:text-red-400">
+                  - {money(entry.platformFee)}
+                </td>
+                <td className="px-4 py-3 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                  {money(entry.netAmount)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 };
 
-// =========================================================
-// DISBURSEMENT PAYOUTS TABLE COMPONENT
-// =========================================================
+/* -------------------------------------------------------------------------- */
+/* Payouts View                                                               */
+/* -------------------------------------------------------------------------- */
+
 const PayoutsTable: React.FC<{ payouts: PayoutRecord[] }> = ({ payouts }) => {
   if (payouts.length === 0) {
-    return (
-      <div className="p-8 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-        No disbursement payout attempts recorded.
-      </div>
-    );
+    return <EmptyState message="No disbursement payout attempts recorded." />;
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-        <thead className="bg-slate-50 dark:bg-slate-800/60 text-[11px] sm:text-xs uppercase text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800 font-bold">
-          <tr>
-            <th className="px-4 sm:px-6 py-3.5">Payout ID</th>
-            <th className="px-4 sm:px-6 py-3.5">Recipient Phone</th>
-            <th className="px-4 sm:px-6 py-3.5">Amount</th>
-            <th className="px-4 sm:px-6 py-3.5">Status</th>
-            <th className="px-4 sm:px-6 py-3.5">Date</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-          {payouts.map((payout) => (
-            <tr key={payout.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-              <td className="px-4 sm:px-6 py-4 font-mono text-slate-500 dark:text-slate-400">
-                {payout.id.slice(0, 8)}...
-              </td>
-              <td className="px-4 sm:px-6 py-4 font-mono font-semibold text-slate-900 dark:text-slate-100">
-                {payout.phoneNumber}
-              </td>
-              <td className="px-4 sm:px-6 py-4 font-bold text-slate-900 dark:text-slate-100">
-                KES {Number(payout.amount || 0).toFixed(2)}
-              </td>
-              <td className="px-4 sm:px-6 py-4">
-                <StatusBadge status={payout.status} />
-              </td>
-              <td className="px-4 sm:px-6 py-4 text-slate-500 dark:text-slate-400">
-                {new Date(payout.createdAt).toLocaleString()}
-              </td>
+    <>
+      {/* Mobile Card Layout */}
+      <div className="divide-y divide-slate-100 md:hidden dark:divide-slate-800">
+        {payouts.map((payout) => (
+          <article key={payout.id} className="p-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Payout ID
+                </p>
+                <p className="mt-0.5 truncate font-mono text-xs font-bold text-slate-600 dark:text-slate-300">
+                  {payout.id}
+                </p>
+              </div>
+
+              <StatusBadge status={payout.status} />
+            </div>
+
+            <div className="mt-2 flex items-center justify-between rounded border border-slate-200 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-800/40">
+              <div>
+                <p className="text-[9px] font-bold uppercase text-slate-400">
+                  Amount
+                </p>
+                <p className="mt-0.5 text-sm font-bold">
+                  {money(payout.amount)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-[9px] font-bold uppercase text-slate-400">
+                  Recipient
+                </p>
+                <p className="mt-0.5 font-mono text-xs font-bold">
+                  {payout.phoneNumber}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-2 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+              <ClockIcon className="h-3.5 w-3.5 shrink-0" />
+              {dateTime(payout.createdAt)}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden overflow-x-auto md:block">
+        <table className="w-full min-w-[640px] text-left text-xs">
+          <thead className="border-b border-slate-200 bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-400">
+            <tr>
+              <th className="px-4 py-3">Payout ID</th>
+              <th className="px-4 py-3">Recipient</th>
+              <th className="px-4 py-3">Amount</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Date</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            {payouts.map((payout) => (
+              <tr
+                key={payout.id}
+                className="transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+              >
+                <td className="px-4 py-3 font-mono text-slate-500 dark:text-slate-400">
+                  {payout.id.slice(0, 12)}...
+                </td>
+                <td className="px-4 py-3 font-mono font-bold">
+                  {payout.phoneNumber}
+                </td>
+                <td className="px-4 py-3 font-bold">
+                  {money(payout.amount)}
+                </td>
+                <td className="px-4 py-3">
+                  <StatusBadge status={payout.status} />
+                </td>
+                <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                  {dateTime(payout.createdAt)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 };
 
-// =========================================================
-// STATUS BADGE UTILITY
-// =========================================================
+/* -------------------------------------------------------------------------- */
+/* Sub-components & Utilities                                                 */
+/* -------------------------------------------------------------------------- */
+
+const Detail: React.FC<{
+  label: string;
+  value: string;
+  valueClassName?: string;
+}> = ({ label, value, valueClassName = "" }) => (
+  <div className="min-w-0">
+    <p className="text-[9px] font-bold uppercase text-slate-400">{label}</p>
+    <p className={`mt-0.5 truncate font-medium text-slate-700 dark:text-slate-300 ${valueClassName}`}>
+      {value}
+    </p>
+  </div>
+);
+
+const EmptyState: React.FC<{ message: string }> = ({ message }) => (
+  <div className="flex min-h-[180px] flex-col items-center justify-center p-6 text-center">
+    <div className="mb-2 rounded border border-slate-200 bg-slate-50 p-2 text-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-500">
+      <QueueListIcon className="h-5 w-5" />
+    </div>
+    <p className="text-xs font-bold text-slate-600 dark:text-slate-300">
+      No Records Found
+    </p>
+    <p className="mt-0.5 max-w-xs text-[11px] text-slate-400">{message}</p>
+  </div>
+);
+
 const StatusBadge: React.FC<{ status: PayoutStatus }> = ({ status }) => {
   const styles: Record<PayoutStatus, string> = {
-    SUCCESS: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
-    PROCESSING: "bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800",
-    PENDING: "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800",
-    FAILED: "bg-red-100 dark:bg-red-950/60 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800",
+    SUCCESS:
+      "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-900/50",
+    PROCESSING:
+      "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-900/50",
+    PENDING:
+      "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-900/50",
+    FAILED:
+      "bg-red-50 text-red-600 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-900/50",
+  };
+
+  const labels: Record<PayoutStatus, string> = {
+    SUCCESS: "Successful",
+    PROCESSING: "Processing",
+    PENDING: "Pending",
+    FAILED: "Failed",
   };
 
   return (
-    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${styles[status]}`}>
-      {status}
+    <span
+      className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[9px] font-bold uppercase ${styles[status]}`}
+    >
+      <span className="h-1 w-1 rounded-full bg-current" />
+      {labels[status]}
     </span>
   );
 };

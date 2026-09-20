@@ -77,7 +77,7 @@ export function TrafficThroughputChart({ data, loading }: ChartProps) {
   }, [data]);
 
   return (
-    <div className="lg:col-span-2 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="lg:col-span-2 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-gray-800">
       {/* Header Bar */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
