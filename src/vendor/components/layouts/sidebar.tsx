@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { 
   CircleStackIcon,
   BanknotesIcon,
+  CurrencyDollarIcon,
   BookOpenIcon,
   ReceiptPercentIcon
 } from "@heroicons/react/24/outline";
@@ -99,7 +100,7 @@ const navSections: NavSection[] = [
     ]
   },
 
-  {
+ {
     title: "Vendor & Finance",
     items: [
       { 
@@ -113,6 +114,13 @@ const navSections: NavSection[] = [
         to: "/dashboard/vendor/payouts", 
         label: "Disbursement Payouts", 
         icon: ReceiptPercentIcon, 
+        color: "text-teal-600 dark:text-teal-400", 
+        bgHover: "hover:bg-teal-50/60 dark:hover:bg-teal-950/10 hover:text-teal-700 dark:hover:text-teal-400" 
+      },
+      { 
+        to: "/dashboard/vendor/micro-loans", 
+        label: "Micro-Loan Hub", 
+        icon: CurrencyDollarIcon, // Or any appropriate Heroicon of your choice
         color: "text-teal-600 dark:text-teal-400", 
         bgHover: "hover:bg-teal-50/60 dark:hover:bg-teal-950/10 hover:text-teal-700 dark:hover:text-teal-400" 
       },

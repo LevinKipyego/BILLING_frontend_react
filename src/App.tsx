@@ -54,6 +54,7 @@ import DeploymentProgress from "./vendor/pages/dashboard/NetworkDeployments/Depl
 import { SmsTemplateManager } from "./vendor/pages/dashboard/Sms/SmsTemplateManager";
 import { SmsAnalyticsDashboard } from "./vendor/pages/dashboard/Sms/SmsAnalyticsDashboard";
 import { VendorDashboard } from "./vendor/pages/dashboard/B2C/components/MainVendorLedger";
+import { VendorLoanHub } from "./vendor/pages/dashboard/mikroloans/MikroLoans";
 
 export default function App() {
   return (
@@ -158,6 +159,12 @@ export default function App() {
                 path="vendor/ledgers"
                 element={< VendorDashboard />}
               />
+
+              <Route
+                path="vendor/micro-loans"
+                element={< VendorLoanHub />}
+              />
+
 
               {/* PPPoE */}
               <Route
