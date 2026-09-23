@@ -111,8 +111,8 @@ const navSections: NavSection[] = [
         bgHover: "hover:bg-teal-50/60 dark:hover:bg-teal-950/10 hover:text-teal-700 dark:hover:text-teal-400" 
       },
       { 
-        to: "/dashboard/vendor/payouts", 
-        label: "Disbursement Payouts", 
+        to: "/dashboard/vendor/invoices", 
+        label: "Invoices", 
         icon: ReceiptPercentIcon, 
         color: "text-teal-600 dark:text-teal-400", 
         bgHover: "hover:bg-teal-50/60 dark:hover:bg-teal-950/10 hover:text-teal-700 dark:hover:text-teal-400" 
