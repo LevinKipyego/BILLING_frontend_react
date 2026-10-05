@@ -1,4 +1,5 @@
 import { BaseUrl } from "../../BaseUrl";
+import { v4 as uuidv4 } from "uuid";
 
 const API_BASE =
   `${BaseUrl}/api`;
@@ -74,40 +75,33 @@ export async function logout(callApi = true) {
   }
 }
 
-/* -------------------------------------------------- */
-/* API FETCH                                          */
-/* -------------------------------------------------- */
-
 export async function apiFetch<T = any>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  let access = localStorage.getItem("access_token");
+  const makeHeaders = (token?: string) => {
+    const headers = new Headers(options.headers);
 
-  const headers = new Headers(options.headers);
+    if (!(options.body instanceof FormData)) {
+      headers.set("Content-Type", "application/json");
+    }
 
-  if (!(options.body instanceof FormData)) {
-    headers.set("Content-Type", "application/json");
-  }
+    if (token) {
+      headers.set("Authorization", `Bearer ${token}`);
+    }
 
-  
+    return headers;
+  };
 
-  if (access) {
-    headers.set(
-      "Authorization",
-      `Bearer ${access}`
-    );
-  }
+  const access = localStorage.getItem("access_token");
 
   let response = await fetch(
     `${API_BASE}${endpoint}`,
     {
       ...options,
-      headers,
+      headers: makeHeaders(access || undefined),
     }
   );
-
-  
 
   /* ------------------------------------------ */
   /* SUCCESS                                    */
@@ -118,25 +112,25 @@ export async function apiFetch<T = any>(
   }
 
   /* ------------------------------------------ */
-  /* ONLY HANDLE TOKEN EXPIRY                   */
+  /* NON-AUTHENTICATION ERROR                   */
   /* ------------------------------------------ */
 
-  if (
-    response.status !== 401 &&
-    response.status !== 403
-) { 
-    const error =
-      await response.json().catch(() => ({}));
+  if (response.status !== 401 && response.status !== 403) {
+    const error = await response.json().catch(() => ({}));
 
     throw new Error(
-      
+      error.detail ||
       error.message ||
+      error.error ||
       `HTTP ${response.status}`
     );
   }
 
-  const refresh =
-    localStorage.getItem("refresh_token");
+  /* ------------------------------------------ */
+  /* GET REFRESH TOKEN                          */
+  /* ------------------------------------------ */
+
+  const refresh = localStorage.getItem("refresh_token");
 
   if (!refresh) {
     await logout(false);
@@ -144,7 +138,7 @@ export async function apiFetch<T = any>(
   }
 
   /* ------------------------------------------ */
-  /* FIRST REQUEST DOES REFRESH                 */
+  /* REFRESH TOKEN                              */
   /* ------------------------------------------ */
 
   if (!isRefreshing) {
@@ -156,8 +150,7 @@ export async function apiFetch<T = any>(
         {
           method: "POST",
           headers: {
-            "Content-Type":
-              "application/json",
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             refresh,
@@ -166,19 +159,17 @@ export async function apiFetch<T = any>(
       );
 
       if (!refreshResponse.ok) {
-        throw new Error(
-          "Refresh token expired."
-        );
+        throw new Error("Refresh token expired.");
       }
 
-      const refreshData =
-        await refreshResponse.json();
+      const refreshData = await refreshResponse.json();
 
-      const newAccess =
-        refreshData.tokens.access;
+      const newAccess = refreshData.tokens.access;
+      const newRefresh = refreshData.tokens.refresh;
 
-      const newRefresh =
-        refreshData.tokens.refresh;
+      if (!newAccess || !newRefresh) {
+        throw new Error("Invalid refresh response.");
+      }
 
       localStorage.setItem(
         "access_token",
@@ -190,7 +181,9 @@ export async function apiFetch<T = any>(
         newRefresh
       );
 
-      window.dispatchEvent(new Event("auth-changed"));
+      window.dispatchEvent(
+        new Event("auth-changed")
+      );
 
       notifySubscribers(newAccess);
     } catch (err) {
@@ -205,13 +198,15 @@ export async function apiFetch<T = any>(
   }
 
   /* ------------------------------------------ */
-  /* WAIT FOR REFRESH                           */
+  /* WAIT FOR REFRESH AND RETRY                 */
   /* ------------------------------------------ */
 
   return new Promise<T>((resolve, reject) => {
     subscribeTokenRefresh(async (token) => {
       if (!token) {
-        reject("Refresh failed.");
+        reject(
+          new Error("Authentication refresh failed.")
+        );
         return;
       }
 
@@ -240,15 +235,19 @@ export async function apiFetch<T = any>(
         );
 
         if (!retry.ok) {
+          const error =
+            await retry.json().catch(() => ({}));
+
           throw new Error(
+            error.detail ||
+            error.message ||
+            error.error ||
             `HTTP ${retry.status}`
           );
         }
 
         resolve(
-          await retry
-            .json()
-            .catch(() => ({}))
+          await retry.json().catch(() => ({}))
         );
       } catch (err) {
         reject(err);
@@ -264,13 +263,35 @@ export function apiGet<T>(
     return apiFetch<T>(endpoint);
 }
 
+
+
+type ApiPostOptions = {
+    idempotent?: boolean;
+    idempotencyKey?: string;
+};
+
 export function apiPost<T>(
     endpoint: string,
     body?: unknown,
-) {
+    options: ApiPostOptions = {},
+): Promise<T> {
+    const headers: Record<string, string> = {};
+
+    if (body !== undefined) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    if (options.idempotent) {
+        headers["Idempotency-Key"] =
+            options.idempotencyKey ?? uuidv4();
+    }
+
     return apiFetch<T>(endpoint, {
         method: "POST",
-        body: JSON.stringify(body),
+        headers,
+        ...(body !== undefined && {
+            body: JSON.stringify(body),
+        }),
     });
 }
 

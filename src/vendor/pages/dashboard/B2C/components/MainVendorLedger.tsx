@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { apiGet, apiPost } from "../../../../api/client";
+import { useRef } from "react";
+import { v4 as uuidv4 } from "uuid";
 import type {
   VendorDashboardData,
   LedgerEntry,
@@ -89,62 +91,89 @@ export const VendorDashboard: React.FC = () => {
     setPayoutAmount("");
   };
 
-  const handleRequestPayout = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPayoutError(null);
-    setPayoutSuccess(null);
+  const payoutIdempotencyKey = useRef<string | null>(null);
 
-    if (!data) return;
+const handleRequestPayout = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    const amount = parseFloat(payoutAmount);
+  setPayoutError(null);
+  setPayoutSuccess(null);
 
-    if (isNaN(amount) || amount <= 0) {
-      setPayoutError("Please enter a valid payout amount.");
-      return;
-    }
+  if (!data || isSubmitting) return;
 
-    if (amount > data.summary.currentBalance) {
-      setPayoutError("Requested amount exceeds your current working balance.");
-      return;
-    }
+  const amount = parseFloat(payoutAmount);
 
-    const formattedPhone = normalizePhoneNumber(data.summary.payoutPhone || "");
+  if (!Number.isFinite(amount) || amount <= 0) {
+    setPayoutError("Please enter a valid payout amount.");
+    return;
+  }
 
-    if (!/^254[71]\d{8}$/.test(formattedPhone)) {
-      setPayoutError(
-        "Please configure a valid Safaricom payout phone number first."
-      );
-      return;
-    }
+  if (amount > data.summary.currentBalance) {
+    setPayoutError(
+      "Requested amount exceeds your current working balance."
+    );
+    return;
+  }
 
-    try {
-      setIsSubmitting(true);
+  const formattedPhone = normalizePhoneNumber(
+    data.summary.payoutPhone || ""
+  );
 
-      const response = await apiPost<{
-        message: string;
-        payout: PayoutRecord;
-      }>("/v1/vendor/payouts/request/", { amount });
+  if (!/^254[71]\d{8}$/.test(formattedPhone)) {
+    setPayoutError(
+      "Please configure a valid Safaricom payout phone number first."
+    );
+    return;
+  }
 
-      setPayoutSuccess(
-        response.message || "Payout request initiated successfully!"
-      );
-      setPayoutAmount("");
 
-      await fetchDashboardData();
+  if (!payoutIdempotencyKey.current) {
+    payoutIdempotencyKey.current = uuidv4();
+  }
 
-      setTimeout(() => {
-        setIsModalOpen(false);
-        setPayoutSuccess(null);
-      }, 1500);
-    } catch (err: any) {
-      console.error("Payout request failed:", err);
-      setPayoutError(
-        err.message || "Failed to trigger payout. Please try again."
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  try {
+    setIsSubmitting(true);
+
+    const response = await apiPost<{
+      message: string;
+      payout: PayoutRecord;
+    }>(
+      "/v1/vendor/payouts/request/",
+      { amount },
+      {
+        idempotent: true,
+        idempotencyKey: payoutIdempotencyKey.current,
+      }
+    );
+
+    
+    payoutIdempotencyKey.current = null;
+
+    setPayoutSuccess(
+      response.message ||
+        "Payout request initiated successfully!"
+    );
+
+    setPayoutAmount("");
+
+    await fetchDashboardData();
+
+    setTimeout(() => {
+      setIsModalOpen(false);
+      setPayoutSuccess(null);
+    }, 1500);
+  } catch (err: any) {
+    console.error("Payout request failed:", err);
+
+    
+    setPayoutError(
+      err?.message ||
+        "Failed to trigger payout. Please try again."
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   if (loading && !data) {
     return <DashboardLoader />;
