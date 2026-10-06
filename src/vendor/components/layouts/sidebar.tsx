@@ -101,31 +101,27 @@ const navSections: NavSection[] = [
   },
 
  {
-    title: "Vendor & Finance",
-    items: [
-      { 
-        to: "/dashboard/vendor/ledgers", 
-        label: "Ledgers", 
-        icon: BookOpenIcon, 
-        color: "text-teal-600 dark:text-teal-400", 
-        bgHover: "hover:bg-teal-50/60 dark:hover:bg-teal-950/10 hover:text-teal-700 dark:hover:text-teal-400" 
-      },
-      { 
-        to: "/dashboard/vendor/invoices", 
-        label: "Invoices", 
-        icon: ReceiptPercentIcon, 
-        color: "text-teal-600 dark:text-teal-400", 
-        bgHover: "hover:bg-teal-50/60 dark:hover:bg-teal-950/10 hover:text-teal-700 dark:hover:text-teal-400" 
-      },
-      { 
-        to: "/dashboard/vendor/micro-loans", 
-        label: "Micro-Loan Hub", 
-        icon: CurrencyDollarIcon, // Or any appropriate Heroicon of your choice
-        color: "text-teal-600 dark:text-teal-400", 
-        bgHover: "hover:bg-teal-50/60 dark:hover:bg-teal-950/10 hover:text-teal-700 dark:hover:text-teal-400" 
-      },
-    ]
-  },
+    
+  title: "Vendor & Finance",
+  items: [
+    {
+      to: "/dashboard/vendor/payouts",
+      label: "Payouts",
+      icon: BanknotesIcon,
+      color: "text-emerald-600 dark:text-emerald-400",
+      bgHover:
+        "hover:bg-emerald-50/60 dark:hover:bg-emerald-950/10 hover:text-emerald-700 dark:hover:text-emerald-400",
+    },
+    {
+      to: "/dashboard/vendor/micro-loans",
+      label: "Micro-Loan Hub",
+      icon: CurrencyDollarIcon,
+      color: "text-teal-600 dark:text-teal-400",
+      bgHover:
+        "hover:bg-teal-50/60 dark:hover:bg-teal-950/10 hover:text-teal-700 dark:hover:text-teal-400",
+    },
+  ],
+},
 
   {
     title: "SMS Management",

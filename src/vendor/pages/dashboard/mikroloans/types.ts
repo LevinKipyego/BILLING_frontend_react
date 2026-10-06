@@ -40,6 +40,16 @@ export interface LoanAnalytics {
     total_repaid: number;
     total_outstanding: number;
     active_loans_count: number;
+    partially_paid_count: number;
     defaulted_loans_count: number;
     paid_loans_count: number;
+    total_portfolio_count: number;
+    repeat_borrowers_count: number;
+    avg_repayment_time_hours: number;
+    repayment_success_rate: number;
+    peak_time_distribution: Array<{
+        time: string;
+        borrow: number;
+        pay: number;
+    }>;
 }

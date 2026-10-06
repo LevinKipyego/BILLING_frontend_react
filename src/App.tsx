@@ -55,7 +55,8 @@ import { SmsTemplateManager } from "./vendor/pages/dashboard/Sms/SmsTemplateMana
 import { SmsAnalyticsDashboard } from "./vendor/pages/dashboard/Sms/SmsAnalyticsDashboard";
 import { VendorDashboard } from "./vendor/pages/dashboard/B2C/components/MainVendorLedger";
 import { VendorLoanHub } from "./vendor/pages/dashboard/mikroloans/MikroLoans";
-import { Invoices } from "./vendor/pages/dashboard/B2C/components/Invoices";
+
+import PayOutPanel from "./vendor/pages/dashboard/B2C002/PayOutPanel";
 
 export default function App() {
   return (
@@ -162,8 +163,9 @@ export default function App() {
               />
 
               <Route
-                path="vendor/invoices"
-                element={< Invoices />}
+                path="vendor/payouts"
+                element={< PayOutPanel 
+                />}
               />
 
               <Route

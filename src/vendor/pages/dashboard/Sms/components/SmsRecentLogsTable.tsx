@@ -120,6 +120,7 @@ export const SmsRecentLogsTable: React.FC<SmsRecentLogsTableProps> = ({
       {/* Responsive Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
+          
           <thead>
             <tr className="border-b border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400 font-medium">
               <th className="py-2 px-2.5">Recipient</th>
@@ -131,6 +132,7 @@ export const SmsRecentLogsTable: React.FC<SmsRecentLogsTableProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-gray-800/60 text-slate-700 dark:text-slate-300">
+            
             {isLoading ? (
               // Loading state placeholder
               <tr>

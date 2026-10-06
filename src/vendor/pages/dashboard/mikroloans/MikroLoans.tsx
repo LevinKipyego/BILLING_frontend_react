@@ -1,3 +1,5 @@
+// src/components/VendorLoanHub.tsx
+
 import React, { useState, useEffect } from 'react';
 import type { LoanPackage, MicroLoan, LoanAnalytics } from './types';
 import { fetchLoanPackages, fetchMicroLoans, fetchLoanAnalytics } from './api/loan';
@@ -62,7 +64,7 @@ export const VendorLoanHub: React.FC = () => {
 
     if (loading || !vendorId) {
         return (
-            <div className="p-6 text-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 min-h-screen flex items-center justify-center text-xs sm:text-sm">
+            <div className="p-8 text-center text-slate-400 dark:text-slate-500 bg-white dark:bg-gray-900 min-h-[60vh] flex items-center justify-center text-xs sm:text-sm">
                 Loading Micro-Loan Hub...
             </div>
         );
@@ -71,46 +73,53 @@ export const VendorLoanHub: React.FC = () => {
     const pendingLoansCount = loans.filter(l => l.status === 'PENDING').length;
 
     return (
-        <div className="p-3 sm:p-6 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100 transition-colors">
-            <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
-                {/* Header Title */}
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <span>⚡</span> Emergency Micro-Loan Hub
-                </h1>
+        <div className="w-full px-2 py-2 sm:px-4 sm:py-4 lg:px-6">
+            <div className="mx-auto w-full max-w-7xl space-y-3">
+                {/* Header Title & Banner */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg px-4 sm:px-5 py-3.5 shadow-sm">
+                    <div className="min-w-0">
+                        <h1 className="text-sm sm:text-base font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                            <span>⚡</span> Emergency Micro-Loan Hub
+                        </h1>
+                        <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                            Monitor loan portfolios, review client repayment frequencies, and configure tiers.
+                        </p>
+                    </div>
+                </div>
 
                 {/* Navigation Tabs - Mobile Scrollable & Responsive */}
-                <div className="flex border-b border-gray-200 dark:border-gray-800 gap-2 sm:gap-4 overflow-x-auto no-scrollbar">
+                <div className="flex bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg px-3 gap-2 sm:gap-4 overflow-x-auto shadow-sm">
                     <button
-                        className={`py-2 px-3 sm:px-4 font-semibold text-xs sm:text-sm border-b-2 transition-colors whitespace-nowrap ${
+                        className={`py-3 px-3 sm:px-4 font-medium text-xs sm:text-[13px] border-b-2 transition-colors whitespace-nowrap ${
                             activeTab === 'analytics' 
                                 ? 'border-amber-500 text-amber-600 dark:text-amber-400' 
-                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                         }`}
                         onClick={() => setActiveTab('analytics')}
                     >
                         📊 Analytics & Graph
                     </button>
                     <button
-                        className={`py-2 px-3 sm:px-4 font-semibold text-xs sm:text-sm border-b-2 transition-colors whitespace-nowrap ${
+                        className={`py-3 px-3 sm:px-4 font-medium text-xs sm:text-[13px] border-b-2 transition-colors whitespace-nowrap ${
                             activeTab === 'packages' 
                                 ? 'border-amber-500 text-amber-600 dark:text-amber-400' 
-                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                         }`}
                         onClick={() => setActiveTab('packages')}
                     >
                         ⚙️ Loan Plans (Tiers)
                     </button>
                     <button
-                        className={`py-2 px-3 sm:px-4 font-semibold text-xs sm:text-sm border-b-2 transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+                        className={`py-3 px-3 sm:px-4 font-medium text-xs sm:text-[13px] border-b-2 transition-colors whitespace-nowrap flex items-center gap-1.5 ${
                             activeTab === 'loans' 
                                 ? 'border-amber-500 text-amber-600 dark:text-amber-400' 
-                                : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                                : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
                         }`}
                         onClick={() => setActiveTab('loans')}
                     >
                         <span>👥 Loaned Clients</span>
                         {pendingLoansCount > 0 && (
-                            <span className="bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-400 text-[10px] px-1.5 py-0.5 rounded-full font-bold border border-amber-300 dark:border-amber-800/40">
+                            <span className="bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] px-2 py-0.5 rounded font-medium border border-amber-500/20 font-mono">
                                 {pendingLoansCount}
                             </span>
                         )}
@@ -118,7 +127,7 @@ export const VendorLoanHub: React.FC = () => {
                 </div>
 
                 {/* Tab Content Section */}
-                <div className="pt-2">
+                <div className="pt-1">
                     {activeTab === 'analytics' && <AnalyticsSection analytics={analytics} />}
                     {activeTab === 'packages' && <PlanSection packages={packages} vendorId={vendorId} routers={routers} onRefresh={loadData} />}
                     {activeTab === 'loans' && <LoanClientsSection loans={loans} />}
