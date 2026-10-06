@@ -1,3 +1,4 @@
+
 // src/components/payouts/PayoutHistory.tsx
 
 import { useEffect, useState } from "react";
@@ -65,116 +66,201 @@ export default function PayoutHistory() {
 
       {/* Loading */}
       {loading ? (
-        <div className="p-4 text-[11px] text-slate-400 dark:text-slate-500 bg-white dark:bg-gray-900">
+        <div className="border-t border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3.5 py-4 text-[11px] text-slate-400 dark:text-slate-500">
           Loading payout history...
         </div>
       ) : error ? (
         /* Error */
-        <div className="border-t border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/50 p-4 text-[11px] text-red-600 dark:text-red-400 font-medium">
+        <div className="border-t border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/30 px-3.5 py-3 text-[11px] font-medium text-red-600 dark:text-red-400">
           {error}
         </div>
       ) : records.length === 0 ? (
         /* Empty */
-        <div className="p-6 text-center text-[11px] text-slate-400 dark:text-slate-500 font-medium bg-white dark:bg-gray-900">
+        <div className="border-t border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-8 text-center text-[11px] font-medium text-slate-400 dark:text-slate-500">
           No payouts yet.
         </div>
       ) : (
         <>
-          {/* =========================
-              Desktop Table View
-          ========================== */}
-          <div className="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg p-4 sm:p-5 shadow-sm">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400 font-medium">
-                  <th className="py-2 px-2.5">Date</th>
-                  <th className="py-2 px-2.5">Amount</th>
-                  <th className="py-2 px-2.5">Phone</th>
-                  <th className="py-2 px-2.5">Status</th>
-                  <th className="py-2 px-2.5 text-right">Receipt</th>
-                </tr>
-              </thead>
+          {/* =====================================================
+              Desktop Table
+          ====================================================== */}
+          <div className="hidden sm:block border-t border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-gray-800 text-slate-500 dark:text-slate-400">
+                    <th className="px-3 py-2.5 font-medium">
+                      Date
+                    </th>
 
-              <tbody className="divide-y divide-slate-100 dark:divide-gray-800/60 text-slate-700 dark:text-slate-300">
-                {records.map((record) => (
-                  <tr
-                    key={record.id}
-                    className="hover:bg-slate-50/50 dark:hover:bg-gray-800/40 transition-colors"
-                  >
-                    <td className="py-2.5 px-2.5 text-[11px] text-slate-500 dark:text-slate-400 whitespace-nowrap">
-                      {formatShortDate(record.createdAt)}
-                    </td>
+                    <th className="px-3 py-2.5 font-medium">
+                      Amount
+                    </th>
 
-                    <td className="py-2.5 px-2.5 text-[12px] font-semibold text-slate-900 dark:text-slate-100 font-mono whitespace-nowrap">
-                      {formatKES(record.amount)}
-                    </td>
+                    <th className="px-3 py-2.5 font-medium">
+                      Phone
+                    </th>
 
-                    <td className="py-2.5 px-2.5 font-mono text-[11px] text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                      {record.phoneNumber}
-                    </td>
+                    <th className="px-3 py-2.5 font-medium">
+                      Status
+                    </th>
 
-                    <td className="py-2.5 px-2.5 whitespace-nowrap">
-                      <StatusBadge status={record.status} />
-                    </td>
-
-                    <td className="py-2.5 px-2.5 font-mono text-[11px] text-slate-400 dark:text-slate-500 text-right whitespace-nowrap">
-                      {record.mpesaReceiptNumber ?? "—"}
-                    </td>
+                    <th className="px-3 py-2.5 text-right font-medium">
+                      Receipt
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+
+                <tbody className="divide-y divide-slate-100 dark:divide-gray-800/70">
+                  {records.map((record) => (
+                    <tr
+                      key={record.id}
+                      className="transition-colors hover:bg-slate-50 dark:hover:bg-gray-800/40"
+                    >
+                      <td className="whitespace-nowrap px-3 py-2.5 text-[11px] text-slate-500 dark:text-slate-400">
+                        {formatShortDate(record.createdAt)}
+                      </td>
+
+                      <td className="whitespace-nowrap px-3 py-2.5">
+                        <span className="font-mono text-[12px] font-semibold text-slate-900 dark:text-slate-100">
+                          {formatKES(record.amount)}
+                        </span>
+                      </td>
+
+                      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[11px] text-slate-600 dark:text-slate-300">
+                        {record.phoneNumber}
+                      </td>
+
+                      <td className="whitespace-nowrap px-3 py-2.5">
+                        <StatusBadge status={record.status} />
+                      </td>
+
+                      <td className="whitespace-nowrap px-3 py-2.5 text-right font-mono text-[11px] text-slate-400 dark:text-slate-500">
+                        {record.mpesaReceiptNumber ?? "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          {/* =========================
-              Mobile Card View
-          ========================== */}
-          <div className="divide-y divide-slate-100 dark:divide-gray-800 sm:hidden bg-white dark:bg-gray-900 rounded-b-lg">
-            {records.map((record) => (
-              <div
-                key={record.id}
-                className="p-3.5 space-y-2.5 bg-white dark:bg-gray-900"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <span className="text-[13px] font-bold text-slate-900 dark:text-slate-100 font-mono">
-                      {formatKES(record.amount)}
-                    </span>
-                    <p className="mt-0.5 font-mono text-[10px] text-slate-400 dark:text-slate-500">
-                      {record.phoneNumber}
-                    </p>
-                  </div>
-
-                  <StatusBadge status={record.status} />
-                </div>
-
-                <div className="flex items-center justify-between rounded-lg border border-slate-200 dark:border-gray-800 bg-slate-50/50 dark:bg-gray-800/40 px-3 py-2 text-[10px]">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[9px]">Date:</span>
-                    <span className="font-medium text-slate-700 dark:text-slate-300">{formatShortDate(record.createdAt)}</span>
-                  </div>
-
-                  <div className="h-3 w-[1px] bg-slate-200 dark:bg-gray-700" />
-
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[9px]">Receipt:</span>
-                    <span className="font-mono font-medium text-slate-500 dark:text-slate-400">{record.mpesaReceiptNumber ?? "None"}</span>
-                  </div>
-                </div>
-
-                {record.responseDescription && (
-                  <p className="text-[10px] text-slate-400 dark:text-slate-500 italic">
-                    {record.responseDescription}
-                  </p>
-                )}
-              </div>
-            ))}
+          {/* =====================================================
+              Mobile View
+          ====================================================== */}
+          <div className="sm:hidden border-t border-slate-200 dark:border-gray-800 bg-slate-50/60 dark:bg-gray-950/40">
+            <div className="divide-y divide-slate-200 dark:divide-gray-800">
+              {records.map((record) => (
+                <MobilePayoutRow
+                  key={record.id}
+                  record={record}
+                />
+              ))}
+            </div>
           </div>
         </>
       )}
     </PayoutSurface>
   );
 }
+
+/* =============================================================
+   Mobile Payout Row
+============================================================= */
+
+function MobilePayoutRow({
+  record,
+}: {
+  record: PayoutRecord;
+}) {
+  return (
+    <div className="bg-white dark:bg-gray-900 px-3.5 py-3.5">
+      {/* ---------------------------------------------------------
+          Top row
+      ---------------------------------------------------------- */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="font-mono text-[13px] font-semibold leading-5 text-slate-900 dark:text-slate-100">
+            {formatKES(record.amount)}
+          </div>
+
+          <div className="mt-0.5 truncate font-mono text-[10px] text-slate-400 dark:text-slate-500">
+            {record.phoneNumber}
+          </div>
+        </div>
+
+        <div className="shrink-0">
+          <StatusBadge status={record.status} />
+        </div>
+      </div>
+
+      {/* ---------------------------------------------------------
+          Metadata
+      ---------------------------------------------------------- */}
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <MetaItem
+          label="Date"
+          value={formatShortDate(record.createdAt)}
+        />
+
+        <MetaItem
+          label="Receipt"
+          value={record.mpesaReceiptNumber ?? "—"}
+          mono
+        />
+      </div>
+
+      {/* ---------------------------------------------------------
+          Response / description
+      ---------------------------------------------------------- */}
+      {record.responseDescription && (
+        <div className="mt-2.5 flex items-start gap-2 rounded-md border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-800/40 px-2.5 py-2">
+          <span className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300 dark:bg-gray-600" />
+
+          <p className="min-w-0 text-[10px] leading-4 text-slate-500 dark:text-slate-400">
+            {record.responseDescription}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =============================================================
+   Mobile Metadata Item
+============================================================= */
+
+function MetaItem({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div className="min-w-0 rounded-md border border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-800/30 px-2.5 py-2">
+      <div className="text-[8px] font-semibold uppercase tracking-[0.08em] text-slate-400 dark:text-slate-500">
+        {label}
+      </div>
+
+      <div
+        className={[
+          "mt-0.5 truncate text-[10px] font-medium text-slate-600 dark:text-slate-300",
+          mono ? "font-mono" : "",
+        ].join(" ")}
+        title={value}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+/* =============================================================
+   Status Badge
+============================================================= */
 
 function StatusBadge({
   status,
@@ -186,20 +272,22 @@ function StatusBadge({
       ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
       : status === "FAILED"
       ? "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400"
-      : status === "PROCESSING" ||
-        status === "SUBMITTED"
+      : status === "PROCESSING" || status === "SUBMITTED"
       ? "border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400"
       : "border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400";
 
   return (
     <span
       className={[
-        "inline-flex items-center gap-1 rounded px-2 py-0.5",
-        "text-[10px] font-medium border",
+        "inline-flex items-center gap-1.5",
+        "rounded-md border px-2 py-1",
+        "text-[9px] font-semibold",
+        "whitespace-nowrap",
         classes,
       ].join(" ")}
     >
-      <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+      <span className="h-1.5 w-1.5 rounded-full bg-current" />
+
       {payoutStatusLabel(status)}
     </span>
   );

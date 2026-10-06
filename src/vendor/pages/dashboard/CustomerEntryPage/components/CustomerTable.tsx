@@ -1,10 +1,8 @@
-import  { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { 
   Search, 
-  
   ChevronLeft, 
   ChevronRight, 
-
   Users 
 } from "lucide-react";
 
@@ -49,21 +47,18 @@ export default function CustomerTable({
   // 1. Filter Logic
   const filteredCustomers = useMemo(() => {
     return customers.filter((customer) => {
-      // Search filter (Name or Username or Router IP)
       const matchesSearch =
         !searchQuery ||
         customer.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         customer.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         customer.router_ip?.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Status filter
       let matchesStatus = true;
       if (statusFilter !== "ALL") {
         const cStatus = (customer.session_status || "").toUpperCase();
         matchesStatus = cStatus === statusFilter;
       }
 
-      // Date filter (Compares against expires_at or created_at)
       let matchesDate = true;
       if (selectedDate && customer.expires_at) {
         const customerDate = new Date(customer.expires_at).toISOString().split("T")[0];
@@ -83,7 +78,6 @@ export default function CustomerTable({
     return filteredCustomers.slice(startIdx, startIdx + pageSize);
   }, [filteredCustomers, currentPage, pageSize]);
 
-  // Reset page when filters change
   const handleFilterChange = (setter: () => void) => {
     setter();
     setCurrentPage(1);
@@ -95,46 +89,43 @@ export default function CustomerTable({
   if (loading) {
     return (
       <div className="space-y-4">
-        {/* Filter Bar Skeleton */}
-        <div className="h-16 w-full animate-pulse rounded-xl border border-slate-200/80 bg-slate-100 dark:border-slate-800 dark:bg-slate-800/40" />
+        <div className="h-16 w-full animate-pulse rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-100 dark:bg-gray-800/40" />
 
-        {/* Desktop Table Skeleton */}
-        <div className="hidden md:block overflow-visible rounded-xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div className="hidden md:block overflow-visible rounded-lg border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900">
           <div className="p-4 space-y-4">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="flex items-center justify-between gap-4 animate-pulse">
                 <div className="flex items-center gap-3 w-1/4">
-                  <div className="h-9 w-9 rounded-full bg-slate-200 dark:bg-slate-800 shrink-0" />
+                  <div className="h-9 w-9 rounded-full bg-slate-200 dark:bg-gray-800 shrink-0" />
                   <div className="space-y-1.5 w-full">
-                    <div className="h-3.5 w-3/4 rounded bg-slate-200 dark:bg-slate-800" />
-                    <div className="h-2.5 w-1/2 rounded bg-slate-100 dark:bg-slate-800/60" />
+                    <div className="h-3.5 w-3/4 rounded bg-slate-200 dark:bg-gray-800" />
+                    <div className="h-2.5 w-1/2 rounded bg-slate-100 dark:bg-gray-800/60" />
                   </div>
                 </div>
-                <div className="h-6 w-16 rounded-full bg-slate-200 dark:bg-slate-800" />
-                <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-800" />
-                <div className="h-4 w-20 rounded bg-slate-200 dark:bg-slate-800" />
-                <div className="h-6 w-16 rounded-full bg-slate-200 dark:bg-slate-800" />
-                <div className="h-8 w-8 rounded bg-slate-200 dark:bg-slate-800 shrink-0" />
+                <div className="h-6 w-16 rounded-full bg-slate-200 dark:bg-gray-800" />
+                <div className="h-4 w-24 rounded bg-slate-200 dark:bg-gray-800" />
+                <div className="h-4 w-20 rounded bg-slate-200 dark:bg-gray-800" />
+                <div className="h-6 w-16 rounded-full bg-slate-200 dark:bg-gray-800" />
+                <div className="h-8 w-8 rounded bg-slate-200 dark:bg-gray-800 shrink-0" />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Mobile Cards Skeleton */}
         <div className="grid gap-3 md:hidden">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="animate-pulse rounded-xl border border-slate-200/80 bg-white p-4 space-y-3 dark:border-slate-800 dark:bg-slate-900">
+            <div key={i} className="animate-pulse rounded-lg border border-slate-200 dark:border-gray-700 bg-white p-4 space-y-3 dark:bg-gray-900">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800" />
+                  <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-gray-800" />
                   <div className="space-y-1.5">
-                    <div className="h-3.5 w-28 rounded bg-slate-200 dark:bg-slate-800" />
-                    <div className="h-2.5 w-20 rounded bg-slate-100 dark:bg-slate-800/60" />
+                    <div className="h-3.5 w-28 rounded bg-slate-200 dark:bg-gray-800" />
+                    <div className="h-2.5 w-20 rounded bg-slate-100 dark:bg-gray-800/60" />
                   </div>
                 </div>
-                <div className="h-6 w-6 rounded bg-slate-200 dark:bg-slate-800" />
+                <div className="h-6 w-6 rounded bg-slate-200 dark:bg-gray-800" />
               </div>
-              <div className="h-12 rounded-lg bg-slate-100 dark:bg-slate-800/40" />
+              <div className="h-12 rounded-lg bg-slate-100 dark:bg-gray-800/40" />
             </div>
           ))}
         </div>
@@ -145,31 +136,31 @@ export default function CustomerTable({
   return (
     <div className="space-y-4">
       {/* 🔍 FILTER & SEARCH TOOLBAR */}
-      <div className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 dark:border-gray-700 bg-white p-3.5 shadow-sm dark:bg-gray-900 lg:flex-row lg:items-center lg:justify-between">
         
         {/* Search Input */}
         <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             placeholder="Search customer, username, or IP..."
             value={searchQuery}
             onChange={(e) => handleFilterChange(() => setSearchQuery(e.target.value))}
-            className="w-full rounded-lg border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-3 text-xs text-slate-800 placeholder-slate-400 transition-colors focus:border-slate-400 focus:bg-white focus:outline-none dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-100 dark:focus:border-slate-700"
+            className="w-full rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50/50 dark:bg-gray-800 py-2 pl-9 pr-3 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus:border-slate-400 dark:focus:border-gray-500 focus:bg-white dark:focus:bg-gray-800 focus:outline-none"
           />
         </div>
 
         {/* Filter Pills & Date Selector */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Pills */}
-          <div className="flex items-center rounded-lg border border-slate-200/80 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-800/50">
+          <div className="flex items-center rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 p-1">
             {(["ALL", "ACTIVE", "ONLINE", "OFFLINE", "SUSPENDED"] as StatusFilter[]).map((st) => (
               <button
                 key={st}
                 onClick={() => handleFilterChange(() => setStatusFilter(st))}
                 className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${
                   statusFilter === st
-                    ? "bg-white text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white"
+                    ? "bg-white text-slate-900 shadow-sm dark:bg-gray-700 dark:text-white"
                     : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
                 }`}
               >
@@ -184,7 +175,7 @@ export default function CustomerTable({
               type="date"
               value={selectedDate}
               onChange={(e) => handleFilterChange(() => setSelectedDate(e.target.value))}
-              className="rounded-lg border border-slate-200 bg-slate-50/50 py-1.5 px-2.5 text-xs text-slate-700 dark:border-slate-800 dark:bg-slate-800/50 dark:text-slate-200 focus:outline-none"
+              className="rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50/50 dark:bg-gray-800 py-1.5 px-2.5 text-xs text-slate-700 dark:text-slate-200 focus:outline-none"
             />
             {selectedDate && (
               <button
@@ -200,11 +191,11 @@ export default function CustomerTable({
 
       {/* 📭 EMPTY STATE */}
       {!filteredCustomers.length ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-800">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-12 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-gray-800 text-slate-400 dark:text-slate-500">
             <Users size={20} />
           </div>
-          <h3 className="mt-3 text-sm font-semibold text-slate-900 dark:text-slate-100">
+          <h3 className="mt-3 text-sm font-semibold text-slate-900 dark:text-white">
             No customers found
           </h3>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
@@ -221,16 +212,16 @@ export default function CustomerTable({
               return (
                 <div
                   key={customer.id}
-                  className="relative rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all dark:border-slate-800 dark:bg-slate-900/90"
+                  className="relative rounded-lg border border-slate-200 dark:border-gray-700 bg-white p-4 shadow-sm transition-all dark:bg-gray-900"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-gray-800 font-semibold text-slate-700 dark:text-slate-200 text-sm">
                         {initial}
                       </div>
 
                       <div className="min-w-0">
-                        <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm truncate">
+                        <h4 className="font-semibold text-slate-900 dark:text-white text-sm truncate">
                           {customer.full_name}
                         </h4>
                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
@@ -256,9 +247,9 @@ export default function CustomerTable({
                     <ServiceBadge service={customer.service_type} />
                   </div>
 
-                  <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800/80 space-y-2 text-xs">
+                  <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-gray-800 space-y-2 text-xs">
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                      <span className="text-slate-500 dark:text-slate-400">Plan</span>
+                      <span className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Plan</span>
                       <div className="text-right">
                         <span className="font-medium text-slate-900 dark:text-white">
                           {customer.plan_name ?? "-"}
@@ -272,7 +263,7 @@ export default function CustomerTable({
                     </div>
 
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                      <span className="text-slate-500 dark:text-slate-400">Router</span>
+                      <span className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Router</span>
                       <div className="text-right truncate max-w-[65%]">
                         <span className="font-medium text-slate-800 dark:text-slate-200">
                           {customer.router_name ?? "-"}
@@ -291,32 +282,32 @@ export default function CustomerTable({
           </div>
 
           {/* 🖥️ DESKTOP TABLE VIEW */}
-          <div className="hidden md:block overflow-visible rounded-xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="overflow-visible rounded-xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900">
+          <div className="hidden md:block overflow-visible rounded-lg border border-slate-200 dark:border-gray-700 bg-white shadow-sm dark:bg-gray-900">
+            <div className="overflow-visible rounded-lg bg-white dark:bg-gray-900">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200/80 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-800/40 dark:text-slate-400">
-                    <th className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider">
+                  <tr className="border-b border-slate-200 dark:border-gray-700 bg-slate-50/70 dark:bg-gray-800/40 text-slate-500 dark:text-slate-400">
+                    <th className="px-5 py-3.5 text-[9px] font-medium uppercase tracking-[0.07em]">
                       Customer
                     </th>
-                    <th className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="px-5 py-3.5 text-[9px] font-medium uppercase tracking-[0.07em]">
                       Service
                     </th>
-                    <th className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="px-5 py-3.5 text-[9px] font-medium uppercase tracking-[0.07em]">
                       Plan
                     </th>
-                    <th className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="px-5 py-3.5 text-[9px] font-medium uppercase tracking-[0.07em]">
                       Router
                     </th>
-                    <th className="px-5 py-3.5 text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="px-5 py-3.5 text-[9px] font-medium uppercase tracking-[0.07em]">
                       Status
                     </th>
-                    <th className="px-5 py-3.5 text-right text-[11px] font-semibold uppercase tracking-wider">
+                    <th className="px-5 py-3.5 text-right text-[9px] font-medium uppercase tracking-[0.07em]">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tbody className="divide-y divide-slate-100 dark:divide-gray-800">
                   {paginatedCustomers.map((customer) => (
                     <CustomerRow
                       key={customer.id}
@@ -334,7 +325,7 @@ export default function CustomerTable({
           </div>
 
           {/* 📄 PAGINATION CONTROLS FOOTER */}
-          <div className="flex flex-col items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white p-3.5 text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900 sm:flex-row">
+          <div className="flex flex-col items-center justify-between gap-3 rounded-lg border border-slate-200 dark:border-gray-700 bg-white p-3.5 text-xs text-slate-500 dark:text-slate-400 dark:bg-gray-900 sm:flex-row">
             <div className="flex items-center gap-2">
               <span>Rows per page:</span>
               <select
@@ -343,7 +334,7 @@ export default function CustomerTable({
                   setPageSize(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs text-slate-800 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200 focus:outline-none"
+                className="rounded-md border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 px-2 py-1 text-xs text-slate-800 dark:text-slate-200 focus:outline-none"
               >
                 {[5, 10, 20, 50].map((size) => (
                   <option key={size} value={size}>
@@ -351,7 +342,7 @@ export default function CustomerTable({
                   </option>
                 ))}
               </select>
-              <span className="ml-2">
+              <span className="ml-2 font-mono">
                 Showing {Math.min((currentPage - 1) * pageSize + 1, totalItems)} to{" "}
                 {Math.min(currentPage * pageSize, totalItems)} of {totalItems} entries
               </span>
@@ -362,7 +353,7 @@ export default function CustomerTable({
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:hover:bg-transparent"
               >
                 <ChevronLeft size={16} />
               </button>
@@ -374,7 +365,7 @@ export default function CustomerTable({
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:hover:bg-transparent"
               >
                 <ChevronRight size={16} />
               </button>

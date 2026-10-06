@@ -37,10 +37,10 @@ export const LoanClientsSection: React.FC<LoanClientsSectionProps> = ({ loans })
                         <tbody className="divide-y divide-slate-200 dark:divide-gray-800">
                             {loans.map(l => (
                                 <tr key={l.id} className="hover:bg-slate-50/50 dark:hover:bg-gray-800/40 transition-colors">
-                                    <td className="p-3.5 font-medium text-slate-900 dark:text-white font-mono text-xs">{l.user_phone}</td>
+                                    <td className="p-3.5 font-medium text-slate-900 dark:text-white font-mono  text-xs">{l.user_phone}</td>
                                     <td className="p-3.5">{l.package_name}</td>
-                                    <td className="p-3.5 font-mono">Ksh {l.total_amount_due}</td>
-                                    <td className="p-3.5 font-semibold text-amber-600 dark:text-amber-400 font-mono">Ksh {l.remaining_balance}</td>
+                                    <td className="p-3.5 ">Ksh {l.total_amount_due}</td>
+                                    <td className="p-3.5 font-semibold text-amber-600 dark:text-amber-400 ">Ksh {l.remaining_balance}</td>
                                     <td className="p-3.5">
                                         <span className={`px-2 py-0.5 rounded text-[10px] font-medium border ${
                                             l.status === 'PENDING' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
@@ -65,7 +65,7 @@ export const LoanClientsSection: React.FC<LoanClientsSectionProps> = ({ loans })
                         <div key={l.id} className="p-3.5 space-y-2 hover:bg-slate-50/50 dark:hover:bg-gray-800/40 transition-colors">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <div className="font-medium text-slate-900 dark:text-white text-xs font-mono">{l.user_phone}</div>
+                                    <div className="font-medium text-slate-900 dark:text-white text-xs ">{l.user_phone}</div>
                                     <div className="text-[11px] text-slate-500 dark:text-slate-400">{l.package_name}</div>
                                 </div>
                                 <div>
@@ -82,10 +82,10 @@ export const LoanClientsSection: React.FC<LoanClientsSectionProps> = ({ loans })
                             <div className="flex justify-between items-center text-[11px] pt-2 border-t border-slate-100 dark:border-gray-800">
                                 <div>
                                     <span className="text-slate-400 dark:text-slate-500">Due: </span>
-                                    <span className="font-semibold text-slate-900 dark:text-slate-100 font-mono">Ksh {l.total_amount_due}</span>
+                                    <span className="font-semibold text-slate-900 dark:text-slate-100 ">Ksh {l.total_amount_due}</span>
                                     <span className="mx-1 text-slate-300 dark:text-gray-700">|</span>
                                     <span className="text-slate-400 dark:text-slate-500">Bal: </span>
-                                    <span className="font-semibold text-amber-600 dark:text-amber-400 font-mono">Ksh {l.remaining_balance}</span>
+                                    <span className="font-semibold text-amber-600 dark:text-amber-400 ">Ksh {l.remaining_balance}</span>
                                 </div>
                                 <div className="text-slate-400 dark:text-slate-500 text-[10px]">
                                     {new Date(l.borrowed_at).toLocaleDateString()} {new Date(l.borrowed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

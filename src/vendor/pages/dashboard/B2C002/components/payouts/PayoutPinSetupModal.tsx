@@ -1,12 +1,7 @@
-
 // src/components/payouts/PayoutPinSetupModal.tsx
 
 import { useState } from "react";
-
-import {
-  setupPayoutPin,
-} from "../../api/payoutApi";
-
+import { setupPayoutPin } from "../../api/payoutApi";
 import {
   OutlineButton,
   PayoutSurface,
@@ -23,38 +18,25 @@ export default function PayoutPinSetupModal({
   onCompleted,
 }: Props) {
   const [pin, setPin] = useState("");
-  const [confirmPin, setConfirmPin] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
-
+  const [confirmPin, setConfirmPin] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function submit() {
     setError("");
 
     if (pin.length !== 6) {
-      setError(
-        "Enter a 6-digit payout PIN."
-      );
+      setError("Enter a 6-digit payout PIN.");
       return;
     }
 
     if (confirmPin.length !== 6) {
-      setError(
-        "Confirm your 6-digit payout PIN."
-      );
+      setError("Confirm your 6-digit payout PIN.");
       return;
     }
 
     if (pin !== confirmPin) {
-      setError(
-        "PINs do not match."
-      );
+      setError("PINs do not match.");
       return;
     }
 
@@ -82,18 +64,17 @@ export default function PayoutPinSetupModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/35 p-2 sm:items-center sm:p-4">
-      <PayoutSurface className="w-full max-w-sm">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 dark:bg-slate-950/70 p-2 sm:items-center sm:p-4 backdrop-blur-xs">
+      <PayoutSurface className="w-full max-w-sm bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 shadow-xl rounded-xl overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2.5">
+        <div className="flex items-center justify-between border-b border-slate-100 dark:border-gray-800 px-4 py-3.5 bg-slate-50/50 dark:bg-gray-800/40">
           <div>
-            <h3 className="text-[14px] font-semibold text-slate-900">
-              Set payout PIN
+            <h3 className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">
+              Set Payout PIN
             </h3>
-
-            <p className="mt-0.5 text-[10px] text-slate-500">
-              Create a 6-digit PIN to protect vendor withdrawals.
+            <p className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">
+              Create a secure 6-digit PIN to protect vendor withdrawals.
             </p>
           </div>
 
@@ -101,15 +82,14 @@ export default function PayoutPinSetupModal({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="text-[18px] leading-none text-slate-400 hover:text-slate-700 disabled:opacity-50"
+            className="text-base leading-none text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 disabled:opacity-50"
           >
             ×
           </button>
         </div>
 
         {/* Form */}
-        <div className="space-y-2 p-3">
-
+        <div className="space-y-3 p-4">
           <PinField
             label="New PIN"
             value={pin}
@@ -124,13 +104,12 @@ export default function PayoutPinSetupModal({
           />
 
           {error && (
-            <div className="rounded-lg border border-red-100 bg-red-50 px-2.5 py-2 text-[11px] text-red-700">
+            <div className="rounded-lg border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-950/40 px-3 py-2 text-[11px] text-red-700 dark:text-red-400">
               {error}
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-2 pt-1">
-
+          <div className="grid grid-cols-2 gap-2 pt-2">
             <OutlineButton
               onClick={onClose}
               disabled={loading}
@@ -146,11 +125,8 @@ export default function PayoutPinSetupModal({
                 confirmPin.length !== 6
               }
             >
-              {loading
-                ? "Setting..."
-                : "Set PIN"}
+              {loading ? "Setting..." : "Set PIN"}
             </PrimaryButton>
-
           </div>
         </div>
 
@@ -172,7 +148,7 @@ function PinField({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400">
+      <label className="mb-1 block text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">
         {label}
       </label>
 
@@ -190,7 +166,7 @@ function PinField({
         inputMode="numeric"
         autoComplete="new-password"
         maxLength={6}
-        className="h-9 w-full rounded-lg border border-slate-200 bg-white px-2.5 font-mono text-[13px] tracking-[0.2em] outline-none focus:border-slate-400"
+        className="h-9 w-full rounded-lg border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 font-mono text-[13px] tracking-[0.2em] text-slate-900 dark:text-white outline-none focus:border-slate-400 dark:focus:border-gray-500 transition-colors"
       />
     </div>
   );

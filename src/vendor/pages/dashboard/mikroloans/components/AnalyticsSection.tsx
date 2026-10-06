@@ -34,19 +34,19 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ analytics })
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-lg shadow-sm border-l-4 border-amber-500 border border-slate-200 dark:border-gray-700">
                     <div className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Total Disbursed</div>
-                    <div className="text-base sm:text-xl font-semibold text-slate-900 dark:text-white mt-1 font-mono">
+                    <div className="text-base sm:text-xl font-semibold text-slate-900 dark:text-white mt-1 ">
                         Ksh {analytics.total_disbursed.toLocaleString()}
                     </div>
                 </div>
                 <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-lg shadow-sm border-l-4 border-emerald-500 border border-slate-200 dark:border-gray-700">
                     <div className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Total Repaid</div>
-                    <div className="text-base sm:text-xl font-semibold text-slate-900 dark:text-white mt-1 font-mono">
+                    <div className="text-base sm:text-xl font-semibold text-slate-900 dark:text-white mt-1       ">
                         Ksh {analytics.total_repaid.toLocaleString()}
                     </div>
                 </div>
                 <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-lg shadow-sm border-l-4 border-red-500 border border-slate-200 dark:border-gray-700">
                     <div className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Outstanding Balance</div>
-                    <div className="text-base sm:text-xl font-semibold text-slate-900 dark:text-white mt-1 font-mono">
+                    <div className="text-base sm:text-xl font-semibold text-slate-900 dark:text-white mt-1 ">
                         Ksh {analytics.total_outstanding.toLocaleString()}
                     </div>
                 </div>
@@ -56,7 +56,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ analytics })
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700">
                     <div className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Repeat Borrowers</div>
-                    <div className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white mt-1 font-mono">
+                    <div className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white mt-1 ">
                         {analytics.repeat_borrowers_count} <span className="text-[11px] font-normal text-slate-400">clients</span>
                     </div>
                     <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">Clients taking multiple micro-loans</p>
@@ -64,7 +64,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ analytics })
 
                 <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700">
                     <div className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Avg. Repayment Time</div>
-                    <div className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white mt-1 font-mono">
+                    <div className="text-sm sm:text-base font-semibold text-slate-900 dark:text-white mt-1 ">
                         {analytics.avg_repayment_time_hours} <span className="text-[11px] font-normal text-slate-400">Hours</span>
                     </div>
                     <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">Duration from disbursement to full clearance</p>
@@ -72,7 +72,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ analytics })
 
                 <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700">
                     <div className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Repayment Success Rate</div>
-                    <div className="text-sm sm:text-base font-semibold text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
+                    <div className="text-sm sm:text-base font-semibold text-emerald-600 dark:text-emerald-400 mt-1 ">
                         {analytics.repayment_success_rate}%
                     </div>
                     <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400">Ratio of successfully cleared micro-loans</p>
@@ -90,7 +90,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ analytics })
                     <div>
                         <div className="flex justify-between text-[11px] font-medium text-slate-700 dark:text-slate-300 mb-1">
                             <span>Fully Paid ({analytics.paid_loans_count})</span>
-                            <span className="font-mono">{paidPct}%</span>
+                            <span className="font-light">{paidPct}%</span>
                         </div>
                         <div className="w-full bg-slate-100 dark:bg-gray-800 h-2.5 rounded-full overflow-hidden">
                             <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${paidPct}%` }}></div>
@@ -99,7 +99,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ analytics })
                     <div>
                         <div className="flex justify-between text-[11px] font-medium text-slate-700 dark:text-slate-300 mb-1">
                             <span>Active Pending Repayment ({analytics.active_loans_count})</span>
-                            <span className="font-mono">{activePct}%</span>
+                            <span className="font-light">{activePct}%</span>
                         </div>
                         <div className="w-full bg-slate-100 dark:bg-gray-800 h-2.5 rounded-full overflow-hidden">
                             <div className="bg-amber-500 h-full transition-all duration-500" style={{ width: `${activePct}%` }}></div>
@@ -108,7 +108,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ analytics })
                     <div>
                         <div className="flex justify-between text-[11px] font-medium text-slate-700 dark:text-slate-300 mb-1">
                             <span>Defaulted ({analytics.defaulted_loans_count})</span>
-                            <span className="font-mono">{defaultedPct}%</span>
+                            <span className="font-light">{defaultedPct}%</span>
                         </div>
                         <div className="w-full bg-slate-100 dark:bg-gray-800 h-2.5 rounded-full overflow-hidden">
                             <div className="bg-red-500 h-full transition-all duration-500" style={{ width: `${defaultedPct}%` }}></div>
@@ -126,7 +126,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ analytics })
                         </h3>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400">Hourly frequency analysis showing when clients borrow and settle loans.</p>
                     </div>
-                    <div className="flex items-center gap-3 text-[10px] font-medium">
+                    <div className="flex items-center gap-3 text-[10px] font-light text-slate-400 dark:text-slate-500">
                         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-amber-500 inline-block"></span> Borrowed</span>
                         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500 inline-block"></span> Paid</span>
                     </div>
@@ -148,7 +148,7 @@ export const AnalyticsSection: React.FC<AnalyticsSectionProps> = ({ analytics })
                                     title={`Paid at ${slot.time}: ${slot.pay}`}
                                 ></div>
                             </div>
-                            <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">{slot.time}</span>
+                            <span className="text-[10px] font-light text-slate-400 dark:text-slate-500">{slot.time}</span>
                         </div>
                     ))}
                 </div>

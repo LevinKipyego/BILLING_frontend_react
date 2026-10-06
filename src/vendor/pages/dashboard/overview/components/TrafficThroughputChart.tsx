@@ -1,3 +1,4 @@
+
 import { useMemo } from "react";
 import {
   ComposedChart,
@@ -17,8 +18,8 @@ import { formatBytes, getOptimalByteUnit } from "../utils/formatters";
 export interface TrafficItem {
   name: string;
   throughput: number; // Raw combined bytes
-  tx: number;         // Raw upload bytes
-  rx: number;         // Raw download bytes
+  tx: number; // Raw upload bytes
+  rx: number; // Raw download bytes
 }
 
 interface ChartProps {
@@ -26,23 +27,42 @@ interface ChartProps {
   loading: boolean;
 }
 
-export function TrafficThroughputChart({ data, loading }: ChartProps) {
+export function TrafficThroughputChart({
+  data,
+  loading,
+}: ChartProps) {
   const { chartData, optimalUnit, hasOutliers } = useMemo(() => {
     if (!data || data.length === 0) {
-      return { chartData: [], optimalUnit: "GB", hasOutliers: false };
+      return {
+        chartData: [],
+        optimalUnit: "GB",
+        hasOutliers: false,
+      };
     }
 
-    // Collect all throughput values to calculate scale divider and outlier threshold
-    const rawThroughputs = data.map((d) => d.throughput || 0);
-    const { unit, divider } = getOptimalByteUnit(rawThroughputs);
+    const rawThroughputs = data.map(
+      (d) => d.throughput || 0
+    );
 
-    // Calculate mean and standard deviation for spike/anomaly detection
+    const { unit, divider } =
+      getOptimalByteUnit(rawThroughputs);
+
+    // ---------------------------------------------
+    // Anomaly detection
+    // ---------------------------------------------
     const mean =
-      rawThroughputs.reduce((a, b) => a + b, 0) / (rawThroughputs.length || 1);
-    const variance =
-      rawThroughputs.reduce((a, b) => a + Math.pow(b - mean, 2), 0) /
+      rawThroughputs.reduce((a, b) => a + b, 0) /
       (rawThroughputs.length || 1);
+
+    const variance =
+      rawThroughputs.reduce(
+        (sum, value) =>
+          sum + Math.pow(value - mean, 2),
+        0
+      ) / (rawThroughputs.length || 1);
+
     const stdDev = Math.sqrt(variance);
+
     const threshold = mean + 1.5 * stdDev;
 
     let foundOutliers = false;
@@ -50,22 +70,39 @@ export function TrafficThroughputChart({ data, loading }: ChartProps) {
     const formatted = data.map((item) => {
       const tx = item.tx || 0;
       const rx = item.rx || 0;
-      const total = item.throughput || tx + rx;
 
-      const isOutlier = total > threshold && total > 0;
-      if (isOutlier) foundOutliers = true;
+      const total =
+        item.throughput || tx + rx;
+
+      const isOutlier =
+        total > threshold && total > 0;
+
+      if (isOutlier) {
+        foundOutliers = true;
+      }
 
       return {
         name: item.name,
-        // Raw byte representations for tooltip formatting
+
         rawTx: tx,
         rawRx: rx,
         rawThroughput: total,
-        // Scaled values for multi-layer Recharts plotting
-        txScaled: Number((tx / divider).toFixed(2)),
-        rxScaled: Number((rx / divider).toFixed(2)),
-        throughputScaled: Number((total / divider).toFixed(2)),
-        outlier: isOutlier ? Number((total / divider).toFixed(2)) : null,
+
+        txScaled: Number(
+          (tx / divider).toFixed(2)
+        ),
+
+        rxScaled: Number(
+          (rx / divider).toFixed(2)
+        ),
+
+        throughputScaled: Number(
+          (total / divider).toFixed(2)
+        ),
+
+        outlier: isOutlier
+          ? Number((total / divider).toFixed(2))
+          : null,
       };
     });
 
@@ -77,163 +114,570 @@ export function TrafficThroughputChart({ data, loading }: ChartProps) {
   }, [data]);
 
   return (
-    <div className="lg:col-span-2 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-gray-800">
-      {/* Header Bar */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400">
+    <div
+      className="
+        bg-white dark:bg-gray-900
+        rounded-lg
+        border border-slate-200 dark:border-gray-700
+        p-4 sm:p-5
+        shadow-sm
+        text-xs sm:text-sm
+      "
+    >
+      {/* ----------------------------------------- */}
+      {/* Header                                    */}
+      {/* ----------------------------------------- */}
+      <div
+        className="
+          flex flex-col sm:flex-row
+          justify-between
+          items-start sm:items-center
+          gap-3
+          mb-4
+        "
+      >
+        {/* Title */}
+        <div className="flex items-center gap-2.5">
+          <div
+            className="
+              flex items-center justify-center
+              h-8 w-8
+              rounded-lg
+              bg-slate-50 dark:bg-gray-800
+              border border-slate-200 dark:border-gray-700
+              text-slate-500 dark:text-slate-400
+            "
+          >
             <SignalIcon className="h-4 w-4" />
           </div>
+
           <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-              Traffic Throughput ({optimalUnit})
+            <h3
+              className="
+                text-sm sm:text-base
+                font-medium
+                text-slate-900 dark:text-white
+              "
+            >
+              Traffic Throughput
             </h3>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              TX / RX breakdown & net throughput trend
+
+            <p
+              className="
+                text-[11px]
+                text-slate-500 dark:text-slate-400
+                mt-0.5
+              "
+            >
+              TX / RX traffic distribution and throughput trend
             </p>
           </div>
         </div>
 
-        {/* Status Indicators */}
-        <div className="flex items-center gap-2">
+        {/* --------------------------------------- */}
+        {/* Header Metrics / Indicators             */}
+        {/* --------------------------------------- */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className="
+              inline-flex items-center gap-1.5
+              text-[10px]
+              font-medium
+              text-slate-500 dark:text-slate-400
+              font-mono
+            "
+          >
+            <span
+              className="
+                w-2 h-2
+                rounded-full
+                bg-amber-500
+              "
+            />
+            TX
+          </span>
+
+          <span
+            className="
+              inline-flex items-center gap-1.5
+              text-[10px]
+              font-medium
+              text-slate-500 dark:text-slate-400
+              font-mono
+            "
+          >
+            <span
+              className="
+                w-2 h-2
+                rounded-full
+                bg-indigo-500
+              "
+            />
+            RX
+          </span>
+
+          <span
+            className="
+              inline-flex items-center gap-1.5
+              text-[10px]
+              font-medium
+              text-slate-500 dark:text-slate-400
+              font-mono
+            "
+          >
+            <span
+              className="
+                w-2 h-2
+                rounded-full
+                bg-emerald-500
+              "
+            />
+            TOTAL
+          </span>
+
           {hasOutliers && (
-            <span className="rounded border border-rose-200 bg-rose-50 px-2 py-0.5 font-mono text-[10px] font-semibold text-rose-600 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-400">
-              TRAFFIC SPIKES DETECTED
+            <span
+              className="
+                inline-flex items-center
+                px-2 py-1
+                rounded
+                border
+                border-red-200 dark:border-red-900/50
+                bg-red-50 dark:bg-red-950/30
+                text-[9px]
+                font-medium
+                text-red-600 dark:text-red-400
+                uppercase
+                tracking-wide
+              "
+            >
+              Traffic spike
             </span>
           )}
-          <span className="rounded border border-slate-200 bg-slate-50 px-2 py-0.5 font-mono text-[10px] text-slate-500 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-400">
-            RADACCT_MIRROR
-          </span>
         </div>
       </div>
 
-      {/* Chart Visualizer */}
-      <div className="h-72 w-full">
+      {/* ----------------------------------------- */}
+      {/* Chart                                     */}
+      {/* ----------------------------------------- */}
+      <div className="h-64 sm:h-72 w-full">
         {loading ? (
-          <div className="h-full w-full animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800/50" />
+          <div
+            className="
+              h-full w-full
+              animate-pulse
+              rounded-lg
+              bg-slate-100 dark:bg-gray-800
+            "
+          />
+        ) : chartData.length === 0 ? (
+          <div
+            className="
+              h-full
+              flex items-center justify-center
+              text-xs
+              text-slate-400 dark:text-slate-500
+              border-t border-slate-100 dark:border-gray-800
+            "
+          >
+            No traffic data available
+          </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+          >
+            <ComposedChart
+              data={chartData}
+              margin={{
+                top: 20,
+                right: 10,
+                left: -20,
+                bottom: 0,
+              }}
+            >
+              {/* -------------------------------- */}
+              {/* Grid                             */}
+              {/* -------------------------------- */}
               <CartesianGrid
                 strokeDasharray="2 2"
                 vertical={false}
-                stroke="#334155"
+                stroke="#94A3B8"
                 strokeOpacity={0.15}
               />
+
+              {/* -------------------------------- */}
+              {/* X Axis                           */}
+              {/* -------------------------------- */}
               <XAxis
                 dataKey="name"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 11, fill: "#64748B" }}
+                tick={{
+                  fontSize: 10,
+                  fill: "#94A3B8",
+                }}
+                dy={6}
               />
+
+              {/* -------------------------------- */}
+              {/* Y Axis                           */}
+              {/* -------------------------------- */}
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 10, fill: "#64748B" }}
-                unit={` ${optimalUnit}`}
+                tick={{
+                  fontSize: 9,
+                  fill: "#94A3B8",
+                }}
+                tickFormatter={(value) =>
+                  `${value} ${optimalUnit}`
+                }
               />
+
+              {/* -------------------------------- */}
+              {/* Tooltip                          */}
+              {/* -------------------------------- */}
               <Tooltip
-                content={({ active, payload, label }) => {
-                  if (active && payload && payload.length) {
-                    const row = payload[0].payload;
-                    return (
-                      <div className="space-y-1.5 rounded-xl border border-slate-700 bg-slate-900/95 p-3 text-xs shadow-xl backdrop-blur-sm dark:bg-slate-950/95">
-                        <p className="border-b border-slate-800 pb-1 font-semibold text-slate-300">
-                          Day: {label}
+                cursor={{
+                  fill: "rgba(148, 163, 184, 0.06)",
+                }}
+                content={({
+                  active,
+                  payload,
+                  label,
+                }) => {
+                  if (
+                    !active ||
+                    !payload ||
+                    !payload.length
+                  ) {
+                    return null;
+                  }
+
+                  const row =
+                    payload[0].payload;
+
+                  return (
+                    <div
+                      className="
+                        min-w-[220px]
+                        rounded-lg
+                        border
+                        border-slate-200 dark:border-gray-700
+                        bg-white dark:bg-gray-900
+                        p-3
+                        shadow-lg
+                      "
+                    >
+                      {/* Tooltip Header */}
+                      <div
+                        className="
+                          pb-2 mb-2
+                          border-b
+                          border-slate-100 dark:border-gray-800
+                        "
+                      >
+                        <p
+                          className="
+                            text-[10px]
+                            uppercase
+                            tracking-wider
+                            font-medium
+                            text-slate-400 dark:text-slate-500
+                          "
+                        >
+                          Traffic Period
                         </p>
-                        <div className="space-y-1 text-slate-200">
-                          <p className="flex items-center justify-between gap-4">
-                            <span className="flex items-center gap-1.5 text-amber-400">
-                              <span className="h-2 w-2 rounded-full bg-amber-500" />
-                              TX (Upload):
-                            </span>
-                            <span className="font-mono font-medium">
-                              {formatBytes(row.rawTx)}
-                            </span>
+
+                        <p
+                          className="
+                            mt-0.5
+                            text-xs
+                            font-semibold
+                            text-slate-800 dark:text-white
+                          "
+                        >
+                          {label}
+                        </p>
+                      </div>
+
+                      {/* TX */}
+                      <div
+                        className="
+                          flex items-center
+                          justify-between
+                          gap-4
+                          py-1
+                        "
+                      >
+                        <span
+                          className="
+                            flex items-center gap-2
+                            text-[11px]
+                            text-slate-500 dark:text-slate-400
+                          "
+                        >
+                          <span
+                            className="
+                              w-2 h-2
+                              rounded-sm
+                              bg-amber-500
+                            "
+                          />
+                          Upload
+                        </span>
+
+                        <span
+                          className="
+                            font-mono
+                            text-[11px]
+                            font-medium
+                            text-slate-800 dark:text-slate-200
+                          "
+                        >
+                          {formatBytes(row.rawTx)}
+                        </span>
+                      </div>
+
+                      {/* RX */}
+                      <div
+                        className="
+                          flex items-center
+                          justify-between
+                          gap-4
+                          py-1
+                        "
+                      >
+                        <span
+                          className="
+                            flex items-center gap-2
+                            text-[11px]
+                            text-slate-500 dark:text-slate-400
+                          "
+                        >
+                          <span
+                            className="
+                              w-2 h-2
+                              rounded-sm
+                              bg-indigo-500
+                            "
+                          />
+                          Download
+                        </span>
+
+                        <span
+                          className="
+                            font-mono
+                            text-[11px]
+                            font-medium
+                            text-slate-800 dark:text-slate-200
+                          "
+                        >
+                          {formatBytes(row.rawRx)}
+                        </span>
+                      </div>
+
+                      {/* Total */}
+                      <div
+                        className="
+                          flex items-center
+                          justify-between
+                          gap-4
+                          mt-1 pt-2
+                          border-t
+                          border-slate-100 dark:border-gray-800
+                        "
+                      >
+                        <span
+                          className="
+                            flex items-center gap-2
+                            text-[11px]
+                            font-medium
+                            text-slate-700 dark:text-slate-300
+                          "
+                        >
+                          <span
+                            className="
+                              w-2 h-2
+                              rounded-sm
+                              bg-emerald-500
+                            "
+                          />
+                          Total
+                        </span>
+
+                        <span
+                          className="
+                            font-mono
+                            text-[11px]
+                            font-semibold
+                            text-emerald-600 dark:text-emerald-400
+                          "
+                        >
+                          {formatBytes(
+                            row.rawThroughput
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Anomaly */}
+                      {row.outlier !== null && (
+                        <div
+                          className="
+                            mt-2 pt-2
+                            border-t
+                            border-slate-100 dark:border-gray-800
+                          "
+                        >
+                          <p
+                            className="
+                              text-[9px]
+                              font-medium
+                              uppercase
+                              tracking-wide
+                              text-red-500 dark:text-red-400
+                            "
+                          >
+                            Traffic anomaly detected
                           </p>
-                          <p className="flex items-center justify-between gap-4">
-                            <span className="flex items-center gap-1.5 text-indigo-400">
-                              <span className="h-2 w-2 rounded-full bg-indigo-500" />
-                              RX (Download):
-                            </span>
-                            <span className="font-mono font-medium">
-                              {formatBytes(row.rawRx)}
-                            </span>
-                          </p>
-                          <p className="flex items-center justify-between gap-4 border-t border-slate-800 pt-1 font-semibold">
-                            <span className="flex items-center gap-1.5 text-emerald-400">
-                              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                              Total Throughput:
-                            </span>
-                            <span className="font-mono text-emerald-300">
-                              {formatBytes(row.rawThroughput)}
-                            </span>
+
+                          <p
+                            className="
+                              mt-0.5
+                              text-[10px]
+                              text-slate-500 dark:text-slate-400
+                            "
+                          >
+                            Usage exceeds the calculated
+                            traffic baseline.
                           </p>
                         </div>
-                        {row.outlier && (
-                          <p className="pt-1 text-[10px] font-semibold uppercase text-rose-400">
-                            ⚠️ Anomaly: Exceeds standard daily baseline
-                          </p>
-                        )}
-                      </div>
-                    );
-                  }
-                  return null;
+                      )}
+                    </div>
+                  );
                 }}
               />
+
+              {/* -------------------------------- */}
+              {/* Legend                            */}
+              {/* -------------------------------- */}
               <Legend
                 verticalAlign="top"
                 align="right"
-                wrapperStyle={{ paddingBottom: "12px", fontSize: "11px" }}
+                height={20}
+                wrapperStyle={{
+                  fontSize: "10px",
+                  paddingBottom: "4px",
+                }}
                 formatter={(value) => (
-                  <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                  <span
+                    style={{
+                      color: "#64748B",
+                      fontSize: "10px",
+                      fontWeight: 500,
+                    }}
+                  >
                     {value}
                   </span>
                 )}
               />
 
-              {/* TX Bar (Upload) - Amber */}
+              {/* -------------------------------- */}
+              {/* TX - Upload                      */}
+              {/* -------------------------------- */}
               <Bar
-                name="TX (Upload)"
+                name="Upload"
                 dataKey="txScaled"
                 stackId="traffic"
                 fill="#F59E0B"
+                barSize={18}
                 radius={[0, 0, 0, 0]}
-                barSize={24}
               />
 
-              {/* RX Bar (Download) - Indigo */}
+              {/* -------------------------------- */}
+              {/* RX - Download                    */}
+              {/* -------------------------------- */}
               <Bar
-                name="RX (Download)"
+                name="Download"
                 dataKey="rxScaled"
                 stackId="traffic"
                 fill="#6366F1"
-                radius={[4, 4, 0, 0]}
-                barSize={24}
+                barSize={18}
+                radius={[3, 3, 0, 0]}
               />
 
-              {/* Total Net Throughput Line Trend - Emerald */}
+              {/* -------------------------------- */}
+              {/* Total Throughput                 */}
+              {/* -------------------------------- */}
               <Line
-                name="Net Throughput"
+                name="Total"
                 type="monotone"
                 dataKey="throughputScaled"
                 stroke="#10B981"
-                strokeWidth={2.5}
-                dot={{ r: 3, fill: "#10B981", strokeWidth: 0 }}
-                activeDot={{ r: 5, strokeWidth: 0 }}
+                strokeWidth={2}
+                dot={{
+                  r: 2.5,
+                  fill: "#10B981",
+                  strokeWidth: 0,
+                }}
+                activeDot={{
+                  r: 4,
+                  strokeWidth: 0,
+                }}
               />
 
-              {/* Anomaly / Spike Scatter Markers - Rose */}
+              {/* -------------------------------- */}
+              {/* Anomaly Markers                  */}
+              {/* -------------------------------- */}
               <Scatter
-                name="Spike Anomaly"
+                name="Spike"
                 dataKey="outlier"
-                fill="#F43F5E"
+                fill="#EF4444"
                 shape="circle"
               />
             </ComposedChart>
           </ResponsiveContainer>
         )}
       </div>
+
+      {/* ----------------------------------------- */}
+      {/* Footer / Data Source                      */}
+      {/* ----------------------------------------- */}
+      {!loading && chartData.length > 0 && (
+        <div
+          className="
+            flex flex-col sm:flex-row
+            justify-between
+            items-start sm:items-center
+            gap-2
+            mt-2 pt-3
+            border-t
+            border-slate-100 dark:border-gray-800
+          "
+        >
+          <span
+            className="
+              text-[9px]
+              uppercase
+              tracking-wider
+              text-slate-400 dark:text-slate-500
+            "
+          >
+            Traffic accounting
+          </span>
+
+          <span
+            className="
+              text-[9px]
+              font-mono
+              text-slate-400 dark:text-slate-500
+            "
+          >
+            RADACCT_MIRROR · {optimalUnit}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

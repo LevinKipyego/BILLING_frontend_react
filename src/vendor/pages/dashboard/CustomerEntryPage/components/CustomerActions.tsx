@@ -16,7 +16,6 @@ interface Props {
     onRenew?: (customer: Customer) => void;
     onSuspend?: (customer: Customer) => void;
     onDelete?: (customer: Customer) => void;
-    
 }
 
 export default function CustomerActions({
@@ -47,7 +46,6 @@ export default function CustomerActions({
             const rect = ref.current.getBoundingClientRect();
             const viewportHeight = window.innerHeight;
             
-            // If there is less than 280px (approx height of the dropdown) below the button, open upwards
             const spaceBelow = viewportHeight - rect.bottom;
             if (spaceBelow < 280) {
                 setOpenUpward(true);
@@ -62,22 +60,22 @@ export default function CustomerActions({
         <div ref={ref} className="relative inline-block">
             <button
                 onClick={toggleMenu}
-                className="rounded-lg p-2 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="rounded-lg p-1.5 text-slate-500 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-gray-800 hover:text-slate-700 dark:hover:text-slate-200"
             >
-                <MoreVertical size={18} />
+                <MoreVertical size={16} />
             </button>
 
             {open && (
                <div 
-  className={`absolute right-0 z-[9999] w-56 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-900 ${
+  className={`absolute right-0 z-[9999] w-48 overflow-hidden rounded-lg border border-slate-200 dark:border-gray-700 bg-white shadow-lg dark:bg-gray-900 ${
     openUpward 
-      ? "bottom-full mb-2 origin-bottom" 
-      : "top-full mt-2 origin-top"
+      ? "bottom-full mb-1.5 origin-bottom" 
+      : "top-full mt-1.5 origin-top"
   }`}
 >
                     {/* View */}
                     <MenuItem
-                        icon={<Eye size={16} />}
+                        icon={<Eye size={15} />}
                         label="View Customer"
                         onClick={() => {
                             setOpen(false);
@@ -88,7 +86,7 @@ export default function CustomerActions({
                     {/* PPPoE */}
                     {customer.service_type === "PPPOE" && (
                         <MenuItem
-                            icon={<Wifi size={16} />}
+                            icon={<Wifi size={15} />}
                             label="Create PPPoE"
                             onClick={() => {
                                 setOpen(false);
@@ -101,7 +99,7 @@ export default function CustomerActions({
 
                     {/* Renew */}
                     <MenuItem
-                        icon={<RefreshCcw size={16} />}
+                        icon={<RefreshCcw size={15} />}
                         label="Renew Subscription"
                         onClick={() => {
                             setOpen(false);
@@ -111,7 +109,7 @@ export default function CustomerActions({
 
                     {/* Suspend */}
                     <MenuItem
-                        icon={<Ban size={16} />}
+                        icon={<Ban size={15} />}
                         label="Suspend"
                         danger
                         onClick={() => {
@@ -122,7 +120,7 @@ export default function CustomerActions({
 
                     {/* Delete */}
                     <MenuItem
-                        icon={<Trash2 size={16} />}
+                        icon={<Trash2 size={15} />}
                         label="Delete"
                         danger
                         onClick={() => {
@@ -147,20 +145,20 @@ function MenuItem({ icon, label, danger = false, onClick }: MenuItemProps) {
     return (
         <button
             onClick={onClick}
-            className={`flex w-full items-center gap-3 px-4 py-3 text-sm transition hover:bg-slate-50 dark:hover:bg-slate-800 ${
+            className={`flex w-full items-center gap-2.5 px-3.5 py-2.5 text-xs transition hover:bg-slate-50 dark:hover:bg-gray-800 ${
                 danger
-                    ? "text-red-600"
+                    ? "text-red-600 dark:text-red-400"
                     : "text-slate-700 dark:text-slate-200"
             }`}
         >
-            {icon}
-            {label}
+            <span className="shrink-0">{icon}</span>
+            <span className="font-medium">{label}</span>
         </button>
     );
 }
 
 function Divider() {
     return (
-        <div className="border-t border-slate-200 dark:border-slate-700" />
+        <div className="border-t border-slate-100 dark:border-gray-800" />
     );
 }

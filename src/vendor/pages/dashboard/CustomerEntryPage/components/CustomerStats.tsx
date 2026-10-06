@@ -1,3 +1,5 @@
+// src/components/CustomerStats.tsx
+
 import React from "react";
 import {
     Users,
@@ -16,32 +18,32 @@ export default function CustomerStats({
     stats,
 }: Props) {
     return (
-        <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
                 title="Total Customers"
                 value={stats.total}
-                icon={<Users size={20} />}
+                icon={<Users size={18} />}
                 color="blue"
             />
 
             <StatCard
                 title="Hotspot Users"
                 value={stats.hotspot}
-                icon={<Wifi size={20} />}
+                icon={<Wifi size={18} />}
                 color="amber"
             />
 
             <StatCard
                 title="PPPoE Subscribers"
                 value={stats.pppoe}
-                icon={<Router size={20} />}
+                icon={<Router size={18} />}
                 color="indigo"
             />
 
             <StatCard
                 title="Active Accounts"
                 value={stats.active}
-                icon={<CheckCircle2 size={20} />}
+                icon={<CheckCircle2 size={18} />}
                 color="emerald"
             />
         </div>
@@ -63,44 +65,37 @@ function StatCard({
 }: StatCardProps) {
     const styles = {
         blue: {
-            bg: "bg-blue-50 dark:bg-blue-950/40",
+            bg: "bg-blue-500/10 border-blue-500/20",
             text: "text-blue-600 dark:text-blue-400",
-            border: "group-hover:border-blue-200 dark:group-hover:border-blue-900/50",
         },
         amber: {
-            bg: "bg-amber-50 dark:bg-amber-950/40",
+            bg: "bg-amber-500/10 border-amber-500/20",
             text: "text-amber-600 dark:text-amber-400",
-            border: "group-hover:border-amber-200 dark:group-hover:border-amber-900/50",
         },
         indigo: {
-            bg: "bg-indigo-50 dark:bg-indigo-950/40",
+            bg: "bg-indigo-500/10 border-indigo-500/20",
             text: "text-indigo-600 dark:text-indigo-400",
-            border: "group-hover:border-indigo-200 dark:group-hover:border-indigo-900/50",
         },
         emerald: {
-            bg: "bg-emerald-50 dark:bg-emerald-950/40",
+            bg: "bg-emerald-500/10 border-emerald-500/20",
             text: "text-emerald-600 dark:text-emerald-400",
-            border: "group-hover:border-emerald-200 dark:group-hover:border-emerald-900/50",
         },
     };
 
     return (
-        <div 
-            className={`group relative overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition-all duration-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 ${styles[color].border}`}
-        >
+        <div className="bg-white dark:bg-gray-900 p-4 sm:p-5 rounded-lg shadow-sm border border-slate-200 dark:border-gray-700 transition-all duration-200 hover:shadow">
             <div className="flex items-center justify-between gap-3">
                 <div className="space-y-1">
-                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                    <p className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">
                         {title}
                     </p>
-                    <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                    <h2 className="text-xl sm:text-2xl font-semibold text-slate-900 dark:text-white  tracking-tight">
                         {value?.toLocaleString() ?? 0}
                     </h2>
                 </div>
 
-                {/* Soft Rounded Icon Container */}
                 <div
-                    className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105 ${styles[color].bg} ${styles[color].text}`}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${styles[color].bg} ${styles[color].text}`}
                 >
                     {icon}
                 </div>
