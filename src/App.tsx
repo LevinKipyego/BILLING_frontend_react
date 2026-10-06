@@ -53,7 +53,7 @@ import DeploymentPreview from "./vendor/pages/dashboard/NetworkDeployments/Deplo
 import DeploymentProgress from "./vendor/pages/dashboard/NetworkDeployments/DeploymentProgress";
 import { SmsTemplateManager } from "./vendor/pages/dashboard/Sms/SmsTemplateManager";
 import { SmsAnalyticsDashboard } from "./vendor/pages/dashboard/Sms/SmsAnalyticsDashboard";
-import { VendorDashboard } from "./vendor/pages/dashboard/B2C/components/MainVendorLedger";
+
 import { VendorLoanHub } from "./vendor/pages/dashboard/mikroloans/MikroLoans";
 
 import PayOutPanel from "./vendor/pages/dashboard/B2C002/PayOutPanel";
@@ -157,10 +157,7 @@ export default function App() {
               />
 
               {/* Ledgers and Payouts */}
-              <Route
-                path="vendor/ledgers"
-                element={< VendorDashboard />}
-              />
+              
 
               <Route
                 path="vendor/payouts"
