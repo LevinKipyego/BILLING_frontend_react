@@ -3,8 +3,6 @@ import {
   CircleStackIcon,
   BanknotesIcon,
   CurrencyDollarIcon,
-  BookOpenIcon,
-  ReceiptPercentIcon
 } from "@heroicons/react/24/outline";
 import { GitFork, ShieldCheck, Users, Wifi,
         Boxes,  BarChart3 ,CreditCard, ArrowLeftRight, 
