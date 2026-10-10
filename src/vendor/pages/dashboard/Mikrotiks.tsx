@@ -1,407 +1,580 @@
+import { useCallback, useEffect, useState, type FormEvent } from "react";
+import {
+  SignalIcon,
+  ArrowPathIcon,
+  CheckCircleIcon,
+  CpuChipIcon,
+  ExclamationCircleIcon,
+  MapPinIcon,
+  PencilSquareIcon,
+  PlusIcon,
+  ServerIcon,
+  TrashIcon,
+  XMarkIcon,
+  ChevronDownIcon,
+  GlobeAltIcon,
+} from "@heroicons/react/24/outline";
 
-import { useEffect, useState, useMemo } from "react";
 import {
   fetchMikrotiks,
   createMikrotik,
   deleteMikrotik,
-  updateMikrotik, 
+  updateMikrotik,
 } from "../../api/devices";
 import type { MikrotikDevice } from "../../types/device";
-import { 
-  CpuChipIcon, 
-  PlusIcon, 
-  TrashIcon, 
-  PencilSquareIcon, 
-  GlobeAltIcon, 
-  HashtagIcon,
-  ServerIcon,
-  ExclamationCircleIcon,
-  ArrowPathIcon,
-  XMarkIcon,
-  MagnifyingGlassIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon
-} from "@heroicons/react/24/outline";
+
+type MikrotikRecord = MikrotikDevice & {
+  Model?: string | null;
+  OSversion?: string | null;
+  site_name?: string | null;
+  region?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  status?: string;
+  enabled?: boolean;
+  created_at?: string;
+};
+
+type DeviceForm = {
+  identity_name: string;
+  Model: string;
+  OSversion: string;
+  serial_number: string;
+  site_name: string;
+  api_ip: string;
+  region: string;
+  latitude: string;
+  longitude: string;
+};
+
+type FormSection = "identity" | "hardware" | "review" | null;
+
+const EMPTY_FORM: DeviceForm = {
+  identity_name: "",
+  Model: "",
+  OSversion: "",
+  serial_number: "",
+  site_name: "",
+  api_ip: "",
+  region: "",
+  latitude: "",
+  longitude: "",
+};
+
+const inputClass =
+  "h-9 w-full rounded-lg border border-slate-200 bg-white px-3 text-xs text-slate-900 outline-none transition focus:border-slate-400 dark:border-gray-700 dark:bg-gray-900 dark:text-slate-100 dark:focus:border-gray-500 sm:text-[13px]";
+
+const labelClass =
+  "mb-1 block text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500";
+
+const cardClass =
+  "rounded-lg border border-slate-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900";
+
+function displayValue(value: unknown) {
+  return value === null || value === undefined || value === "" ? "Not provided" : String(value);
+}
+
+function asFormValue(value: unknown) {
+  return value === null || value === undefined ? "" : String(value);
+}
+
+function StatusPill({ status }: { status?: string }) {
+  const isUp = status?.toLowerCase() === "up" || status?.toLowerCase() === "online";
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${
+        isUp
+          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+          : "border-slate-200 bg-slate-100 text-slate-600 dark:border-gray-700 dark:bg-gray-800 dark:text-slate-300"
+      }`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${isUp ? "bg-emerald-500" : "bg-slate-400"}`} />
+      {status || "Unknown"}
+    </span>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  optional = false,
+  hint,
+  min,
+  max,
+  step,
+  required = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: string;
+  optional?: boolean;
+  hint?: string;
+  min?: string;
+  max?: string;
+  step?: string;
+  required?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <label className={labelClass}>
+        {label}
+        {optional && <span className="ml-1 font-normal text-slate-400 lowercase">(optional)</span>}
+      </label>
+      <input
+        className={inputClass}
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        min={min}
+        max={max}
+        step={step}
+        required={required}
+      />
+      {hint && <p className="mt-1 text-[10px] leading-4 text-slate-500 dark:text-slate-400">{hint}</p>}
+    </div>
+  );
+}
+
+function SectionRow({
+  title,
+  description,
+  open,
+  complete,
+  onClick,
+  icon,
+}: {
+  title: string;
+  description: string;
+  open: boolean;
+  complete?: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={open}
+      className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50/50 dark:hover:bg-gray-800/40"
+    >
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-500 dark:bg-gray-800 dark:text-slate-300">
+        {complete ? <CheckCircleIcon className="h-3.5 w-3.5 text-emerald-500" /> : icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs font-medium text-slate-900 dark:text-white">
+          {title}
+        </span>
+        <span className="mt-0.5 block truncate text-[10px] text-slate-500 dark:text-slate-400">
+          {description}
+        </span>
+      </span>
+      <ChevronDownIcon
+        className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${
+          open ? "rotate-180" : ""
+        }`}
+      />
+    </button>
+  );
+}
 
 export default function Mikrotiks() {
-  const [devices, setDevices] = useState<MikrotikDevice[]>([]);
+  const [devices, setDevices] = useState<MikrotikRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [formSection, setFormSection] = useState<FormSection>("identity");
+  const [form, setForm] = useState<DeviceForm>(EMPTY_FORM);
 
-  // Pagination State
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
-
-  const [form, setForm] = useState({
-    identity_name: "",
-    api_ip: "",
-    serial_number: ""
-  });
-
-  const loadDevices = async () => {
+  const loadDevices = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await fetchMikrotiks();
-      setDevices(data || []);
-    } catch (err: any) {
-      setError(err.message);
+      setDevices((data || []) as MikrotikRecord[]);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Could not load MikroTik devices.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  useEffect(() => { loadDevices(); }, []);
-
-  // Filter & Pagination Logic
-  const filteredDevices = useMemo(() => {
-    return devices.filter(d => 
-      (d.identity_name?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
-      (d.api_ip?.toLowerCase() || "").includes(searchTerm.toLowerCase())
-    );
-  }, [devices, searchTerm]);
-
-  const totalPages = Math.ceil(filteredDevices.length / itemsPerPage);
-  const paginatedDevices = filteredDevices.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  // Reset pagination on search
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
+    void loadDevices();
+  }, [loadDevices]);
 
-  const handleCreateOrUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    try {
-      if (editingId) {
-        await updateMikrotik(editingId, form); 
-      } else {
-        await createMikrotik(form);
-      }
-      closeFormModal();
-      loadDevices();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const setField = (name: keyof DeviceForm, value: string) => {
+    setForm((current) => ({ ...current, [name]: value }));
   };
 
-  const startEdit = (device: MikrotikDevice) => {
-    setEditingId(device.id!);
-    setForm({
-      identity_name: device.identity_name,
-      api_ip: device.api_ip,
-      serial_number: device.serial_number || ""
-    });
+  const openCreate = () => {
+    setForm(EMPTY_FORM);
+    setEditingId(null);
+    setFormSection("identity");
+    setError(null);
+    setNotice(null);
     setShowForm(true);
   };
 
-  const closeFormModal = () => {
-    setForm({ identity_name: "", api_ip: "", serial_number: "" });
-    setEditingId(null);
-    setShowForm(false);
+  const startEdit = (device: MikrotikRecord) => {
+    setForm({
+      identity_name: asFormValue(device.identity_name),
+      Model: asFormValue(device.Model),
+      OSversion: asFormValue(device.OSversion),
+      serial_number: asFormValue(device.serial_number),
+      site_name: asFormValue(device.site_name),
+      api_ip: asFormValue(device.api_ip),
+      region: asFormValue(device.region),
+      latitude: asFormValue(device.latitude),
+      longitude: asFormValue(device.longitude),
+    });
+    setEditingId(String(device.id));
+    setFormSection("identity");
+    setError(null);
+    setNotice(null);
+    setShowForm(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this MikroTik device?")) return;
+  const closeForm = () => {
+    if (saving) return;
+    setShowForm(false);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    setFormSection("identity");
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    setSaving(true);
+    setError(null);
+    setNotice(null);
+
+    const payload = {
+      identity_name: form.identity_name.trim(),
+      api_ip: form.api_ip.trim(),
+      Model: form.Model.trim() || null,
+      OSversion: form.OSversion.trim() || null,
+      serial_number: form.serial_number.trim(),
+      site_name: form.site_name.trim(),
+      region: form.region.trim(),
+      latitude: form.latitude.trim() === "" ? null : Number(form.latitude),
+      longitude: form.longitude.trim() === "" ? null : Number(form.longitude),
+    };
+
+    if (
+      (payload.latitude !== null && (!Number.isFinite(payload.latitude) || payload.latitude < -90 || payload.latitude > 90)) ||
+      (payload.longitude !== null && (!Number.isFinite(payload.longitude) || payload.longitude < -180 || payload.longitude > 180))
+    ) {
+      setError("Coordinates are invalid. Latitude must be between -90 and 90; longitude must be between -180 and 180.");
+      setFormSection("hardware");
+      setSaving(false);
+      return;
+    }
+
     try {
-        await deleteMikrotik(id);
-        loadDevices();
-    } catch (err: any) {
-        setError("Failed to remove device.");
+      if (editingId) {
+        await updateMikrotik(editingId, payload as Parameters<typeof updateMikrotik>[1]);
+        setNotice("MikroTik device details updated.");
+      } else {
+        await createMikrotik(payload as Parameters<typeof createMikrotik>[0]);
+        setNotice("MikroTik device registered.");
+      }
+      setShowForm(false);
+      setEditingId(null);
+      setForm(EMPTY_FORM);
+      setFormSection("identity");
+      await loadDevices();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Could not save this MikroTik device.");
+    } finally {
+      setSaving(false);
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Delete this MikroTik device? This may affect RADIUS authentication for this router.")) return;
+    setError(null);
+    setNotice(null);
+    try {
+      await deleteMikrotik(id);
+      setNotice("MikroTik device deleted.");
+      await loadDevices();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to remove this device.");
+    }
+  };
+
+  const onlineCount = devices.filter((device) => {
+    const status = String(device.status || "").toLowerCase();
+    return status === "up" || status === "online";
+  }).length;
+
+  const toggleFormSection = (section: Exclude<FormSection, null>) => {
+    setFormSection((current) => (current === section ? null : section));
+  };
+
   return (
-    <div className="max-w-6xl mx-auto p-3 md:p-8 space-y-4 md:space-y-6 animate-fadeIn dark:bg-gray-900 min-h-screen transition-colors">
+    <main className="mx-auto min-h-screen w-full max-w-7xl space-y-3 px-3 py-3.5 text-slate-800 transition-colors sm:px-5 sm:py-5 lg:px-6 dark:text-slate-100">
       
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase flex items-center gap-2">
-              <CpuChipIcon className="w-6 h-6 md:w-8 md:h-8 text-blue-600 flex-shrink-0" />
+      {/* Header Toolbar */}
+      <div className={`${cardClass} flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 px-4 sm:px-5 py-3.5`}>
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400">
+            <CpuChipIcon className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <h1 className="text-sm sm:text-base font-medium text-slate-900 dark:text-white">
               MikroTik Nodes
             </h1>
+            <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+              Manage router identity, hardware details and deployment locations.
+            </p>
           </div>
-          <p className="text-[10px] md:text-sm text-slate-500 dark:text-slate-400 uppercase tracking-tight font-bold">
-            Manage and deploy router configurations.
-          </p>
         </div>
-        <div className="flex items-center justify-between md:justify-end gap-3">
-          <button 
-            onClick={loadDevices}
-            className="p-2.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all border border-transparent dark:border-gray-800"
+        <div className="flex w-full sm:w-auto items-center gap-2">
+          <button
+            type="button"
+            onClick={() => void loadDevices()}
+            disabled={loading}
+            aria-label="Refresh list"
+            className="h-9 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-slate-300 px-3 rounded-lg text-xs font-medium hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors flex items-center justify-center gap-1.5"
           >
-            <ArrowPathIcon className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+            <ArrowPathIcon className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </button>
-          <button 
-            onClick={() => setShowForm(true)}
-            className="flex-1 md:flex-initial flex items-center justify-center gap-2 bg-blue-600 hover:bg-black text-white px-5 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest shadow-md transition-all outline-none"
+          <button
+            type="button"
+            onClick={openCreate}
+            className="flex-1 sm:flex-initial h-9 bg-blue-600 hover:bg-blue-700 text-white px-3.5 rounded-lg font-medium transition-colors text-xs shadow-sm flex items-center justify-center gap-1.5"
           >
-            <PlusIcon className="w-4 h-4 stroke-[3]" />
-            <span>New Router</span>
+            <PlusIcon className="h-3.5 w-3.5" /> Add Device
           </button>
         </div>
       </div>
 
-      {error && (
-        <div className="bg-rose-50 dark:bg-rose-900/20 border-l-4 border-rose-500 p-4 rounded-lg flex items-center gap-3 animate-shake mx-1">
-          <ExclamationCircleIcon className="w-5 h-5 text-rose-500 flex-shrink-0" />
-          <p className="text-rose-700 dark:text-rose-400 text-[10px] font-black uppercase">{error}</p>
+      {(error || notice) && (
+        <div
+          role={error ? "alert" : "status"}
+          className={`flex items-start gap-2.5 rounded-lg border p-3 text-xs ${
+            error
+              ? "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400"
+              : "border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+          }`}
+        >
+          {error ? <ExclamationCircleIcon className="mt-0.5 h-4 w-4 shrink-0" /> : <CheckCircleIcon className="mt-0.5 h-4 w-4 shrink-0" />}
+          <p className="min-w-0 flex-1">{error || notice}</p>
+          <button type="button" onClick={() => { setError(null); setNotice(null); }} aria-label="Dismiss message">
+            <XMarkIcon className="h-4 w-4" />
+          </button>
         </div>
       )}
 
-      {/* DETACHED OUTSIDE SEARCH BAR CONTROLS */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
-        <div className="relative w-full sm:max-w-xs">
-          <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder="Search routers by parameters..." 
-            className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700/80 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-2xs"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Metrics Row */}
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className={`${cardClass} p-3.5`}>
+          <div className="flex items-center justify-between">
+            <p className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Registered Devices</p>
+            <ServerIcon className="h-4 w-4 text-slate-400" />
+          </div>
+          <p className="mt-1 text-lg font-bold font-mono text-slate-900 dark:text-white">{devices.length}</p>
         </div>
-        <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center sm:text-right w-full sm:w-auto">
-          {filteredDevices.length} Hardware Units Listed
+        <div className={`${cardClass} p-3.5`}>
+          <div className="flex items-center justify-between">
+            <p className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Reported Online</p>
+            <SignalIcon className="h-4 w-4 text-emerald-500" />
+          </div>
+          <p className="mt-1 text-lg font-bold font-mono text-emerald-600 dark:text-emerald-400">{onlineCount}</p>
         </div>
-      </div>
+        <div className={`${cardClass} p-3.5`}>
+          <div className="flex items-center justify-between">
+            <p className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Location Details</p>
+            <MapPinIcon className="h-4 w-4 text-blue-500" />
+          </div>
+          <p className="mt-1 text-lg font-bold font-mono text-slate-900 dark:text-white">{devices.filter((d) => d.latitude != null && d.longitude != null).length}</p>
+        </div>
+      </section>
 
-      {/* FIXED POSITION FORM OVERLAY POPUP */}
+      {/* Router Inventory List Section */}
+      <section className={`${cardClass} overflow-hidden`}>
+        <div className="px-4 py-3 border-b border-slate-100 dark:border-gray-800 flex justify-between items-center">
+          <h3 className="text-xs font-medium text-slate-900 dark:text-white uppercase tracking-wider">
+            Registered Routers ({devices.length})
+          </h3>
+        </div>
+
+        {loading && devices.length === 0 ? (
+          <div className="flex items-center justify-center gap-2 px-4 py-12 text-xs text-slate-500">
+            <ArrowPathIcon className="h-4 w-4 animate-spin" /> Loading devices…
+          </div>
+        ) : devices.length === 0 ? (
+          <div className="p-8 text-center text-slate-400 dark:text-slate-500 text-xs">
+            No MikroTik devices configured.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 p-3.5 sm:p-4 lg:grid-cols-2">
+            {devices.map((device) => (
+              <article key={device.id} className="rounded-lg border border-slate-200 dark:border-gray-800 p-3.5 space-y-3 bg-slate-50/50 dark:bg-gray-800/20">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-gray-800 text-slate-600 dark:text-slate-300">
+                      <CpuChipIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </span>
+                    <div className="min-w-0">
+                      <h4 className="font-medium text-slate-900 dark:text-white text-xs truncate">{displayValue(device.identity_name)}</h4>
+                      <p className="font-mono text-[10px] text-slate-400 truncate mt-0.5">{displayValue(device.api_ip)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <StatusPill status={device.status} />
+                    <button type="button" onClick={() => startEdit(device)} aria-label="Edit" className="p-1.5 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 rounded-md">
+                      <PencilSquareIcon className="h-4 w-4" />
+                    </button>
+                    <button type="button" onClick={() => void handleDelete(String(device.id))} aria-label="Delete" className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-md">
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-2 border-t border-slate-200/60 dark:border-gray-800 text-[11px]">
+                  <div><span className="text-slate-400">Model: </span><span className="font-medium text-slate-700 dark:text-slate-300">{displayValue(device.Model)}</span></div>
+                  <div><span className="text-slate-400">RouterOS: </span><span className="font-medium text-slate-700 dark:text-slate-300">{displayValue(device.OSversion)}</span></div>
+                  <div><span className="text-slate-400">Serial: </span><span className="font-mono font-medium text-slate-700 dark:text-slate-300">{displayValue(device.serial_number)}</span></div>
+                  <div><span className="text-slate-400">Site: </span><span className="font-medium text-slate-700 dark:text-slate-300">{[device.site_name, device.region].filter(Boolean).join(" · ") || "Not provided"}</span></div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-[11px] text-slate-500 dark:border-slate-800 dark:text-slate-400">
+                  <span className={`rounded-full px-2 py-1 ${device.enabled ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300" : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"}`}>
+                    {device.enabled ? "Enabled" : "Disabled"}
+                  </span>
+                  {device.created_at && <span>Added {new Date(device.created_at).toLocaleDateString()}</span>}
+                </div>
+                
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Accordion Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/70 backdrop-blur-xs animate-fadeIn">
-          <section className="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-xl shadow-2xl border border-slate-200 dark:border-gray-700/80 overflow-hidden animate-scaleUp max-h-[90vh] flex flex-col">
-            
-            {/* Modal Window Header */}
-            <div className="p-4 md:p-5 border-b border-slate-100 dark:border-gray-700/60 bg-slate-50/50 dark:bg-gray-800/80 flex items-center justify-between sticky top-0 z-10">
-              <h2 className="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                {editingId ? <PencilSquareIcon className="w-4 h-4 text-blue-600" /> : <PlusIcon className="w-4 h-4 text-blue-600" />}
-                {editingId ? "Update Router Configuration" : "New Node Entry Registration"}
-              </h2>
-              <button 
-                onClick={closeFormModal}
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-md transition-colors"
-              >
-                <XMarkIcon className="w-5 h-5 stroke-[2.5]" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-xs" onMouseDown={(event) => { if (event.target === event.currentTarget) closeForm(); }}>
+          <section role="dialog" aria-modal="true" className="flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl dark:border-gray-700 dark:bg-gray-900">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-100 px-4 py-3.5 dark:border-gray-800 sm:px-5">
+              <div>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.07em] text-blue-600 dark:text-blue-400">
+                  {editingId ? "Update Configuration" : "New Registration"}
+                </span>
+                <h2 className="text-xs sm:text-sm font-medium text-slate-900 dark:text-white">
+                  {editingId ? "Edit MikroTik Device" : "Register MikroTik Device"}
+                </h2>
+              </div>
+              <button type="button" onClick={closeForm} disabled={saving} aria-label="Close form" className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-800">
+                <XMarkIcon className="h-4 w-4" />
               </button>
             </div>
-            
-            {/* Modal Input Fields Body */}
-            <form onSubmit={handleCreateOrUpdate} className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Identity Name</label>
-                  <div className="relative">
-                    <ServerIcon className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                    <input
-                      required
-                      className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 p-3 pl-11 rounded-lg text-xs font-bold text-slate-700 dark:text-white transition-all outline-none"
-                      placeholder="e.g. CORE-RT-01"
-                      value={form.identity_name}
-                      onChange={(e) => setForm({ ...form, identity_name: e.target.value })}
-                    />
-                  </div>
+
+            <form onSubmit={handleSubmit} className="min-h-0 flex-1 overflow-y-auto">
+              <div className="divide-y divide-slate-100 dark:divide-gray-800">
+                {/* 1. Identity Section */}
+                <div>
+                  <SectionRow
+                    title="1. Network Device Identity"
+                    description={form.identity_name ? `Name: ${form.identity_name}` : "Name and management IP address"}
+                    open={formSection === "identity"}
+                    complete={Boolean(form.identity_name.trim() && form.api_ip.trim())}
+                    onClick={() => toggleFormSection("identity")}
+                    icon={<GlobeAltIcon className="h-3.5 w-3.5" />}
+                  />
+                  {formSection === "identity" && (
+                    <div className="space-y-3.5 px-4 pb-4 pt-1 sm:px-5">
+                      <Field label="Identity Name" value={form.identity_name} onChange={(value) => setField("identity_name", value)} placeholder="e.g. EMBU-CORE-01" required />
+                      <Field label="API / Management IP" value={form.api_ip} onChange={(value) => setField("api_ip", value)} placeholder="e.g. 192.168.100.103" hint="Enter the router's reachable management address." required />
+                      <Field label="Serial Number" value={form.serial_number} onChange={(value) => setField("serial_number", value)} placeholder="e.g. A1B2C3D4" optional />
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Host / API IP</label>
-                  <div className="relative">
-                    <GlobeAltIcon className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                    <input
-                      required
-                      className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 p-3 pl-11 rounded-lg text-xs font-bold text-slate-700 dark:text-white transition-all outline-none"
-                      placeholder="192.168.88.1"
-                      value={form.api_ip}
-                      onChange={(e) => setForm({ ...form, api_ip: e.target.value })}
-                    />
-                  </div>
+                {/* 2. Hardware & Location Section */}
+                <div>
+                  <SectionRow
+                    title="2. Hardware & Location Details"
+                    description={form.Model ? `Model: ${form.Model}` : "Model, version, site, and coordinates"}
+                    open={formSection === "hardware"}
+                    complete={Boolean(form.Model.trim() || form.site_name.trim())}
+                    onClick={() => toggleFormSection("hardware")}
+                    icon={<MapPinIcon className="h-3.5 w-3.5" />}
+                  />
+                  {formSection === "hardware" && (
+                    <div className="space-y-3.5 px-4 pb-4 pt-1 sm:px-5">
+                      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                        <Field label="Device Model" value={form.Model} onChange={(value) => setField("Model", value)} placeholder="e.g. RB5009UG+S+" optional />
+                        <Field label="RouterOS Version" value={form.OSversion} onChange={(value) => setField("OSversion", value)} placeholder="e.g. 7.16.2" optional />
+                        <Field label="Site Name" value={form.site_name} onChange={(value) => setField("site_name", value)} placeholder="e.g. Embu Main POP" optional />
+                        <Field label="Region / County" value={form.region} onChange={(value) => setField("region", value)} placeholder="e.g. Embu" optional />
+                        <Field label="Latitude" type="number" value={form.latitude} onChange={(value) => setField("latitude", value)} placeholder="-0.5390" min="-90" max="90" step="any" optional hint="Range: −90 to 90." />
+                        <Field label="Longitude" type="number" value={form.longitude} onChange={(value) => setField("longitude", value)} placeholder="37.4575" min="-180" max="180" step="any" optional hint="Range: −180 to 180." />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Serial Number</label>
-                  <div className="relative">
-                    <HashtagIcon className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                    <input
-                      className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 p-3 pl-11 rounded-lg text-xs font-bold text-slate-700 dark:text-white transition-all outline-none"
-                      placeholder="HC20-XXXX"
-                      value={form.serial_number}
-                      onChange={(e) => setForm({ ...form, serial_number: e.target.value })}
-                    />
-                  </div>
+                {/* 3. Review Section */}
+                <div>
+                  <SectionRow
+                    title="3. Review & Summary"
+                    description="Confirm details before saving"
+                    open={formSection === "review"}
+                    complete={true}
+                    onClick={() => toggleFormSection("review")}
+                    icon={<CheckCircleIcon className="h-3.5 w-3.5" />}
+                  />
+                  {formSection === "review" && (
+                    <div className="space-y-3.5 px-4 pb-4 pt-1 sm:px-5">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {([
+                          ["Identity Name", form.identity_name],
+                          ["API / Management IP", form.api_ip],
+                          ["Serial Number", form.serial_number],
+                          ["Model", form.Model],
+                          ["RouterOS Version", form.OSversion],
+                          ["Site Name", form.site_name],
+                          ["Region", form.region],
+                          ["Latitude", form.latitude],
+                          ["Longitude", form.longitude],
+                        ] as [string, string][]).map(([label, value]) => (
+                          <div key={label} className="min-w-0 rounded-lg border border-slate-200 p-2.5 dark:border-gray-700">
+                            <p className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400">{label}</p>
+                            <p className="mt-0.5 break-words text-xs font-medium text-slate-900 dark:text-white">{value.trim() || "Not provided"}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-
               </div>
 
-              {/* Action Operations Footer Container */}
-              <div className="pt-4 border-t border-slate-100 dark:border-gray-700/60 flex items-center justify-end gap-3 bg-white dark:bg-gray-800 sticky bottom-0">
-                <button
-                  type="button"
-                  onClick={closeFormModal}
-                  className="px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-700/60 transition-all outline-none"
-                >
-                  Dismiss
+              <div className="flex items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/50 px-4 py-3.5 dark:border-gray-800 dark:bg-gray-900">
+                <button type="button" onClick={closeForm} disabled={saving} className="h-9 px-3.5 border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-slate-400 rounded-lg text-xs font-medium hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors">
+                  Cancel
                 </button>
-                <button 
-                  type="submit"
-                  disabled={loading}
-                  className={`px-5 py-2.5 rounded-lg font-black text-xs uppercase tracking-widest text-white transition-all shadow-md active:scale-[0.98] flex items-center gap-2 outline-none ${
-                    editingId ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-blue-600 hover:bg-black'
-                  }`}
-                >
-                  {loading ? (
-                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                  ) : editingId ? (
-                    <PencilSquareIcon className="w-4 h-4 stroke-[2.5]" />
-                  ) : (
-                    <PlusIcon className="w-4 h-4 stroke-[2.5]" />
-                  )}
-                  <span>{editingId ? "Update Entry" : "Save Router"}</span>
+                <button type="submit" disabled={saving || !form.identity_name.trim() || !form.api_ip.trim()} className="h-9 bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 disabled:opacity-50 shadow-sm">
+                  {saving ? <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" /> : <CheckCircleIcon className="h-3.5 w-3.5" />}
+                  {saving ? "Saving…" : editingId ? "Save Changes" : "Register Device"}
                 </button>
               </div>
             </form>
           </section>
         </div>
       )}
-
-      {/* 1. SEPARATED MOBILE INDEPENDENT DEVICE CARDS */}
-      <div className="block md:hidden space-y-3 mx-1">
-        {paginatedDevices.map((d) => (
-          <div 
-            key={d.id} 
-            className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700/80 rounded-xl p-4 space-y-3.5 shadow-2xs hover:border-slate-300 dark:hover:border-gray-600 transition-colors"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start gap-2.5">
-                <div className="p-2 bg-slate-100 dark:bg-slate-700/60 rounded-lg text-blue-600 mt-0.5">
-                  <CpuChipIcon className="w-4 h-4" />
-                </div>
-                <div className="space-y-0.5">
-                  <span className="block font-bold text-sm text-slate-900 dark:text-slate-100 antialiased tracking-normal">
-                    {d.identity_name}
-                  </span>
-                  <span className="block font-mono text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
-                    S/N: {d.serial_number || "---"}
-                  </span>
-                </div>
-              </div>
-              <div className="flex-shrink-0">
-                <span className="text-[10px] font-mono font-black bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40 px-2 py-0.5 rounded-md uppercase tracking-wide">
-                  {d.api_ip}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-1.5 border-t border-slate-100 dark:border-gray-700/50">
-              <button 
-                onClick={() => startEdit(d)} 
-                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-md transition-all active:scale-95"
-              >
-                <PencilSquareIcon className="w-3.5 h-3.5" />
-                <span>Edit</span>
-              </button>
-              <button 
-                onClick={() => handleDelete(d.id!)} 
-                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 rounded-md transition-all active:scale-95"
-              >
-                <TrashIcon className="w-3.5 h-3.5" />
-                <span>Delete</span>
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* 2. DESKTOP SYSTEM TABULAR WRAPPER */}
-      <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-slate-100 dark:border-slate-700 overflow-hidden mx-1">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/50 dark:bg-gray-900/50 text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-[0.2em] font-black border-b border-slate-100 dark:border-slate-700/50">
-                <th className="px-6 py-4.5">Device Identity</th>
-                <th className="px-4 py-4.5 text-center">Network Address</th>
-                <th className="px-4 py-4.5 text-center">Serial</th>
-                <th className="px-8 py-4.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
-              {paginatedDevices.map((d) => (
-                <tr key={d.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg group-hover:bg-blue-500/10 transition-colors">
-                        <CpuChipIcon className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <span className="font-bold text-[13px] text-slate-800 dark:text-slate-200 tracking-normal">{d.identity_name}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    <span className="text-[10px] font-black bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded-lg uppercase">
-                      {d.api_ip}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-center">
-                    <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">
-                      {d.serial_number || "---"}
-                    </span>
-                  </td>
-                  <td className="px-8 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => startEdit(d)} className="p-2 text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all">
-                        <PencilSquareIcon className="w-4 h-4 stroke-[2]" />
-                      </button>
-                      <button onClick={() => handleDelete(d.id!)} className="p-2 text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all">
-                        <TrashIcon className="w-4 h-4 stroke-[2]" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* FALLBACK INVENTORY VACANT STATE */}
-      {!paginatedDevices.length && !loading && (
-        <div className="py-20 text-center space-y-3 bg-white dark:bg-gray-800 rounded-lg border border-slate-100 dark:border-slate-700/80 mx-1">
-          <ServerIcon className="w-10 h-10 text-slate-200 dark:text-slate-700 mx-auto" />
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventory Empty.</p>
-        </div>
-      )}
-
-      {/* Pagination Block Footer Panel */}
-      <div className="px-5 md:px-8 py-4 border border-slate-150 dark:border-slate-700 rounded-lg flex items-center justify-between bg-white dark:bg-gray-800 mx-1">
-         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-           {currentPage} / {totalPages || 1}
-         </span>
-         <div className="flex gap-2">
-            <button 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(c => c - 1)}
-              className="p-2 border border-slate-200 dark:border-gray-700 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-900 disabled:opacity-20 transition-all dark:text-white outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              <ChevronLeftIcon className="w-4 h-4 stroke-[3]" />
-            </button>
-            <button 
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage(c => c + 1)}
-              className="p-2 border border-slate-200 dark:border-gray-700 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-900 disabled:opacity-20 transition-all dark:text-white outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              <ChevronRightIcon className="w-4 h-4 stroke-[3]" />
-            </button>
-         </div>
-      </div>
-    </div>
+    </main>
   );
 }

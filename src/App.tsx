@@ -33,7 +33,7 @@ import C2bTransactions from "./vendor/pages/dashboard/C2bTransactions";
 import PPPoESubscriptionPage from "./vendor/pages/dashboard/PpoeSubsicriptions";
 import PppoeCredentialPage from "./vendor/pages/dashboard/PppoeCredentials";
 
-import HotspotSubscriptionPage from "./vendor/pages/dashboard/HotspotSubscription";
+import HotspotSubscriptionPage from "./vendor/pages/dashboard/hotspotsub/HotspotSubscriptionPage";
 import HotspotCredentialPage from "./vendor/pages/dashboard/HotspotCredentials";
 
 import ProtectedRoute from "../ProtectedRoute";

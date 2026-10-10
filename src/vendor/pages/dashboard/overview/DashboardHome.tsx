@@ -11,10 +11,13 @@ import {
 import { BaseUrl } from "../../../../BaseUrl";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { StatCard } from "./components/StatCard";
+
 import {
   TrafficThroughputChart,
   type TrafficItem,
+  type TrafficRange,
 } from "./components/TrafficThroughputChart";
+
 import { PlanMarketShareChart } from "./components/PlanMarketShareChart";
 import { InfrastructureVitals } from "./components/InfrastructureVitals";
 
@@ -41,7 +44,13 @@ export interface TelemetryData {
     };
   };
 
+ 
+
   traffic_throughput: TrafficItem[];
+
+  traffic_by_range: Partial<
+    Record<TrafficRange, TrafficItem[]>
+  >;
 
   plan_market_share: Array<{
     name: string;
@@ -69,18 +78,7 @@ export interface TelemetryData {
   };
 }
 
-/*
- * Dashboard chart palette.
- *
- * Keep these colors aligned with the dashboard's
- * semantic visual language:
- *
- * Blue    → primary / plans
- * Violet  → secondary
- * Emerald → healthy / active
- * Amber   → warning / activity
- * Red     → critical
- */
+
 const COLORS = [
   "#2563EB",
   "#7C3AED",
@@ -335,14 +333,15 @@ export default function DashboardHome() {
         {/* --------------------------------------- */}
 
         <div className="lg:col-span-8 min-w-0">
-          <TrafficThroughputChart
-            data={
-              data?.traffic_throughput || []
-            }
-            loading={loading}
-          />
-        </div>
+          
+        <TrafficThroughputChart
+          data={data?.traffic_throughput ?? []}
+          dataByRange={data?.traffic_by_range}
+          loading={loading}
+        />
 
+        </div>
+        
         {/* --------------------------------------- */}
         {/* Plan Market Share — 25%                 */}
         {/* --------------------------------------- */}

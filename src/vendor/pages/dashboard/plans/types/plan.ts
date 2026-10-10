@@ -1,5 +1,6 @@
 export interface Plan {
   id: number;
+  is_featured: boolean;
   name: string;
   price: number | string;
   duration_minutes: number;
