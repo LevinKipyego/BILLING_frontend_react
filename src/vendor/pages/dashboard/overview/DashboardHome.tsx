@@ -320,42 +320,31 @@ export default function DashboardHome() {
        * On mobile/tablet they stack vertically.
        */}
 
-      <div
-        className="
-          grid
-          grid-cols-1
-          lg:grid-cols-12
-          gap-3
-        "
-      >
-        {/* --------------------------------------- */}
-        {/* Traffic Throughput — 75%                */}
-        {/* --------------------------------------- */}
-
-        <div className="lg:col-span-8 min-w-0">
           
-        <TrafficThroughputChart
-          data={data?.traffic_throughput ?? []}
-          dataByRange={data?.traffic_by_range}
-          loading={loading}
-        />
-
+      <div className="grid min-w-0 grid-cols-1 items-start gap-4 lg:grid-cols-12">
+        {/* Traffic Throughput — 8/12 columns */}
+        <div className="w-full min-w-0 lg:col-span-8">
+          <div className="h-[320px] min-h-0 w-full min-w-0">
+            <TrafficThroughputChart
+              data={data?.traffic_throughput ?? []}
+              dataByRange={data?.traffic_by_range}
+              loading={loading}
+            />
+          </div>
         </div>
-        
-        {/* --------------------------------------- */}
-        {/* Plan Market Share — 25%                 */}
-        {/* --------------------------------------- */}
 
-        <div className="lg:col-span-4 min-w-0">
-          <PlanMarketShareChart
-            data={
-              data?.plan_market_share || []
-            }
-            loading={loading}
-            colors={COLORS}
-          />
+        {/* Plan Market Share — 4/12 columns */}
+        <div className="w-full min-w-0 lg:col-span-4">
+          <div className="h-[320px] min-h-0 w-full min-w-0">
+            <PlanMarketShareChart
+              data={data?.plan_market_share ?? []}
+              loading={loading}
+              colors={COLORS}
+            />
+          </div>
         </div>
       </div>
+
 
       {/* ========================================= */}
       {/* 5. Infrastructure Health                 */}
