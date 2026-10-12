@@ -1,11 +1,13 @@
-import { 
-  Cpu, 
-  Layers, 
-  Activity, 
-  Thermometer, 
-  Users, 
-  SignalHigh 
+
+import {
+  Cpu,
+  Layers,
+  Activity,
+  Thermometer,
+  Users,
+  SignalHigh,
 } from "lucide-react";
+
 import type { CurrentHealth } from "../../types/networkdetailed";
 
 interface Props {
@@ -13,111 +15,196 @@ interface Props {
 }
 
 const CurrentHealthCard = ({ health }: Props) => {
-  // Industrial color logic
-  const getStatusColor = (status: string) => 
-    status.toLowerCase() === 'online' ? 'bg-emerald-500' : 'bg-rose-600';
-  
-  const getMetricColor = (val: number) => {
-    if (val > 80) return 'text-rose-600 dark:text-rose-400';
-    if (val > 60) return 'text-amber-500';
-    return 'text-emerald-600 dark:text-emerald-400';
+  const status = health.status?.toLowerCase();
+  const isOnline = status === "online";
+
+  const getMetricColor = (value: number) => {
+    if (value > 80) return "text-rose-600 dark:text-rose-400";
+    if (value > 60) return "text-amber-600 dark:text-amber-400";
+    return "text-slate-800 dark:text-slate-100";
   };
 
+  const getProgressColor = (value: number) => {
+    if (value > 80) return "bg-rose-500";
+    if (value > 60) return "bg-amber-500";
+    return "bg-slate-500 dark:bg-slate-400";
+  };
+
+  const metrics = [
+    {
+      label: "Latency",
+      value: health.latency,
+      unit: "ms",
+      icon: SignalHigh,
+      critical: false,
+    },
+    {
+      label: "Temperature",
+      value: health.temperature,
+      unit: "°C",
+      icon: Thermometer,
+      critical: health.temperature > 60,
+    },
+    {
+      label: "Active PPPoE",
+      value: health.pppoe_sessions,
+      unit: "sessions",
+      icon: Users,
+      critical: false,
+    },
+  ];
+
   return (
-    <div className="bg-white dark:bg-gray-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-lg overflow-hidden transition-all">
-      {/* Header with Status Indicator */}
-      <div className="flex items-center justify-between p-5 border-b border-slate-50 dark:border-slate-700 bg-slate-50/30 dark:bg-gray-800/50">
-        <h2 className="text-[10px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2 italic">
-          <Activity size={16} className="text-blue-600" />
-          Hardware Vitals
-        </h2>
-        <div className="flex items-center gap-2 px-3 py-1 rounded bg-white dark:bg-gray-900 border border-slate-200 dark:border-slate-700 shadow-sm">
-          <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${getStatusColor(health.status)}`}></span>
-          <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 italic">
+    <section className="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-colors dark:border-slate-700 dark:bg-gray-800">
+      {/* Header */}
+      <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-3 py-3 dark:border-slate-700 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <Activity
+            size={17}
+            strokeWidth={1.8}
+            className="shrink-0 text-slate-500 dark:text-slate-400"
+          />
+
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              Hardware vitals
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              System resource utilization
+            </p>
+          </div>
+        </div>
+
+        <div className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-slate-200 px-2 py-1 dark:border-slate-700">
+          <span
+            className={`h-2 w-2 rounded-full ${
+              isOnline ? "bg-emerald-500" : "bg-rose-500"
+            }`}
+          />
+
+          <span className="text-xs font-medium capitalize text-slate-600 dark:text-slate-300">
             {health.status}
           </span>
         </div>
-      </div>
+      </header>
 
-      {/* Main Grid */}
-      <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        {/* CPU Usage */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Cpu size={14} /> CPU Load
+      {/* Main metrics */}
+      <div className="grid min-w-0 flex-1 grid-cols-1 gap-4 p-3 sm:grid-cols-2 sm:p-4">
+        {/* CPU */}
+        <div className="min-w-0">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+              <Cpu size={14} />
+              CPU load
             </span>
-            <span className={`text-sm font-black italic ${getMetricColor(health.cpu)}`}>{health.cpu}%</span>
+
+            <span
+              className={`text-sm font-semibold tabular-nums ${getMetricColor(
+                health.cpu
+              )}`}
+            >
+              {health.cpu}%
+            </span>
           </div>
-          <div className="h-1.5 w-full bg-slate-100 dark:bg-gray-900 rounded-full overflow-hidden">
-            <div 
-              className={`h-full transition-all duration-700 ease-out ${health.cpu > 80 ? 'bg-rose-600' : 'bg-blue-600'}`} 
-              style={{ width: `${health.cpu}%` }}
+
+          <div
+            className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-gray-900"
+            role="progressbar"
+            aria-label="CPU load"
+            aria-valuenow={Math.min(100, Math.max(0, health.cpu))}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div
+              className={`h-full rounded-full transition-[width] duration-500 ${getProgressColor(
+                health.cpu
+              )}`}
+              style={{
+                width: `${Math.min(100, Math.max(0, health.cpu))}%`,
+              }}
             />
           </div>
         </div>
 
-        {/* Memory Usage */}
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Layers size={14} /> Memory
+        {/* Memory */}
+        <div className="min-w-0">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+              <Layers size={14} />
+              Memory
             </span>
-            <span className={`text-sm font-black italic ${getMetricColor(health.memory)}`}>{health.memory}%</span>
+
+            <span
+              className={`text-sm font-semibold tabular-nums ${getMetricColor(
+                health.memory
+              )}`}
+            >
+              {health.memory}%
+            </span>
           </div>
-          <div className="h-1.5 w-full bg-slate-100 dark:bg-gray-900 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-indigo-500 dark:bg-indigo-600 transition-all duration-700 ease-out" 
-              style={{ width: `${health.memory}%` }}
+
+          <div
+            className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-gray-900"
+            role="progressbar"
+            aria-label="Memory utilization"
+            aria-valuenow={Math.min(100, Math.max(0, health.memory))}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          >
+            <div
+              className={`h-full rounded-full transition-[width] duration-500 ${getProgressColor(
+                health.memory
+              )}`}
+              style={{
+                width: `${Math.min(100, Math.max(0, health.memory))}%`,
+              }}
             />
           </div>
         </div>
 
-        {/* Dynamic Metric Cards */}
-        <div className="grid grid-cols-1 gap-4">
-            {/* Latency Section */}
-            <div className="flex items-center gap-4 bg-slate-50/50 dark:bg-gray-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700 group hover:border-blue-500/50 transition-colors">
-               <div className="p-2.5 bg-white dark:bg-gray-800 rounded shadow-sm text-blue-600">
-                  <SignalHigh size={18} />
-               </div>
-               <div>
-                 <p className="text-[9px] uppercase text-slate-400 dark:text-slate-500 font-black tracking-widest">Latency</p>
-                 <p className="text-xl font-black text-slate-800 dark:text-white italic tracking-tighter">
-                    {health.latency}<span className="text-[10px] ml-1 font-black text-slate-400 uppercase italic">ms</span>
-                 </p>
-               </div>
-            </div>
-        </div>
+        {/* Divider */}
+        <div className="col-span-full h-px bg-slate-100 dark:bg-slate-700/80" />
 
-        {/* Temperature */}
-        <div className="flex items-center gap-4 bg-slate-50/50 dark:bg-gray-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700 group hover:border-rose-500/50 transition-colors">
-           <div className={`p-2.5 bg-white dark:bg-gray-800 rounded shadow-sm ${health.temperature > 60 ? 'text-rose-600' : 'text-amber-500'}`}>
-              <Thermometer size={18} />
-           </div>
-           <div>
-             <p className="text-[9px] uppercase text-slate-400 dark:text-slate-500 font-black tracking-widest">Temp</p>
-             <p className="text-xl font-black text-slate-800 dark:text-white italic tracking-tighter">
-                {health.temperature}<span className="text-[10px] ml-1 font-black text-slate-400 uppercase italic">°C</span>
-             </p>
-           </div>
-        </div>
+        {/* Supporting metrics */}
+        <div className="col-span-full grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-3">
+          {metrics.map((metric) => {
+            const Icon = metric.icon;
 
-        {/* PPPoE Sessions */}
-        <div className="flex items-center gap-4 bg-slate-50/50 dark:bg-gray-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700 group hover:border-emerald-500/50 transition-colors">
-           <div className="p-2.5 bg-white dark:bg-gray-800 rounded shadow-sm text-emerald-600 dark:text-emerald-500">
-              <Users size={18} />
-           </div>
-           <div>
-             <p className="text-[9px] uppercase text-slate-400 dark:text-slate-500 font-black tracking-widest">Active PPPoE</p>
-             <p className="text-xl font-black text-slate-800 dark:text-white italic tracking-tighter">
-                {health.pppoe_sessions}<span className="text-[10px] ml-1 font-black text-slate-400 uppercase italic">Nodes</span>
-             </p>
-           </div>
-        </div>
+            return (
+              <div
+                key={metric.label}
+                className="flex min-w-0 items-center gap-2.5 rounded-lg border border-slate-200 p-3 transition-colors dark:border-slate-700"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-slate-200 dark:border-slate-700">
+                  <Icon
+                    size={17}
+                    strokeWidth={1.8}
+                    className={
+                      metric.critical
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-slate-500 dark:text-slate-400"
+                    }
+                  />
+                </div>
 
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                    {metric.label}
+                  </p>
+
+                  <p className="mt-0.5 break-words text-base font-semibold tabular-nums text-slate-800 dark:text-slate-100">
+                    {metric.value}
+                    <span className="ml-1 text-xs font-normal text-slate-500 dark:text-slate-400">
+                      {metric.unit}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

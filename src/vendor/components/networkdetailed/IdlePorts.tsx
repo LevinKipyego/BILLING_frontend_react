@@ -1,58 +1,76 @@
 
-import { ShieldAlert, Terminal, Search, Hash } from 'lucide-react';
+import { ShieldAlert, Terminal, Search, Hash } from "lucide-react";
 
-const IdlePorts = ({ ports }: { ports: string[] }) => {
+interface IdlePortsProps {
+  ports: string[];
+}
+
+const IdlePorts = ({ ports }: IdlePortsProps) => {
   if (!ports || ports.length === 0) return null;
 
   return (
-    <div className="relative overflow-hidden bg-white border border-amber-100 rounded-3xl shadow-[0_10px_30px_rgba(245,158,11,0.05)] transition-all hover:shadow-[0_15px_40px_rgba(245,158,11,0.1)]">
-      
-      {/* Top Alert Bar */}
-      <div className="bg-amber-500 px-6 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-white">
-          <ShieldAlert size={18} className="animate-pulse" />
-          <h3 className="text-xs font-black uppercase tracking-widest">Security Audit</h3>
+    <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition-colors dark:border-slate-700 dark:bg-gray-800 sm:p-4">
+      {/* Header */}
+      <header className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3 dark:border-slate-700">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-amber-600 dark:border-slate-700 dark:text-amber-400">
+            <ShieldAlert size={16} />
+          </div>
+
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              Idle Ports
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Active interfaces with no traffic
+            </p>
+          </div>
         </div>
-        <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full backdrop-blur-md">
-          {ports.length} Detected
+
+        <span className="shrink-0 rounded-md border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">
+          {ports.length} detected
         </span>
+      </header>
+
+      {/* Description */}
+      <div className="flex items-start gap-2 py-3">
+        <Terminal
+          size={14}
+          className="mt-0.5 shrink-0 text-slate-400 dark:text-slate-500"
+        />
+        <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+          The following ports are active but currently reporting no traffic.
+        </p>
       </div>
 
-      <div className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Terminal size={14} className="text-slate-400" />
-          <p className="text-slate-500 text-[11px] font-medium italic">
-            "The following ports are active but showing no traffic."
-          </p>
-        </div>
-
-        {/* The New Orientation: Horizontal Flex-Wrap Badges */}
-        <div className="flex flex-wrap gap-2">
-          {ports.map((p: string) => (
-            <div 
-              key={p} 
-              className="group flex items-center gap-2 bg-slate-50 border border-slate-100 hover:border-amber-300 hover:bg-amber-50 rounded-xl px-3 py-2 transition-all duration-300 cursor-default"
-            >
-              <div className="bg-white p-1 rounded-md shadow-sm border border-slate-100 group-hover:border-amber-200">
-                <Hash size={12} className="text-slate-400 group-hover:text-amber-500" />
-              </div>
-              <span className="text-sm font-mono font-bold text-slate-700 group-hover:text-amber-700">
-                {p}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Call to Action / Footer */}
-        <button className="mt-6 w-full py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
-          <Search size={14} />
-          Investigate Connection History
-        </button>
+      {/* Port list */}
+      <div className="flex flex-wrap gap-2">
+        {ports.map((port) => (
+          <div
+            key={port}
+            className="inline-flex min-w-0 items-center gap-2 rounded-lg border border-slate-200 px-2.5 py-2 transition-colors hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600"
+          >
+            <Hash
+              size={13}
+              className="shrink-0 text-slate-400 dark:text-slate-500"
+            />
+            <span className="break-all font-mono text-xs font-medium text-slate-700 dark:text-slate-200">
+              {port}
+            </span>
+          </div>
+        ))}
       </div>
 
-      {/* Decorative Scan Line */}
-      <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-amber-300/50 to-transparent animate-[scan_3s_ease-in-out_infinite]" />
-    </div>
+      {/* Footer */}
+      <footer className="mt-auto border-t border-slate-200 pt-3 dark:border-slate-700">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <Search size={14} className="shrink-0" />
+          <span>
+            Review interface traffic and connection history.
+          </span>
+        </div>
+      </footer>
+    </section>
   );
 };
 

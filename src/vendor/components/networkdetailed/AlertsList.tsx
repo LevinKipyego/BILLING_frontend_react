@@ -1,115 +1,230 @@
-import { 
-  AlertCircle, 
-  Bell, 
-  Clock, 
-  Cpu, 
-  Thermometer, 
+
+import {
+  AlertCircle,
+  Bell,
+  Clock,
+  Cpu,
+  Thermometer,
   ChevronRight,
-  Calendar
+  Calendar,
 } from "lucide-react";
+
 import type { AlertItem } from "../../types/networkdetailed";
 
 interface Props {
   alerts: AlertItem[];
 }
 
+type Severity = "critical" | "warning" | "info";
+
 const AlertsList = ({ alerts }: Props) => {
-  // Logic for industrial severity classification
-  const getSeverity = (alert: AlertItem) => {
+  const getSeverity = (alert: AlertItem): Severity => {
     if (alert.cpu > 90 || alert.temperature > 75) return "critical";
     if (alert.cpu > 70 || alert.temperature > 60) return "warning";
     return "info";
   };
 
-  const severityStyles = {
-    critical: "border-l-rose-600 bg-rose-50/20 dark:bg-rose-900/10 text-rose-700 dark:text-rose-400",
-    warning: "border-l-amber-500 bg-amber-50/20 dark:bg-amber-900/10 text-amber-700 dark:text-amber-400",
-    info: "border-l-blue-600 bg-blue-50/20 dark:bg-blue-900/10 text-blue-700 dark:text-blue-400",
+  // Severity is communicated through labels and icons.
+  // The card background remains the dashboard's original surface.
+  const severityStyles: Record<
+    Severity,
+    { border: string; text: string; icon: string }
+  > = {
+    critical: {
+      border: "border-l-rose-500",
+      text: "text-rose-600 dark:text-rose-400",
+      icon: "text-rose-500 dark:text-rose-400",
+    },
+    warning: {
+      border: "border-l-amber-500",
+      text: "text-amber-600 dark:text-amber-400",
+      icon: "text-amber-500 dark:text-amber-400",
+    },
+    info: {
+      border: "border-l-slate-300 dark:border-l-slate-600",
+      text: "text-slate-600 dark:text-slate-300",
+      icon: "text-slate-400 dark:text-slate-500",
+    },
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-slate-100 dark:border-slate-700 shadow-xl rounded-lg overflow-hidden flex flex-col h-[450px] transition-all">
+    <section className="flex h-[400px] min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-colors dark:border-slate-700 dark:bg-gray-800 sm:h-[420px]">
       {/* Header */}
-      <div className="flex items-center justify-between p-5 border-b border-slate-50 dark:border-slate-700 bg-slate-50/30 dark:bg-gray-800/50 sticky top-0 z-10">
-        <h2 className="text-[10px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2 italic">
-          <Bell size={16} className="text-rose-600 animate-pulse" />
-          Incident Logs
-        </h2>
-        <span className="bg-slate-900 text-white text-[9px] font-black px-3 py-1 rounded italic uppercase tracking-widest">
-          {alerts.length} Total_Events
+      <header className="flex items-center justify-between gap-3 border-b border-slate-200 px-3 py-3 dark:border-slate-700 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <Bell
+            size={17}
+            strokeWidth={1.8}
+            className="shrink-0 text-slate-500 dark:text-slate-400"
+          />
+
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              Incident logs
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Router alerts and resource thresholds
+            </p>
+          </div>
+        </div>
+
+        <span className="shrink-0 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium tabular-nums text-slate-600 dark:border-slate-700 dark:text-slate-300">
+          {alerts.length} events
         </span>
-      </div>
+      </header>
 
-      {/* Scrollable List Container */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar bg-white dark:bg-gray-800">
+      {/* Alert list */}
+      <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-auto">
         {alerts.length > 0 ? (
-          <div className="divide-y divide-slate-50 dark:divide-slate-700/50">
-            {alerts.map((a, index) => {
-              const severity = getSeverity(a);
-              const alertDate = new Date(a.created_at);
-              
+          <div className="divide-y divide-slate-100 dark:divide-slate-700/70">
+            {alerts.map((alert, index) => {
+              const severity = getSeverity(alert);
+              const styles = severityStyles[severity];
+              const alertDate = new Date(alert.created_at);
+
+              const validDate = !Number.isNaN(alertDate.getTime());
+
               return (
-                <div 
-                  key={index} 
-                  className={`group flex items-start gap-4 p-5 border-l-[6px] transition-all hover:bg-slate-50 dark:hover:bg-gray-900/40 ${severityStyles[severity]}`}
+                <article
+                  key={`${alert.created_at}-${index}`}
+                  className={`group flex min-w-0 items-start gap-2.5 border-l-2 px-3 py-3 transition-colors hover:bg-slate-50/70 dark:hover:bg-gray-900/20 sm:gap-3 sm:px-4 ${styles.border}`}
                 >
-                  <div className="mt-1">
-                    <AlertCircle size={18} />
+                  <div className="mt-0.5 shrink-0">
+                    <AlertCircle
+                      size={17}
+                      strokeWidth={1.8}
+                      className={styles.icon}
+                    />
                   </div>
 
-                  <div className="flex-1">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 gap-2">
-                      <span className="font-black text-xs uppercase tracking-tighter italic">
-                        {severity} :: {a.status}
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[9px] text-slate-400 dark:text-slate-500 font-black flex items-center gap-1 uppercase italic tracking-tighter">
-                          <Calendar size={10} />
-                          {alertDate.toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' })}
+                  <div className="min-w-0 flex-1">
+                    {/* Severity and status */}
+                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                        <span
+                          className={`text-xs font-semibold capitalize ${styles.text}`}
+                        >
+                          {severity}
                         </span>
-                        <span className="text-[9px] text-slate-400 dark:text-slate-500 font-black flex items-center gap-1 uppercase italic tracking-tighter">
-                          <Clock size={10} />
-                          {alertDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+
+                        <span className="text-xs text-slate-400 dark:text-slate-500">
+                          ·
+                        </span>
+
+                        <span className="break-words text-xs font-medium text-slate-700 dark:text-slate-200">
+                          {alert.status}
+                        </span>
+                      </div>
+
+                      <ChevronRight
+                        size={16}
+                        className="hidden shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 sm:block dark:text-slate-500"
+                      />
+                    </div>
+
+                    {/* Date and time */}
+                    {validDate && (
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="inline-flex items-center gap-1">
+                          <Calendar size={12} />
+                          {alertDate.toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "2-digit",
+                            year: "numeric",
+                          })}
+                        </span>
+
+                        <span className="inline-flex items-center gap-1">
+                          <Clock size={12} />
+                          {alertDate.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Resource metrics */}
+                    <div className="mt-2.5 grid grid-cols-2 gap-2">
+                      <div className="flex min-w-0 items-center gap-1.5 rounded-md border border-slate-200 px-2 py-1.5 dark:border-slate-700">
+                        <Cpu
+                          size={14}
+                          className="shrink-0 text-slate-400 dark:text-slate-500"
+                        />
+
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          CPU
+                        </span>
+
+                        <span
+                          className={`ml-auto text-xs font-semibold tabular-nums ${
+                            alert.cpu > 80
+                              ? "text-rose-600 dark:text-rose-400"
+                              : "text-slate-700 dark:text-slate-200"
+                          }`}
+                        >
+                          {alert.cpu}%
+                        </span>
+                      </div>
+
+                      <div className="flex min-w-0 items-center gap-1.5 rounded-md border border-slate-200 px-2 py-1.5 dark:border-slate-700">
+                        <Thermometer
+                          size={14}
+                          className="shrink-0 text-slate-400 dark:text-slate-500"
+                        />
+
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          Temp
+                        </span>
+
+                        <span
+                          className={`ml-auto text-xs font-semibold tabular-nums ${
+                            alert.temperature > 65
+                              ? "text-rose-600 dark:text-rose-400"
+                              : "text-slate-700 dark:text-slate-200"
+                          }`}
+                        >
+                          {alert.temperature}°C
                         </span>
                       </div>
                     </div>
-
-                    <div className="flex gap-3 mt-3">
-                      <div className="flex items-center gap-2 text-[10px] font-black text-slate-600 dark:text-slate-400 bg-white/60 dark:bg-gray-900/60 px-3 py-1.5 rounded border border-slate-100 dark:border-slate-700 italic uppercase">
-                        <Cpu size={12} className="text-slate-400" />
-                        CPU: <span className={a.cpu > 80 ? 'text-rose-600 dark:text-rose-400 underline underline-offset-2' : ''}>{a.cpu}%</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] font-black text-slate-600 dark:text-slate-400 bg-white/60 dark:bg-gray-900/60 px-3 py-1.5 rounded border border-slate-100 dark:border-slate-700 italic uppercase">
-                        <Thermometer size={12} className="text-slate-400" />
-                        Temp: <span className={a.temperature > 65 ? 'text-rose-600 dark:text-rose-400 underline underline-offset-2' : ''}>{a.temperature}°C</span>
-                      </div>
-                    </div>
                   </div>
-
-                  <div className="self-center translate-x-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                    <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
-                  </div>
-                </div>
+                </article>
               );
             })}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-24 text-slate-400 dark:text-slate-600">
-            <div className="p-4 bg-slate-50 dark:bg-gray-900 rounded-full mb-4">
-               <Bell size={32} className="opacity-20" />
+          <div className="flex h-full min-h-[180px] flex-col items-center justify-center px-4 py-8 text-center">
+            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 dark:border-slate-700">
+              <Bell
+                size={21}
+                strokeWidth={1.5}
+                className="text-slate-400 dark:text-slate-500"
+              />
             </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] italic">No active incidents detected.</p>
+
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+              No incidents recorded
+            </p>
+
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              There are no alerts to display.
+            </p>
           </div>
         )}
       </div>
 
-      {/* Footer link */}
-      <div className="p-4 bg-slate-50/80 dark:bg-gray-800/80 border-t border-slate-100 dark:border-slate-700 text-center">
-        <button className="text-[10px] font-black text-blue-600 dark:text-blue-400 hover:text-black dark:hover:text-white transition-colors uppercase tracking-[0.2em] italic">
-          Access Historic Logs Archive
+      {/* Footer */}
+      <footer className="border-t border-slate-200 px-3 py-2.5 dark:border-slate-700 sm:px-4">
+        <button
+          type="button"
+          className="flex min-h-8 w-full items-center justify-between gap-2 rounded-md px-1 text-left text-xs font-medium text-slate-600 transition-colors hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-400 dark:text-slate-300 dark:hover:text-white"
+        >
+          <span>Historic logs archive</span>
+          <ChevronRight size={15} />
         </button>
-      </div>
-    </div>
+      </footer>
+    </section>
   );
 };
 

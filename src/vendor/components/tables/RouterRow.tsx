@@ -17,7 +17,7 @@ export default function RouterRow({ router }: RouterRowProps) {
   const navigate = useNavigate();
 
   const handleNavigate = () => {
-    navigate(`/vendor/dashboard/routers/${router.id}`);
+    navigate(`/dashboard/routers/${router.id}`);
   };
 
   // Helper to colorize metrics based on load
