@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   getMpesaConfig,
   createMpesaConfig,
@@ -6,13 +6,10 @@ import {
   deleteMpesaConfig,
   testMpesaConfig,
 } from "../../api/mpesa";
-
-
-
+import type { MpesaConfigPayload } from "../../api/mpesa";
 
 import { 
   ShieldCheckIcon, 
-  PencilSquareIcon, 
   TrashIcon, 
   GlobeAltIcon, 
   ArrowPathIcon,
@@ -25,19 +22,30 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CommandLineIcon,
-  PaperAirplaneIcon
+  PaperAirplaneIcon,
+  ChevronDownIcon,
+  PencilSquareIcon,
+  LockClosedIcon,
+  ServerIcon,
+  ArrowRightIcon,
+  CheckBadgeIcon,
+  LinkIcon
 } from "@heroicons/react/24/outline";
-
-import type { MpesaConfigPayload } from "../../api/mpesa";
-
+import { apiFetch } from "../../api/client";
 type MpesaEnvironment = "SANDBOX" | "PRODUCTION";
+type FormSection = "credentials" | "security" | "callback" | null;
 
 export default function Mpesa() {
-  const [loading, setLoading] = useState(true);
-  const [configs, setConfigs] = useState<any[]>([]); 
-  const [isEditing, setIsEditing] = useState(false); 
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [configs, setConfigs] = useState<any[]>([]);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showSecrets, setShowSecrets] = useState<{ [key: string]: boolean }>({});
+  const [registeringC2B, setRegisteringC2B] = useState<boolean>(false);
+
+  // Form Section Accordion State
+  const [formSection, setFormSection] = useState<FormSection>("credentials");
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,18 +53,20 @@ export default function Mpesa() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Form State
+  // Form State (Updated with initiator_name and is_url_registered)
   const [form, setForm] = useState({
     business_shortcode: "",
+    initiator_name: "",
     passkey: "",
     consumer_key: "",
     consumer_secret: "",
+    b2c_security_credential: "",
     callback_url: "",
     environment: "SANDBOX" as MpesaEnvironment,
+    is_url_registered: false,
   });
 
-  // --- STK Push Tester Modal State ---
-  const [isTesting, setIsTesting] = useState(false);
+  // STK Push Tester Terminal State
   const [activeTestConfig, setActiveTestConfig] = useState<any>(null);
   const [testPhoneNumber, setTestPhoneNumber] = useState("");
   const [testAmount, setTestAmount] = useState("1");
@@ -65,49 +75,60 @@ export default function Mpesa() {
   const [testResult, setTestResult] = useState<any>(null);
   const [testError, setTestError] = useState("");
 
-  async function loadConfig() {
+  const loadConfig = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await getMpesaConfig();
       if (data && data.business_shortcode) {
         setConfigs([data]);
         setForm({
-          business_shortcode: data.business_shortcode,
-          callback_url: data.callback_url,
-          environment: data.environment as MpesaEnvironment,
+          business_shortcode: data.business_shortcode || "",
+          initiator_name: data.initiator_name || "",
+          callback_url: data.callback_url || "",
+          environment: (data.environment as MpesaEnvironment) || "SANDBOX",
           passkey: "",
           consumer_key: "",
           consumer_secret: "",
+          b2c_security_credential: data.b2c_security_credential || "",
+          is_url_registered: data.is_url_registered || false,
         });
       } else {
         setConfigs([]);
         setIsEditing(true);
       }
-    } catch (err) {
+    } catch (err: any) {
       setConfigs([]);
       setIsEditing(true);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  useEffect(() => { loadConfig(); }, []);
+  useEffect(() => {
+    loadConfig();
+  }, [loadConfig]);
 
   const toggleSecret = (field: string) => {
-    setShowSecrets(prev => ({ ...prev, [field]: !prev[field] }));
+    setShowSecrets((prev) => ({ ...prev, [field]: !prev[field] }));
   };
 
   const filteredConfigs = useMemo(() => {
-    return configs.filter(c => {
-      const matchesSearch = (c.business_shortcode || "").includes(searchTerm) || 
-                            (c.callback_url || "").toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesEnv = envFilter === "ALL" || (c.environment || "").toUpperCase() === envFilter.toUpperCase();
+    return configs.filter((c) => {
+      const matchesSearch =
+        (c.business_shortcode || "").includes(searchTerm) ||
+        (c.callback_url || "").toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesEnv =
+        envFilter === "ALL" || (c.environment || "").toUpperCase() === envFilter.toUpperCase();
       return matchesSearch && matchesEnv;
     });
   }, [configs, searchTerm, envFilter]);
 
   const totalPages = Math.ceil(filteredConfigs.length / itemsPerPage);
-  const paginatedConfigs = filteredConfigs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const paginatedConfigs = filteredConfigs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   useEffect(() => {
     setCurrentPage(1);
@@ -115,7 +136,8 @@ export default function Mpesa() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
+    setError(null);
+    setSuccessMessage(null);
     try {
       const exists = configs.length > 0;
       if (exists) {
@@ -123,38 +145,57 @@ export default function Mpesa() {
       } else {
         await createMpesaConfig(form as MpesaConfigPayload);
       }
-      alert("Configuration saved successfully");
       setIsEditing(false);
+      setSuccessMessage("Configuration saved successfully.");
       loadConfig();
     } catch (err: any) {
-      setError(err.message || "An error occurred while saving.");
+      setError(err?.message || "An error occurred while saving configuration.");
     }
   }
 
   async function handleDelete() {
     if (!window.confirm("Are you sure? This will disable automated M-Pesa payments.")) return;
+    setError(null);
+    setSuccessMessage(null);
     try {
       await deleteMpesaConfig();
       setConfigs([]);
       setIsEditing(true);
-      alert("Configuration deleted.");
+      setSuccessMessage("Configuration deleted.");
     } catch (err: any) {
-      setError(err.message);
+      setError(err?.message || "Failed to delete configuration.");
     }
   }
 
-  // Open Tester Modal
-  const openTesterModal = (config: any) => {
+  
+    // Handle C2B URL Registration trigger using apiFetch
+    const handleRegisterC2BUrls = async () => {
+      setError(null);
+      setSuccessMessage(null);
+      setRegisteringC2B(true);
+      try {
+        await apiFetch('/v1/c2b/register_url/', {
+          method: 'POST',
+        });
+
+        setSuccessMessage("C2B validation and confirmation URLs registered successfully!");
+        loadConfig(); // Reload to update is_url_registered status
+      } catch (err: any) {
+        setError(err?.message || "Failed to register C2B URLs.");
+      } finally {
+        setRegisteringC2B(false);
+      }
+  };
+
+  const openTesterTerminal = (config: any) => {
     setActiveTestConfig(config);
     setTestIsSandbox((config.environment || "SANDBOX").toUpperCase() !== "PRODUCTION");
     setTestPhoneNumber("");
     setTestAmount("1");
     setTestResult(null);
     setTestError("");
-    setIsTesting(true);
   };
 
-  // Submit STK Push Test Execution
   const handleRunStkTest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeTestConfig) return;
@@ -164,273 +205,435 @@ export default function Mpesa() {
     setTestError("");
 
     const payload = {
-      vendor_id: activeTestConfig.business_shortcode,
+      business_shortcode: activeTestConfig.business_shortcode,
       phone_number: testPhoneNumber.trim(),
       amount: testAmount.trim(),
       is_sandbox: testIsSandbox,
     };
 
     try {
-      // Execute using apiFetch via testMpesaConfig service helper
       const data = await testMpesaConfig(payload as any);
       setTestResult(data);
     } catch (err: any) {
-      setTestError(err.message || "Execution request failed.");
+      setTestError(err?.message || "Execution request failed.");
     } finally {
       setTestLoading(false);
     }
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64 dark:bg-gray-900 min-h-screen">
-      <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin" />
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[350px] text-slate-400">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500 mr-2.5"></div>
+        <span className="text-xs sm:text-sm">Loading M-Pesa gateway parameters...</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto pb-10 space-y-4 md:space-y-6 animate-fadeIn p-3 md:p-8 dark:bg-gray-900 min-h-screen transition-colors">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-[1600px] mx-auto text-slate-800 dark:text-slate-200">
       
-      {/* Header Container */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
+      {/* Top Header & Add Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-gray-700 pb-3.5">
         <div>
-          <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">
+          <h1 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <ShieldCheckIcon className="h-5 w-5 text-indigo-500" />
             M-Pesa Gateway
           </h1>
-          <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-tight">
-            Daraja API Credentials Management
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Manage Daraja API credentials, callback pipelines, C2B URL registrations, and STK push configurations.
           </p>
         </div>
-        {!isEditing && configs.length === 0 && (
-          <button 
-            onClick={() => setIsEditing(true)}
-            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-black text-white rounded-lg text-xs font-black uppercase tracking-widest shadow-md transition-all outline-none"
+
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={loadConfig}
+            className="px-3 py-1.5 bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700 rounded-lg text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-gray-800 transition flex items-center gap-1.5"
           >
-            <PlusIcon className="w-4 h-4 stroke-[3]" />
-            <span>Add Configuration</span>
+            <ArrowPathIcon className="h-3.5 w-3.5" />
+            <span>Refresh</span>
           </button>
-        )}
+          {!isEditing && configs.length === 0 && (
+            <button
+              onClick={() => {
+                setIsEditing(true);
+                setFormSection("credentials");
+              }}
+              className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm"
+            >
+              <PlusIcon className="h-3.5 w-3.5" />
+              <span>Add Configuration</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (
-        <div className="bg-rose-50 dark:bg-rose-900/20 border-l-4 border-rose-500 p-3 rounded-lg flex justify-between items-center mx-1 animate-shake">
-          <p className="text-rose-700 dark:text-rose-400 text-[10px] font-black uppercase">{error}</p>
-          <button onClick={() => setError("")}><XMarkIcon className="w-4 h-4 text-rose-400" /></button>
+        <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-xs sm:text-sm flex items-center justify-between">
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="underline hover:text-red-500 font-medium text-xs ml-3">
+            Dismiss
+          </button>
         </div>
       )}
 
-      {/* FILTER PANEL */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1">
+      {successMessage && (
+        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm flex items-center justify-between">
+          <span>{successMessage}</span>
+          <button onClick={() => setSuccessMessage(null)} className="underline hover:text-emerald-500 font-medium text-xs ml-3">
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Search & Filter Toolbar */}
+      <div className="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg p-3.5 sm:p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex flex-1 flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <div className="relative w-full sm:max-w-xs">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
               type="text"
-              placeholder="Search shortcode or URL..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700/80 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all shadow-2xs"
+              placeholder="Search shortcode or callback URL..."
+              className="w-full pl-9 pr-3 py-1.5 bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700 rounded-lg text-xs sm:text-sm text-slate-900 dark:text-slate-200 outline-none focus:ring-1 focus:ring-indigo-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
-          <div className="flex items-center gap-2 bg-white dark:bg-gray-800 px-3 py-2 rounded-lg border border-slate-200 dark:border-gray-700/80 w-full sm:w-auto shadow-2xs">
-            <FunnelIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
-            <select 
-              className="bg-transparent dark:bg-gray-800 text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-white outline-none cursor-pointer w-full"
+
+          <div className="flex items-center gap-2 bg-white dark:bg-gray-900 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-gray-700 w-full sm:w-auto">
+            <FunnelIcon className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+            <select
+              className="bg-transparent text-xs sm:text-sm text-slate-700 dark:text-slate-200 outline-none cursor-pointer w-full"
               value={envFilter}
               onChange={(e) => setEnvFilter(e.target.value)}
             >
-              <option value="ALL">ALL ENVS</option>
-              <option value="PRODUCTION">PRODUCTION</option>
-              <option value="SANDBOX">SANDBOX</option>
+              <option value="ALL">All Environments</option>
+              <option value="PRODUCTION">Production</option>
+              <option value="SANDBOX">Sandbox</option>
             </select>
           </div>
         </div>
-        
-        <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center sm:text-right w-full sm:w-auto">
-          {filteredConfigs.length} Gateways Found
+
+        <div className="text-xs text-slate-500 dark:text-slate-400">
+          Showing {filteredConfigs.length} gateway record(s)
         </div>
       </div>
 
-      {/* FORM OVERLAY POPUP */}
+      {/* --- ACCORDION CONFIG FORM MODAL --- */}
       {isEditing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 dark:bg-black/70 backdrop-blur-xs animate-fadeIn">
-          <section className="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-xl shadow-2xl border border-slate-200 dark:border-gray-700/80 overflow-hidden animate-scaleUp max-h-[92vh] flex flex-col">
-            <div className="p-4 md:p-5 border-b border-slate-100 dark:border-gray-700/60 bg-slate-50/50 dark:bg-gray-800/80 flex items-center justify-between sticky top-0 z-10">
-              <h2 className="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                <ShieldCheckIcon className="w-5 h-5 text-blue-600 stroke-[2.5]" />
-                {configs.length > 0 ? "Edit Gateway Parameters" : "Provision New M-Pesa Gateway"}
-              </h2>
-              <button onClick={() => setIsEditing(false)} className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-md">
-                <XMarkIcon className="w-5 h-5 stroke-[2.5]" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-gray-800 dark:bg-gray-900/50">
+              <div>
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                  {configs.length > 0 ? "Update Gateway" : "Provision New"}
+                </span>
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+                  {configs.length > 0 ? "Edit M-Pesa Configuration" : "New M-Pesa Integration Setup"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-200 dark:hover:bg-gray-800"
+              >
+                <XMarkIcon className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Business Shortcode</label>
-                  <input
-                    className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none"
-                    placeholder="174379"
-                    value={form.business_shortcode}
-                    onChange={(e) => setForm({ ...form, business_shortcode: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Environment</label>
-                  <select
-                    className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none cursor-pointer"
-                    value={form.environment}
-                    onChange={(e) => setForm({ ...form, environment: e.target.value as MpesaEnvironment })}
+            <form onSubmit={handleSubmit} className="overflow-y-auto flex-1 p-4 sm:p-5 space-y-3">
+              <div className="rounded-lg border border-slate-200 dark:border-gray-800 overflow-hidden divide-y divide-slate-200 dark:divide-gray-800">
+                
+                {/* 1. Credentials Section */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setFormSection(formSection === "credentials" ? null : "credentials")}
+                    className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-gray-800/50"
                   >
-                    <option value="SANDBOX">SANDBOX (TESTING)</option>
-                    <option value="PRODUCTION">PRODUCTION (LIVE)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {[
-                  { label: "Passkey", key: "passkey" },
-                  { label: "Consumer Key", key: "consumer_key" },
-                  { label: "Consumer Secret", key: "consumer_secret" }
-                ].map((field) => (
-                  <div key={field.key} className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">{field.label}</label>
-                    <div className="relative">
-                      <input
-                        className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none pr-10"
-                        type={showSecrets[field.key] ? "text" : "password"}
-                        placeholder="••••••••••••"
-                        value={(form as any)[field.key]}
-                        onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
-                        required={configs.length === 0}
-                      />
-                      <button 
-                        type="button"
-                        onClick={() => toggleSecret(field.key)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500"
-                      >
-                        {showSecrets[field.key] ? <EyeSlashIcon className="w-4 h-4" /> : <EyeIcon className="w-4 h-4" />}
-                      </button>
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex h-7 w-7 items-center justify-center rounded bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
+                        <ServerIcon className="h-3.5 w-3.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white">
+                          1. Core Credentials & Environment
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          {form.business_shortcode ? `Shortcode: ${form.business_shortcode}` : "Enter shortcode, initiator name & environment"}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                    <ChevronDownIcon className={`h-4 w-4 text-slate-400 transition-transform ${formSection === "credentials" ? "rotate-180" : ""}`} />
+                  </button>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Callback URL</label>
-                <input
-                  className="w-full bg-slate-50 dark:bg-gray-900/50 border border-transparent focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-mono text-slate-700 dark:text-white outline-none"
-                  placeholder="https://api.yourdomain.com/mpesa/callback"
-                  value={form.callback_url}
-                  onChange={(e) => setForm({ ...form, callback_url: e.target.value })}
-                  required
-                />
-              </div>
+                  {formSection === "credentials" && (
+                    <div className="space-y-3 px-4 pb-4 pt-1">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                          Business Shortcode <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700 rounded-lg text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-indigo-500"
+                          placeholder="e.g. 174379"
+                          value={form.business_shortcode}
+                          onChange={(e) => setForm({ ...form, business_shortcode: e.target.value })}
+                          required
+                        />
+                      </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-gray-700/60 flex items-center justify-end gap-3 bg-white dark:bg-gray-800 sticky bottom-0">
-                <button 
-                  type="button"
-                  onClick={() => setIsEditing(false)}
-                  className="px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-700/60 transition-all outline-none"
-                >
-                  Dismiss
-                </button>
-                <button 
-                  type="submit"
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-black text-white font-black rounded-lg shadow-md transition-all uppercase text-xs tracking-widest flex items-center gap-2 outline-none"
-                >
-                  <ArrowPathIcon className="w-4 h-4" />
-                  <span>{configs.length > 0 ? "Update Credentials" : "Save Gateway"}</span>
-                </button>
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                          Initiator Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700 rounded-lg text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-indigo-500"
+                          placeholder="e.g. testapi"
+                          value={form.initiator_name}
+                          onChange={(e) => setForm({ ...form, initiator_name: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                          Environment Mode <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700 rounded-lg text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-indigo-500"
+                          value={form.environment}
+                          onChange={(e) => setForm({ ...form, environment: e.target.value as MpesaEnvironment })}
+                        >
+                          <option value="SANDBOX">SANDBOX (Testing)</option>
+                          <option value="PRODUCTION">PRODUCTION (Live)</option>
+                        </select>
+                      </div>
+
+                      <div className="flex justify-end pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setFormSection("security")}
+                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1"
+                        >
+                          <span>Continue to Security</span>
+                          <ArrowRightIcon className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Security Section */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setFormSection(formSection === "security" ? null : "security")}
+                    className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-gray-800/50"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex h-7 w-7 items-center justify-center rounded bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
+                        <LockClosedIcon className="h-3.5 w-3.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white">
+                          2. API Keys & Secrets
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          {form.passkey ? "Passkey provided" : "Passkey, consumer keys & security credentials"}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronDownIcon className={`h-4 w-4 text-slate-400 transition-transform ${formSection === "security" ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {formSection === "security" && (
+                    <div className="space-y-3 px-4 pb-4 pt-1">
+                      {[
+                        { label: "Passkey", key: "passkey" },
+                        { label: "Consumer Key", key: "consumer_key" },
+                        { label: "Consumer Secret", key: "consumer_secret" },
+                        { label: "B2C Security Credential", key: "b2c_security_credential" },
+                      ].map((field) => (
+                        <div key={field.key}>
+                          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            {field.label} {configs.length === 0 && <span className="text-red-500">*</span>}
+                          </label>
+                          <div className="relative">
+                            <input
+                              type={showSecrets[field.key] ? "text" : "password"}
+                              className="w-full px-3 py-2 pr-10 bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700 rounded-lg text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-indigo-500"
+                              placeholder="••••••••••••"
+                              value={(form as any)[field.key]}
+                              onChange={(e) => setForm({ ...form, [field.key]: e.target.value })}
+                              required={configs.length === 0}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => toggleSecret(field.key)}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-500"
+                            >
+                              {showSecrets[field.key] ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+
+                      <div className="flex items-center justify-between pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setFormSection("credentials")}
+                          className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 font-medium"
+                        >
+                          Back
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFormSection("callback")}
+                          className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition flex items-center gap-1"
+                        >
+                          <span>Continue to Callback</span>
+                          <ArrowRightIcon className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Callback URL Section */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setFormSection(formSection === "callback" ? null : "callback")}
+                    className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-gray-800/50"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="flex h-7 w-7 items-center justify-center rounded bg-indigo-50 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
+                        <GlobeAltIcon className="h-3.5 w-3.5" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900 dark:text-white">
+                          3. Callback Endpoint
+                        </p>
+                        <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                          {form.callback_url ? "URL configured" : "Set transaction callback URL"}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronDownIcon className={`h-4 w-4 text-slate-400 transition-transform ${formSection === "callback" ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {formSection === "callback" && (
+                    <div className="space-y-3 px-4 pb-4 pt-1">
+                      <div>
+                        <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                          Callback URL <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700 rounded-lg text-xs font-mono text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-indigo-500"
+                          placeholder="https://api.yourdomain.com/mpesa/callback"
+                          value={form.callback_url}
+                          onChange={(e) => setForm({ ...form, callback_url: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-gray-800">
+                        <button
+                          type="button"
+                          onClick={() => setFormSection("security")}
+                          className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 font-medium"
+                        >
+                          Back
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition shadow-sm"
+                        >
+                          {configs.length > 0 ? "Update Gateway" : "Save Configuration"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
               </div>
             </form>
-          </section>
+          </div>
         </div>
       )}
 
-      {/* --- STK PUSH TESTER MODAL OVERLAY --- */}
-      {isTesting && activeTestConfig && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 dark:bg-black/80 backdrop-blur-xs animate-fadeIn">
-          <section className="bg-white dark:bg-gray-800 w-full max-w-xl rounded-xl shadow-2xl border border-slate-200 dark:border-gray-700/80 overflow-hidden animate-scaleUp max-h-[92vh] flex flex-col">
-            
-            {/* Modal Top Bar */}
-            <div className="p-4 md:p-5 border-b border-slate-100 dark:border-gray-700/60 bg-slate-50/80 dark:bg-gray-800/80 flex items-center justify-between sticky top-0 z-10">
+      {/* --- STK PUSH TESTER TERMINAL MODAL --- */}
+      {activeTestConfig && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900 flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3.5 dark:border-gray-800 dark:bg-gray-900/50">
               <div className="flex items-center gap-2">
-                <CommandLineIcon className="w-5 h-5 text-emerald-600 stroke-[2.5]" />
-                <h2 className="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-[0.2em]">
-                  STK Push Gateway Diagnostic Terminal
+                <CommandLineIcon className="h-4 w-4 text-emerald-500" />
+                <h2 className="text-sm font-semibold text-slate-900 dark:text-white">
+                  STK Push Diagnostic Terminal
                 </h2>
               </div>
-              <button 
-                onClick={() => setIsTesting(false)} 
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-md transition-colors"
+              <button
+                type="button"
+                onClick={() => setActiveTestConfig(null)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-200 dark:hover:bg-gray-800"
               >
-                <XMarkIcon className="w-5 h-5 stroke-[2.5]" />
+                <XMarkIcon className="h-4 w-4" />
               </button>
             </div>
 
-            <form onSubmit={handleRunStkTest} className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
-              
-              {/* Target Gateway Info Bar */}
-              <div className="flex items-center justify-between p-3 bg-slate-100 dark:bg-gray-900/70 rounded-lg border border-slate-200/60 dark:border-gray-700/50">
-                <div className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400">
-                  Target Shortcode: <span className="text-blue-600 dark:text-blue-400 font-mono text-xs">{activeTestConfig.business_shortcode}</span>
-                </div>
-                
-                {/* Environment Selector Toggle Switch */}
+            <form onSubmit={handleRunStkTest} className="p-4 sm:p-5 space-y-4">
+              <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-gray-800/60 rounded-lg border border-slate-200 dark:border-gray-700 text-xs">
+                <span>
+                  Shortcode: <strong className="font-mono text-indigo-600 dark:text-indigo-400">{activeTestConfig.business_shortcode}</strong>
+                </span>
+
                 <div className="flex items-center gap-2">
-                  <span className={`text-[9px] font-black uppercase ${testIsSandbox ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`}>
+                  <span className={`text-[10px] font-semibold uppercase ${testIsSandbox ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
                     Sandbox
                   </span>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="sr-only peer"
                       checked={!testIsSandbox}
                       onChange={(e) => setTestIsSandbox(!e.target.checked)}
                     />
-                    <div className="w-9 h-5 bg-blue-600 peer-focus:outline-none rounded-full peer dark:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                    <div className="w-8 h-4 bg-indigo-600 peer-focus:outline-none rounded-full peer dark:bg-indigo-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-purple-600"></div>
                   </label>
-                  <span className={`text-[9px] font-black uppercase ${!testIsSandbox ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400'}`}>
-                    Production
+                  <span className={`text-[10px] font-semibold uppercase ${!testIsSandbox ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400'}`}>
+                    Live
                   </span>
                 </div>
               </div>
 
-              {/* Mode Banner */}
-              <div className={`p-2.5 rounded-lg border text-[10px] font-black uppercase tracking-wider text-center ${
-                testIsSandbox 
-                  ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800/40' 
-                  : 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800/40'
-              }`}>
-                Active Mode: {testIsSandbox ? "SANDBOX SIMULATION" : "LIVE PRODUCTION GATEWAY"}
-              </div>
-
-              {/* Form Input Fields */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Phone Number</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="text"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700 rounded-lg text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-indigo-500"
                     placeholder="254712345678"
-                    className="w-full bg-slate-50 dark:bg-gray-900/50 border border-slate-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none"
                     value={testPhoneNumber}
                     onChange={(e) => setTestPhoneNumber(e.target.value)}
                     required
                   />
                 </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Amount (KES)</label>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Amount (KES) <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
                     min="1"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-900 border border-slate-300 dark:border-gray-700 rounded-lg text-xs text-slate-900 dark:text-slate-100 outline-none focus:ring-1 focus:ring-indigo-500"
                     placeholder="1"
-                    className="w-full bg-slate-50 dark:bg-gray-900/50 border border-slate-200 dark:border-gray-700 focus:ring-2 focus:ring-blue-500 p-3 rounded-lg text-xs font-bold text-slate-700 dark:text-white outline-none"
                     value={testAmount}
                     onChange={(e) => setTestAmount(e.target.value)}
                     required
@@ -438,209 +641,251 @@ export default function Mpesa() {
                 </div>
               </div>
 
-              {/* Error Output */}
               {testError && (
-                <div className="p-3 bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-900/30 rounded-lg text-[10px] font-black uppercase text-rose-600 dark:text-rose-400">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-600 dark:text-red-400">
                   {testError}
                 </div>
               )}
 
-              {/* Success Result Terminal Output */}
               {testResult && (
-                <div className="space-y-1.5 pt-2">
-                  <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Execution Response Payload</label>
-                  <pre className="p-3 bg-slate-900 text-emerald-400 font-mono text-[11px] rounded-lg overflow-x-auto max-h-48 border border-slate-800 leading-relaxed">
+                <div className="space-y-1">
+                  <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Response Payload</span>
+                  <pre className="p-3 bg-slate-950 text-emerald-400 font-mono text-[11px] rounded-lg overflow-x-auto max-h-40 border border-slate-800 leading-relaxed">
                     {JSON.stringify(testResult, null, 2)}
                   </pre>
                 </div>
               )}
 
-              {/* Submit Actions */}
-              <div className="pt-4 border-t border-slate-100 dark:border-gray-700/60 flex items-center justify-end gap-3 bg-white dark:bg-gray-800 sticky bottom-0">
-                <button 
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-gray-800">
+                <button
                   type="button"
-                  onClick={() => setIsTesting(false)}
-                  className="px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-gray-700/60 transition-all outline-none"
+                  onClick={() => setActiveTestConfig(null)}
+                  className="px-3 py-1.5 border border-slate-300 dark:border-gray-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium hover:bg-slate-50 dark:hover:bg-gray-800 transition"
                 >
                   Close
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={testLoading}
-                  className={`px-5 py-2.5 text-white font-black rounded-lg shadow-md transition-all uppercase text-xs tracking-widest flex items-center gap-2 outline-none ${
-                    testIsSandbox ? 'bg-blue-600 hover:bg-black' : 'bg-purple-600 hover:bg-black'
+                  className={`px-4 py-1.5 text-white rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm ${
+                    testIsSandbox ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-purple-600 hover:bg-purple-700'
                   }`}
                 >
-                  {testLoading ? (
-                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <PaperAirplaneIcon className="w-4 h-4" />
-                  )}
+                  {testLoading ? <ArrowPathIcon className="h-3.5 w-3.5 animate-spin" /> : <PaperAirplaneIcon className="h-3.5 w-3.5" />}
                   <span>{testLoading ? "Executing..." : "Trigger STK Push"}</span>
                 </button>
               </div>
-
             </form>
-          </section>
+          </div>
         </div>
       )}
 
-      {/* MOBILE LIST VIEW CARDS */}
-      <div className="block md:hidden space-y-3 mx-1">
-        {paginatedConfigs.length > 0 ? paginatedConfigs.map((config, idx) => (
-          <div 
-            key={idx}
-            className="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700/80 rounded-xl p-4 space-y-3.5 shadow-2xs hover:border-slate-300 dark:hover:border-gray-600 transition-colors"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="space-y-1">
-                <span className="block font-mono font-bold text-base text-blue-600 dark:text-blue-400 tracking-tight">
-                  {config.business_shortcode}
-                </span>
-                <span className="block text-[10px] text-slate-400 dark:text-slate-500 font-mono font-medium break-all">
-                  URL: {config.callback_url}
-                </span>
-              </div>
-              <div className="flex-shrink-0">
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-black uppercase border ${
-                  (config.environment || "").toLowerCase() === 'production' 
-                    ? 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-900/30' 
-                    : 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30'
-                }`}>
-                  <GlobeAltIcon className="w-3 h-3" />
-                  {config.environment}
-                </span>
-              </div>
-            </div>
+      {/* Configurations Hybrid Card List (Mobile) & Table (Desktop) */}
+      <div className="bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
+        
+        {/* MOBILE VIEW: Clean, non-bulky stacked cards */}
+        <div className="block md:hidden divide-y divide-slate-200 dark:divide-gray-800">
+          {paginatedConfigs.length > 0 ? (
+            paginatedConfigs.map((config, idx) => (
+              <div key={idx} className="p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-medium block">Shortcode / Initiator</span>
+                    <span className="font-mono font-semibold text-sm text-slate-900 dark:text-white">
+                      {config.business_shortcode} <span className="text-xs text-slate-500">({config.initiator_name || 'N/A'})</span>
+                    </span>
+                  </div>
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase border ${
+                    (config.environment || "").toLowerCase() === 'production'
+                      ? 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400'
+                      : 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400'
+                  }`}>
+                    <GlobeAltIcon className="h-3 w-3" />
+                    {config.environment}
+                  </span>
+                </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-gray-700/50">
-              <button 
-                onClick={() => openTesterModal(config)}
-                className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-md"
-              >
-                <CommandLineIcon className="w-3.5 h-3.5" />
-                <span>Test STK</span>
-              </button>
-              <button 
-                onClick={() => {
-                  setForm({...config, passkey: "", consumer_key: "", consumer_secret: ""});
-                  setIsEditing(true);
-                }} 
-                className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-md"
-              >
-                <PencilSquareIcon className="w-3.5 h-3.5" />
-                <span>Modify</span>
-              </button>
-              <button 
-                onClick={handleDelete}
-                className="flex items-center gap-1 px-2.5 py-1.5 text-[10px] font-black uppercase text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 rounded-md"
-              >
-                <TrashIcon className="w-3.5 h-3.5" />
-                <span>Delete</span>
-              </button>
-            </div>
-          </div>
-        )) : (
-          <div className="py-12 text-center space-y-2 bg-white dark:bg-gray-800 rounded-xl border border-slate-200 dark:border-gray-700/80">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No matching records found.</p>
-          </div>
-        )}
-      </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase font-medium block">Callback Pipeline</span>
+                  <span className="font-mono text-xs text-slate-600 dark:text-slate-300 break-all bg-slate-50 dark:bg-gray-800/50 p-1.5 rounded block mt-0.5">
+                    {config.callback_url}
+                  </span>
+                </div>
 
-      {/* DESKTOP SYSTEM TABLE VIEW */}
-      <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-xs border border-slate-100 dark:border-slate-700 overflow-hidden mx-1">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/50 dark:bg-gray-900/50 text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-[0.2em] font-black border-b border-slate-100 dark:border-slate-700/50">
-                <th className="px-6 py-4.5">Shortcode</th>
-                <th className="px-6 py-4.5">Environment Mode</th>
-                <th className="px-6 py-4.5">Callback Endpoint Pipeline</th>
-                <th className="px-8 py-4.5 text-right">Actions</th>
+                <div className="flex items-center justify-between pt-1">
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
+                    config.is_url_registered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                  }`}>
+                    <CheckBadgeIcon className="h-3.5 w-3.5" />
+                    {config.is_url_registered ? 'C2B URLs Registered' : 'C2B URLs Unregistered'}
+                  </span>
+
+                  <button
+                    onClick={handleRegisterC2BUrls}
+                    disabled={config.is_url_registered || registeringC2B}
+                    className={`px-3 py-1 rounded text-xs font-medium transition flex items-center gap-1 ${
+                      config.is_url_registered
+                        ? 'bg-slate-100 dark:bg-gray-800 text-slate-400 cursor-not-allowed'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                    }`}
+                  >
+                    <LinkIcon className="h-3.5 w-3.5" />
+                    {registeringC2B ? 'Registering...' : config.is_url_registered ? 'URLs Registered' : 'Register C2B URLs'}
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100 dark:border-gray-800/60 text-xs font-medium">
+                  <button
+                    onClick={() => openTesterTerminal(config)}
+                    className="text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    <CommandLineIcon className="h-3.5 w-3.5" /> Test STK
+                  </button>
+                  <button
+                    onClick={() => {
+                      setForm({ ...config, passkey: "", consumer_key: "", consumer_secret: "" });
+                      setFormSection("credentials");
+                      setIsEditing(true);
+                    }}
+                    className="text-indigo-600 dark:text-indigo-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    <PencilSquareIcon className="h-3.5 w-3.5" /> Modify
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="text-red-600 dark:text-red-400 hover:underline inline-flex items-center gap-1"
+                  >
+                    <TrashIcon className="h-3.5 w-3.5" /> Delete
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-8 text-center text-slate-400 text-xs italic">
+              No active M-Pesa gateway configuration found.
+            </div>
+          )}
+        </div>
+
+        {/* DESKTOP VIEW: Clean high-density table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left text-xs sm:text-sm text-slate-800 dark:text-slate-200">
+            <thead className="bg-slate-50 dark:bg-gray-800/60 text-[10px] text-slate-400 dark:text-slate-400 uppercase tracking-wider font-semibold">
+              <tr>
+                <th className="px-4 py-3.5">Shortcode / Initiator</th>
+                <th className="px-4 py-3.5">Environment</th>
+                <th className="px-4 py-3.5">Callback Pipeline</th>
+                <th className="px-4 py-3.5">C2B Status</th>
+                <th className="px-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50 dark:divide-slate-700/50">
-              {paginatedConfigs.length > 0 ? paginatedConfigs.map((config, idx) => (
-                <tr key={idx} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors group">
-                  <td className="px-6 py-4 font-mono font-bold text-blue-600 dark:text-blue-400 text-sm">
-                    {config.business_shortcode}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-black uppercase border ${
-                      (config.environment || "").toLowerCase() === 'production' 
-                        ? 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-900/30' 
-                        : 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30'
-                    }`}>
-                      <GlobeAltIcon className="w-3.5 h-3.5" />
-                      {config.environment}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-xs font-mono text-slate-500 dark:text-slate-400 truncate max-w-[240px]">
-                    {config.callback_url}
-                  </td>
-                  <td className="px-8 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button 
-                        onClick={() => openTesterModal(config)}
-                        title="Test STK Push Gateway"
-                        className="p-2 text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all"
+            <tbody className="divide-y divide-slate-200 dark:divide-gray-800">
+              {paginatedConfigs.length > 0 ? (
+                paginatedConfigs.map((config, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-gray-800/40 transition">
+                    <td className="px-4 py-3 font-mono font-medium text-slate-900 dark:text-white">
+                      {config.business_shortcode}
+                      <span className="block text-[11px] text-slate-500 font-normal">Init: {config.initiator_name || 'N/A'}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase border ${
+                        (config.environment || "").toLowerCase() === 'production'
+                          ? 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400'
+                          : 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400'
+                      }`}>
+                        <GlobeAltIcon className="h-3 w-3" />
+                        {config.environment}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 font-mono text-xs text-slate-500 dark:text-slate-400 truncate max-w-[220px]">
+                      {config.callback_url}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
+                          config.is_url_registered ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                        }`}>
+                          <CheckBadgeIcon className="h-3 w-3" />
+                          {config.is_url_registered ? 'Registered' : 'Unregistered'}
+                        </span>
+                        <button
+                          onClick={handleRegisterC2BUrls}
+                          disabled={config.is_url_registered || registeringC2B}
+                          className={`px-2.5 py-1 rounded text-[11px] font-medium transition flex items-center gap-1 ${
+                            config.is_url_registered
+                              ? 'bg-slate-100 dark:bg-gray-800 text-slate-400 cursor-not-allowed'
+                              : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                          }`}
+                        >
+                          <LinkIcon className="h-3 w-3" />
+                          {registeringC2B ? 'Registering...' : config.is_url_registered ? 'Registered' : 'Register C2B'}
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right space-x-3">
+                      <button
+                        onClick={() => openTesterTerminal(config)}
+                        className="text-emerald-600 dark:text-emerald-400 hover:underline font-medium text-xs inline-flex items-center gap-1"
                       >
-                        <CommandLineIcon className="w-4 h-4 stroke-[2]" />
+                        <CommandLineIcon className="h-3.5 w-3.5" /> Test STK
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
-                          setForm({...config, passkey: "", consumer_key: "", consumer_secret: ""});
+                          setForm({ ...config, passkey: "", consumer_key: "", consumer_secret: "" });
+                          setFormSection("credentials");
                           setIsEditing(true);
-                        }} 
-                        className="p-2 text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                        }}
+                        className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium text-xs inline-flex items-center gap-1"
                       >
-                        <PencilSquareIcon className="w-4 h-4 stroke-[2]" />
+                        <PencilSquareIcon className="h-3.5 w-3.5" /> Modify
                       </button>
-                      <button 
-                        onClick={handleDelete} 
-                        className="p-2 text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-all"
+                      <button
+                        onClick={handleDelete}
+                        className="text-red-600 dark:text-red-400 hover:underline font-medium text-xs inline-flex items-center gap-1"
                       >
-                        <TrashIcon className="w-4 h-4 stroke-[2]" />
+                        <TrashIcon className="h-3.5 w-3.5" /> Delete
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              )) : (
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-16 text-center text-slate-400 dark:text-slate-500 uppercase text-[10px] tracking-widest font-black">
-                    No active integration records linked.
+                  <td colSpan={5} className="px-4 py-12 text-center text-slate-400 text-xs italic">
+                    No active M-Pesa gateway configuration found.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
 
-      {/* Pagination Module */}
-      {filteredConfigs.length > 0 && (
-        <div className="px-5 md:px-8 py-4 border border-slate-150 dark:border-slate-700 rounded-lg flex items-center justify-between bg-white dark:bg-gray-800 mx-1">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            {currentPage} / {totalPages || 1}
-          </span>
-          <div className="flex gap-2">
-            <button 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(p => p - 1)}
-              className="p-2 border border-slate-200 dark:border-gray-700 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-900 disabled:opacity-20 transition-all dark:text-white outline-none"
-            >
-              <ChevronLeftIcon className="w-4 h-4 stroke-[3]" />
-            </button>
-            <button 
-              disabled={currentPage === totalPages || totalPages === 0}
-              onClick={() => setCurrentPage(p => p + 1)}
-              className="p-2 border border-slate-200 dark:border-gray-700 rounded-lg hover:bg-slate-50 dark:hover:bg-gray-900 disabled:opacity-20 transition-all dark:text-white outline-none"
-            >
-              <ChevronRightIcon className="w-4 h-4 stroke-[3]" />
-            </button>
+        {/* Pagination */}
+        {filteredConfigs.length > 0 && (
+          <div className="px-4 py-3 border-t border-slate-200 dark:border-gray-800 flex items-center justify-between text-xs">
+            <span className="text-slate-500 dark:text-slate-400">
+              Page {currentPage} of {totalPages || 1}
+            </span>
+            <div className="flex gap-1">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+                className="px-2.5 py-1 border border-slate-300 dark:border-gray-700 rounded hover:bg-slate-50 dark:hover:bg-gray-800 disabled:opacity-30 transition flex items-center gap-1"
+              >
+                <ChevronLeftIcon className="h-3.5 w-3.5" />
+                <span>Prev</span>
+              </button>
+              <button
+                disabled={currentPage === totalPages || totalPages === 0}
+                onClick={() => setCurrentPage((p) => p + 1)}
+                className="px-2.5 py-1 border border-slate-300 dark:border-gray-700 rounded hover:bg-slate-50 dark:hover:bg-gray-800 disabled:opacity-30 transition flex items-center gap-1"
+              >
+                <span>Next</span>
+                <ChevronRightIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
     </div>
   );
