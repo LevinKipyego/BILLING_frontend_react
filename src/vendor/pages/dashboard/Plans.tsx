@@ -78,10 +78,20 @@ export default function Plans() {
       ]);
 
       setPlans(
-        (plansData ?? []).map((plan) => ({
-          ...plan,
-          is_featured: plan.is_featured ?? false,
-        })),
+        (plansData ?? []).map((plan): Plan => {
+          const serviceType: Plan["service_type"] =
+            plan.service_type === "HOTSPOT" ||
+            plan.service_type === "PPPOE" ||
+            plan.service_type === "IPOE"
+              ? plan.service_type
+              : undefined;
+
+          return {
+            ...plan,
+            service_type: serviceType,
+            is_featured: plan.is_featured ?? false,
+          };
+        }),
       );
       setMikrotiks(mikrotiksData ?? []);
     } catch (err: unknown) {
