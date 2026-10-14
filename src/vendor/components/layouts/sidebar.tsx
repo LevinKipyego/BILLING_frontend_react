@@ -1,10 +1,10 @@
-
 import { NavLink } from "react-router-dom";
 
 import {
   CircleStackIcon,
   BanknotesIcon,
   CurrencyDollarIcon,
+  ArrowsRightLeftIcon,
 } from "@heroicons/react/24/outline";
 
 import {
@@ -15,17 +15,18 @@ import {
   Boxes,
   BarChart3,
   CreditCard,
-  ArrowLeftRight,
   MessageSquarePlus,
   Activity,
   Cog,
   Network,
   Split,
   FileText,
+  Server,
+  Database,
+  ArrowUpRight,
 } from "lucide-react";
 
 import { SiMikrotik } from "react-icons/si";
-import { FaServer } from "react-icons/fa";
 import { TbLockCheck } from "react-icons/tb";
 
 interface SidebarProps {
@@ -47,17 +48,16 @@ interface NavSection {
 }
 
 /* ============================================================
-   NAVIGATION
-   Existing theme colors intentionally retained.
+   NAVIGATION - RESTRUCTURED & GROUPED
 ============================================================ */
 
 const navSections: NavSection[] = [
   {
-    title: "General",
+    title: "Overview",
     items: [
       {
         to: "/dashboard",
-        label: "Overview",
+        label: "Dashboard",
         icon: BarChart3,
         color: "text-blue-600 dark:text-blue-400",
         bgHover:
@@ -65,7 +65,7 @@ const navSections: NavSection[] = [
       },
       {
         to: "/dashboard/users",
-        label: "Users",
+        label: " Users",
         icon: Users,
         color: "text-blue-600 dark:text-blue-400",
         bgHover:
@@ -75,12 +75,12 @@ const navSections: NavSection[] = [
   },
 
   {
-    title: "Network & Infrastructure",
+    title: "Infrastructure & Network",
     items: [
       {
         to: "/dashboard/nas",
-        label: "NAS Management",
-        icon: FaServer,
+        label: "RADIUS NAS",
+        icon: Server,
         color: "text-slate-600 dark:text-slate-400",
         bgHover:
           "hover:bg-slate-100/60 dark:hover:bg-slate-800/30 hover:text-slate-800 dark:hover:text-slate-300",
@@ -95,7 +95,7 @@ const navSections: NavSection[] = [
       },
       {
         to: "/dashboard/mikrotik/configurations",
-        label: "Configurations",
+        label: "Mikrotik Configurations",
         icon: Cog,
         color: "text-slate-600 dark:text-slate-400",
         bgHover:
@@ -103,7 +103,7 @@ const navSections: NavSection[] = [
       },
       {
         to: "/dashboard/network",
-        label: "Network",
+        label: "Network Analysis",
         icon: Network,
         color: "text-slate-600 dark:text-slate-400",
         bgHover:
@@ -113,11 +113,11 @@ const navSections: NavSection[] = [
   },
 
   {
-    title: "ISP Services",
+    title: "Subscriber Services",
     items: [
       {
         to: "/dashboard/pppoe/credentials/list",
-        label: "PPPoE Credentials",
+        label: "PPPoE Accounts",
         icon: TbLockCheck,
         color: "text-indigo-600 dark:text-indigo-400",
         bgHover:
@@ -133,7 +133,7 @@ const navSections: NavSection[] = [
       },
       {
         to: "/dashboard/hotspot/credentials/list",
-        label: "Hotspot Credentials",
+        label: "Hotspot Accounts",
         icon: ShieldCheck,
         color: "text-amber-600 dark:text-amber-500",
         bgHover:
@@ -159,11 +159,11 @@ const navSections: NavSection[] = [
   },
 
   {
-    title: "Billing",
+    title: "Billing & Finance",
     items: [
       {
         to: "/dashboard/plans",
-        label: "Packages",
+        label: "Service Packages",
         icon: Boxes,
         color: "text-purple-600 dark:text-purple-400",
         bgHover:
@@ -171,7 +171,7 @@ const navSections: NavSection[] = [
       },
       {
         to: "/dashboard/mpesa/c2b",
-        label: "C2B Configs",
+        label: "M-Pesa C2B Configs",
         icon: CircleStackIcon,
         color: "text-purple-600 dark:text-purple-400",
         bgHover:
@@ -180,14 +180,14 @@ const navSections: NavSection[] = [
       {
         to: "/dashboard/mpesa",
         label: "M-Pesa STK Configs",
-        icon: ArrowLeftRight,
+        icon: ArrowsRightLeftIcon,
         color: "text-purple-600 dark:text-purple-400",
         bgHover:
           "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400",
       },
       {
         to: "/dashboard/transactions",
-        label: "M-Pesa STK Transactions",
+        label: "STK Transactions",
         icon: BanknotesIcon,
         color: "text-purple-600 dark:text-purple-400",
         bgHover:
@@ -195,22 +195,16 @@ const navSections: NavSection[] = [
       },
       {
         to: "/dashboard/transactions/c2b",
-        label: "M-Pesa C2B Transactions",
+        label: "C2B Transactions",
         icon: CreditCard,
         color: "text-purple-600 dark:text-purple-400",
         bgHover:
           "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400",
       },
-    ],
-  },
-
-  {
-    title: "Vendor & Finance",
-    items: [
       {
         to: "/dashboard/vendor/payouts",
-        label: "Payouts",
-        icon: BanknotesIcon,
+        label: "Vendor Payouts",
+        icon: ArrowUpRight,
         color: "text-emerald-600 dark:text-emerald-400",
         bgHover:
           "hover:bg-emerald-50/60 dark:hover:bg-emerald-950/10 hover:text-emerald-700 dark:hover:text-emerald-400",
@@ -227,11 +221,11 @@ const navSections: NavSection[] = [
   },
 
   {
-    title: "SMS Management",
+    title: "SMS & Messaging",
     items: [
       {
         to: "/dashboard/sms/sms_providers/list",
-        label: "Gateways & Providers",
+        label: "SMS Gateways",
         icon: MessageSquarePlus,
         color: "text-pink-600 dark:text-pink-400",
         bgHover:
@@ -241,35 +235,44 @@ const navSections: NavSection[] = [
         to: "/dashboard/sms/templates",
         label: "Message Templates",
         icon: FileText,
-        color: "text-purple-600 dark:text-purple-400",
+        color: "text-pink-600 dark:text-pink-400",
         bgHover:
-          "hover:bg-purple-50/60 dark:hover:bg-purple-950/10 hover:text-purple-700 dark:hover:text-purple-400",
+          "hover:bg-pink-50/60 dark:hover:bg-pink-950/10 hover:text-pink-700 dark:hover:text-pink-400",
       },
       {
         to: "/dashboard/sms/analytics",
         label: "SMS Analytics & Logs",
         icon: BarChart3,
-        color: "text-indigo-600 dark:text-indigo-400",
-        bgHover:
-          "hover:bg-indigo-50/60 dark:hover:bg-indigo-950/10 hover:text-indigo-700 dark:hover:text-indigo-400",
-      },
-    ],
-  },
-
-  {
-    title: "Balancers",
-    items: [
-      {
-        to: "/dashboard/network-deployments/create",
-        label: "PCC Based Balancer",
-        icon: Split,
         color: "text-pink-600 dark:text-pink-400",
         bgHover:
           "hover:bg-pink-50/60 dark:hover:bg-pink-950/10 hover:text-pink-700 dark:hover:text-pink-400",
       },
     ],
   },
+
+  {
+    title: "Advanced Tools & Migration",
+    items: [
+      {
+        to: "/dashboard/network-deployments/create",
+        label: "PCC Load Balancer",
+        icon: Split,
+        color: "text-cyan-600 dark:text-cyan-400",
+        bgHover:
+          "hover:bg-cyan-50/60 dark:hover:bg-cyan-950/10 hover:text-cyan-700 dark:hover:text-cyan-400",
+      },
+      {
+        to: "/dashboard/vendor/bulk/migrate",
+        label: "Bulk Client Migration",
+        icon: Database,
+        color: "text-cyan-600 dark:text-cyan-400",
+        bgHover:
+          "hover:bg-cyan-50/60 dark:hover:bg-cyan-950/10 hover:text-cyan-700 dark:hover:text-cyan-400",
+      },
+    ],
+  },
 ];
+
 
 /* ============================================================
    SIDEBAR

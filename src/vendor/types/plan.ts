@@ -6,4 +6,5 @@ export interface Plan {
   duration_minutes: number;
   rate_limit?: string;
   mikrotik_profile?: string;
+  service_type?: string;
 }
