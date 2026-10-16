@@ -95,7 +95,7 @@ export default function PPPoEProvisionSuccessModal({
                     <CredentialRow
                         icon={<Wifi size={15} />}
                         label="Radius Username"
-                        value={result.credential.username}
+                        value={result.credential.radius_username}
                         copy={() => copy(result.credential.username)}
                     />
 

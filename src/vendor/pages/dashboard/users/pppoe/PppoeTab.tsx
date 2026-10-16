@@ -13,29 +13,20 @@ interface PPPoETabProps {
 const PPPoETab: FC<PPPoETabProps> = ({
     profile,
 }) => {
-
     return (
-
-        <div className="space-y-6">
-
+        <div className="space-y-4 sm:space-y-6">
             {profile.pppoe.accounts.length === 0 ? (
-
-                <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-10 text-center">
-
-                    <h3 className="text-lg font-semibold">
+                <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-10 text-center shadow-sm">
+                    <h3 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white">
                         No PPPoE Accounts
                     </h3>
 
-                    <p className="mt-2 text-slate-500">
+                    <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                         This customer has no PPPoE credentials.
                     </p>
-
                 </div>
-
             ) : (
-
                 profile.pppoe.accounts.map((account, index) => (
-
                     <PPPoEAccountCard
                         key={
                             account.credential?.id ??
@@ -45,9 +36,7 @@ const PPPoETab: FC<PPPoETabProps> = ({
                         account={account}
                         index={index}
                     />
-
                 ))
-
             )}
 
             <SubscriptionHistorySection
@@ -58,11 +47,8 @@ const PPPoETab: FC<PPPoETabProps> = ({
             <PPPoEQuickActions
                 accounts={profile.pppoe.accounts}
             />
-
         </div>
-
     );
-
 };
 
 export default PPPoETab;

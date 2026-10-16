@@ -84,7 +84,7 @@ export default function CustomerActions({
                     />
 
                     {/* PPPoE */}
-                    {customer.service_type === "PPPOE" && (
+                    {customer.service_type === "PPPOE" && customer.pppoe_created === false && (
                         <MenuItem
                             icon={<Wifi size={15} />}
                             label="Create PPPoE"

@@ -12,36 +12,29 @@ import {
 
 import type { CurrentDevice } from "../types/types";
 import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
+
 interface Props {
     device: CurrentDevice;
 }
 
 function formatBytes(bytes: number) {
-
     if (!bytes) return "0 B";
 
     const units = ["B", "KB", "MB", "GB", "TB"];
-
     let size = bytes;
-
     let unit = 0;
 
     while (size >= 1024 && unit < units.length - 1) {
-
         size /= 1024;
-
         unit++;
-
     }
 
     return `${size.toFixed(1)} ${units[unit]}`;
-
 }
 
 export default function DeviceItem({
     device,
 }: Props) {
-
     const online = Boolean(device.connected_since);
 
     const Icon =
@@ -54,42 +47,28 @@ export default function DeviceItem({
             : Router;
 
     return (
-
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-5">
-
-            <div className="flex items-start justify-between">
-
-                <div className="flex items-start gap-4">
-
-                    <div className="rounded-xl bg-blue-100 dark:bg-blue-900/30 p-3">
-
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 p-3.5 sm:p-5">
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 sm:gap-4 min-w-0">
+                    <div className="rounded-xl bg-blue-100 dark:bg-blue-900/30 p-2 sm:p-3 shrink-0">
                         <Icon
-                            size={22}
-                            className="text-blue-600"
+                            size={18}
+                            className="text-blue-600 dark:text-blue-400 sm:w-5 sm:h-5"
                         />
-
                     </div>
 
-                    <div>
-
-                        <h3 className="text-lg font-semibold">
-
+                    <div className="min-w-0">
+                        <h3 className="text-sm sm:text-lg font-semibold text-slate-900 dark:text-white truncate">
                             {device.service}
-
                         </h3>
-
-                        <p className="text-sm text-slate-500">
-
+                        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate mt-0.5">
                             {device.username}
-
                         </p>
-
                     </div>
-
                 </div>
 
                 <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                    className={`rounded-full px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-medium uppercase tracking-wide shrink-0 ${
                         online
                             ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                             : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
@@ -97,71 +76,59 @@ export default function DeviceItem({
                 >
                     {online ? "Online" : "Offline"}
                 </span>
-
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-
+            <div className="mt-4 sm:mt-6 grid gap-2.5 sm:gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-3">
                 <Info
-                    icon={<Shield size={16} />}
+                    icon={<Shield size={14} className="shrink-0 text-slate-400" />}
                     label="MAC Address"
                     value={device.mac_address || "-"}
                 />
 
                 <Info
-                    icon={<Wifi size={16} />}
+                    icon={<Wifi size={14} className="shrink-0 text-slate-400" />}
                     label="IP Address"
                     value={device.ip_address || "-"}
                 />
 
                 <Info
-                    icon={<Router size={16} />}
+                    icon={<Router size={14} className="shrink-0 text-slate-400" />}
                     label="Router"
                     value={device.router.name}
                 />
 
                 <Info
-                    icon={<Router size={16} />}
+                    icon={<Router size={14} className="shrink-0 text-slate-400" />}
                     label="Vendor"
                     value={device.router.vendor?.name ?? "-"}
                 />
 
                 <Info
-                    icon={<Clock size={16} />}
+                    icon={<Clock size={14} className="shrink-0 text-slate-400" />}
                     label="Connected Since"
-                    value={ formatDate(
-                        device.connected_since
-                    )}
+                    value={formatDate(device.connected_since)}
                 />
 
                 <Info
-                    icon={<Upload size={16} />}
+                    icon={<Upload size={14} className="shrink-0 text-slate-400" />}
                     label="Upload"
                     value={formatBytes(device.upload_bytes)}
                 />
 
                 <Info
-                    icon={<Download size={16} />}
+                    icon={<Download size={14} className="shrink-0 text-slate-400" />}
                     label="Download"
                     value={formatBytes(device.download_bytes)}
                 />
-
             </div>
-
         </div>
-
     );
-
 }
 
 interface InfoProps {
-
     icon: React.ReactNode;
-
     label: string;
-
     value: React.ReactNode;
-
 }
 
 function Info({
@@ -169,27 +136,16 @@ function Info({
     label,
     value,
 }: InfoProps) {
-
     return (
-
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
-
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800/80 p-2.5 sm:p-3 bg-white dark:bg-slate-900 min-w-0">
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide truncate">
                 {icon}
-
-                <span>{label}</span>
-
+                <span className="truncate">{label}</span>
             </div>
 
-            <div className="mt-2 font-medium break-all">
-
+            <div className="mt-1 font-medium text-xs sm:text-sm text-slate-900 dark:text-slate-100 truncate">
                 {value}
-
             </div>
-
         </div>
-
     );
-
 }

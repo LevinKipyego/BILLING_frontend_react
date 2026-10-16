@@ -17,13 +17,10 @@ interface Props {
         | "suspended"
         | "success"
         | "failed";
-
 }
 
 export default function StatusBadge({ status }: Props) {
-
     const styles = {
-
         online:
             "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400",
 
@@ -47,35 +44,25 @@ export default function StatusBadge({ status }: Props) {
 
         failed:
             "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
-
     };
 
     const icons = {
-
-        online: <Wifi size={14} />,
-        offline: <WifiOff size={14} />,
-        active: <CheckCircle2 size={14} />,
-        expired: <XCircle size={14} />,
-        pending: <Clock3 size={14} />,
-        suspended: <PauseCircle size={14} />,
-        success: <CheckCircle2 size={14} />,
-        failed: <XCircle size={14} />,
-
+        online: <Wifi size={12} className="shrink-0" />,
+        offline: <WifiOff size={12} className="shrink-0" />,
+        active: <CheckCircle2 size={12} className="shrink-0" />,
+        expired: <XCircle size={12} className="shrink-0" />,
+        pending: <Clock3 size={12} className="shrink-0" />,
+        suspended: <PauseCircle size={12} className="shrink-0" />,
+        success: <CheckCircle2 size={12} className="shrink-0" />,
+        failed: <XCircle size={12} className="shrink-0" />,
     };
 
     return (
-
         <span
-            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${styles[status]}`}
+            className={`inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium sm:font-semibold uppercase tracking-wide ${styles[status]}`}
         >
-
             {icons[status]}
-
-            
-            {(status?.charAt(0).toUpperCase() || '') + (status?.slice(1) || '')}
-
+            <span>{(status?.charAt(0).toUpperCase() || '') + (status?.slice(1) || '')}</span>
         </span>
-
     );
-
 }

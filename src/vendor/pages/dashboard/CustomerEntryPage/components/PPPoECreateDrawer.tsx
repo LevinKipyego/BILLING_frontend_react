@@ -11,6 +11,7 @@ import {
     User,
     CheckCircle2,
     Loader2,
+    Wrench,
 } from "lucide-react";
 
 interface Mikrotik {
@@ -38,6 +39,8 @@ export interface CreatePPPoEPayload {
     plan_id: number;
     activate: boolean;
     push_radius: boolean;
+    include_installation_fee: boolean;
+    installation_fee: number;
 }
 
 interface Props {
@@ -63,6 +66,8 @@ export default function PPPoECreateDrawer({
     const [plan, setPlan] = useState("");
     const [activate, setActivate] = useState(true);
     const [pushRadius, setPushRadius] = useState(true);
+    const [includeInstallationFee, setIncludeInstallationFee] = useState(false);
+    const [installationFee, setInstallationFee] = useState("1500"); // Default installation fee amount
 
     useEffect(() => {
         if (!open) return;
@@ -70,6 +75,8 @@ export default function PPPoECreateDrawer({
         setPlan("");
         setActivate(true);
         setPushRadius(true);
+        setIncludeInstallationFee(false);
+        setInstallationFee("1500");
     }, [open]);
 
     const router = useMemo(
@@ -81,6 +88,10 @@ export default function PPPoECreateDrawer({
         () => plans.find(p => p.id === Number(plan)),
         [plan, plans]
     );
+
+    const parsedPlanPrice = selectedPlan ? Number(selectedPlan.price) || 0 : 0;
+    const parsedInstallationFee = includeInstallationFee ? Number(installationFee) || 0 : 0;
+    const totalPayable = parsedPlanPrice + parsedInstallationFee;
 
     const formValid = mikrotik !== "" && plan !== "";
 
@@ -183,21 +194,70 @@ export default function PPPoECreateDrawer({
                             </div>
 
                             {selectedPlan && (
-                                <div className="rounded-lg bg-slate-50 dark:bg-gray-800/60 p-3.5 text-xs border border-slate-200/60 dark:border-gray-700/60">
+                                <div className="rounded-lg bg-slate-50 dark:bg-gray-800/60 p-3.5 text-xs border border-slate-200/60 dark:border-gray-700/60 space-y-2">
                                     <div className="flex justify-between text-slate-600 dark:text-slate-400">
-                                        <span>Price</span>
+                                        <span>Plan Price</span>
                                         <strong className="text-slate-900 dark:text-white font-mono">KES {selectedPlan.price}</strong>
                                     </div>
-                                    <div className="mt-2 flex justify-between text-slate-600 dark:text-slate-400">
+                                    <div className="flex justify-between text-slate-600 dark:text-slate-400">
                                         <span>Duration</span>
                                         <strong className="text-slate-900 dark:text-white font-mono">
                                             {selectedPlan.duration_minutes} minutes
                                         </strong>
                                     </div>
+                                    {includeInstallationFee && (
+                                        <div className="flex justify-between text-slate-600 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-gray-700">
+                                            <span>Installation Fee</span>
+                                            <strong className="text-slate-900 dark:text-white font-mono">KES {parsedInstallationFee.toLocaleString()}</strong>
+                                        </div>
+                                    )}
+                                    <div className="flex justify-between text-slate-800 dark:text-slate-200 pt-2 border-t border-slate-200 dark:border-gray-700 text-sm font-semibold">
+                                        <span>Total Payable</span>
+                                        <strong className="text-blue-600 dark:text-blue-400 font-mono">KES {totalPayable.toLocaleString()}</strong>
+                                    </div>
                                 </div>
                             )}
                         </div> 
                     </div> 
+
+                    {/* Installation Fee Options Card */}
+                    <div className="rounded-lg border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 space-y-3">
+                        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-gray-800 pb-2.5">
+                            <Wrench size={16} className="text-slate-500 dark:text-slate-400" />
+                            <h3 className="text-xs font-semibold uppercase tracking-[0.07em] text-slate-700 dark:text-slate-200">
+                                Installation Fee Setup
+                            </h3>
+                        </div>
+                        <div className="space-y-3 pt-1">
+                            <label className="flex items-center gap-2.5 cursor-pointer text-slate-700 dark:text-slate-300 text-xs">
+                                <input
+                                    type="checkbox"
+                                    checked={includeInstallationFee}
+                                    onChange={() => setIncludeInstallationFee(!includeInstallationFee)}
+                                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 h-4 w-4"
+                                />
+                                <span className="font-medium">
+                                    Include installation fee on initial invoice/STK push
+                                </span>
+                            </label>
+
+                            {includeInstallationFee && (
+                                <div className="pl-6 pt-1">
+                                    <label className="mb-1.5 block text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">
+                                        Installation Amount (KES)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={installationFee}
+                                        onChange={(e) => setInstallationFee(e.target.value)}
+                                        placeholder="Enter amount"
+                                        className="w-full rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50/50 dark:bg-gray-800 py-2 px-3 text-xs font-mono text-slate-800 dark:text-slate-100 focus:border-slate-400 dark:focus:border-gray-500 focus:outline-none"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
                     {/* Automatic Credentials Info */}
                     <div className="rounded-lg border border-blue-200 dark:border-blue-800/40 bg-blue-50/50 dark:bg-blue-900/10 p-4">
@@ -279,6 +339,8 @@ export default function PPPoECreateDrawer({
                                 plan_id: Number(plan),
                                 activate,
                                 push_radius: pushRadius,
+                                include_installation_fee: includeInstallationFee,
+                                installation_fee: includeInstallationFee ? Number(installationFee) || 0 : 0,
                             });
                         }}
                         className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"

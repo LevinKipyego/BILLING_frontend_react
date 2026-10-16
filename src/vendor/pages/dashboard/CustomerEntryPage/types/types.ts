@@ -26,6 +26,8 @@ export interface Customer {
 
     subscription_active: boolean;
 
+    pppoe_created: boolean;
+
     expires_at: string | null;
 
     created_at: string;
@@ -79,6 +81,8 @@ export interface PPPoEProvisionResponse {
         id: number;
 
         username: string;
+
+        radius_username:string;
 
         password: string;
 

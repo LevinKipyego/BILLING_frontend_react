@@ -12,13 +12,10 @@ interface Props {
 export default function DeviceTab({
     profile,
 }: Props) {
-
     const { devices } = profile;
 
     return (
-
-        <div className="space-y-6">
-
+        <div className="space-y-4 sm:space-y-6">
             <DeviceSummaryCard
                 summary={devices.summary}
             />
@@ -34,9 +31,7 @@ export default function DeviceTab({
             <DeviceQuickActions
                 devices={devices.current}
             />
-
         </div>
-
     );
-
 }
+

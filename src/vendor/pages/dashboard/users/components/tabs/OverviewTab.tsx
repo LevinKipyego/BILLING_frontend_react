@@ -14,13 +14,9 @@ interface Props {
 
 export default function OverviewTab({
     profile,
-    
 }: Props) {
-
     return (
-
-        <div className="space-y-8">
-
+        <div className="space-y-4 sm:space-y-8">
             <CurrentServicesSection
                 profile={profile}
             />
@@ -29,8 +25,7 @@ export default function OverviewTab({
                 profile={profile}
             />
 
-            <div className="grid xl:grid-cols-2 gap-6">
-
+            <div className="grid xl:grid-cols-2 gap-4 sm:gap-6">
                 <RecentPaymentsSection
                     profile={profile}
                 />
@@ -38,15 +33,11 @@ export default function OverviewTab({
                 <DevicesSection
                     profile={profile}
                 />
-
             </div>
 
             <TimelineSection profile={profile} />
 
             <QuickActionsSection profile={profile} />
-
         </div>
-
     );
-
 }
