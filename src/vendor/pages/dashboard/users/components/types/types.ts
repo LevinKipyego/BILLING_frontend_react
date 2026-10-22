@@ -47,7 +47,10 @@ export interface Overview {
 
     lifetime_spend: number;
 
-    current_balance: number;
+    wallet_balance: number;
+
+
+    installation_fee:number;
 
     average_purchase: number;
 

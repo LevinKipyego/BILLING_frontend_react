@@ -81,9 +81,18 @@ export default function SummarySection({
                 />
 
                 <SummaryCard
-                    title="Current Balance"
+                    title="Wallet Balance"
                     value={`KES ${Number(
-                        overview.current_balance
+                        overview.wallet_balance
+                    ).toLocaleString()}`}
+                    icon={<Banknote size={22} />}
+                />
+
+
+                <SummaryCard
+                    title="Installation Fee"
+                    value={`KES ${Number(
+                        overview.installation_fee
                     ).toLocaleString()}`}
                     icon={<Banknote size={22} />}
                 />
