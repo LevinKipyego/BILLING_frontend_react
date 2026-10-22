@@ -15,6 +15,18 @@ export interface User {
 
     email: string;
 
+    county: string;
+
+    location: string;
+
+    address: string;
+
+    building: string;
+
+    floor: string;
+    
+    house_no: string;
+
     active: boolean;
 
     created_at: string;

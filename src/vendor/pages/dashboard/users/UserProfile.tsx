@@ -53,6 +53,7 @@ export default function UserProfile() {
                 user={profile.user}
                 overview={profile.overview}
                 reload={reload}
+                onSaveField={reload}
             />
 
             <UserTabs
