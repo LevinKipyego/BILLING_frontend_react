@@ -24,6 +24,7 @@ import {
   Server,
   Database,
   ArrowUpRight,
+   Repeat,
 } from "lucide-react";
 
 import { SiMikrotik } from "react-icons/si";
@@ -265,6 +266,15 @@ const navSections: NavSection[] = [
         to: "/dashboard/vendor/bulk/migrate",
         label: "Bulk Client Migration",
         icon: Database,
+        color: "text-cyan-600 dark:text-cyan-400",
+        bgHover:
+          "hover:bg-cyan-50/60 dark:hover:bg-cyan-950/10 hover:text-cyan-700 dark:hover:text-cyan-400",
+      },
+
+       {
+        to: "/dashboard/client/bulk/renew",
+        label: "Bulk Client Renew",
+        icon: Repeat,
         color: "text-cyan-600 dark:text-cyan-400",
         bgHover:
           "hover:bg-cyan-50/60 dark:hover:bg-cyan-950/10 hover:text-cyan-700 dark:hover:text-cyan-400",

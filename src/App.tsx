@@ -58,7 +58,8 @@ import { VendorLoanHub } from "./vendor/pages/dashboard/mikroloans/MikroLoans";
 
 import PayOutPanel from "./vendor/pages/dashboard/B2C002/PayOutPanel";
 
-import VendorBulkMigration from "./vendor/pages/dashboard/bulkbuilder/VendorBulkMigration"
+import VendorBulkMigration from "./vendor/pages/dashboard/bulkcreate/VendorBulkMigration"
+import BulkRenewPage from "./vendor/pages/dashboard/bulkrenew/BulkRenewPage";
 
 export default function App() {
   return (
@@ -272,6 +273,10 @@ export default function App() {
                 element={<VendorBulkMigration />}
               />
 
+              <Route
+                path="client/bulk/renew/"
+                element={<BulkRenewPage />}
+              />
                 
             </Route>
           </Route>
