@@ -9,7 +9,7 @@ import NotFound from "./vendor/pages/NotFound";
 import DashboardLayout from "./vendor/components/layouts/DashboardLayout";
 
 import DashboardHome from "./vendor/pages/dashboard/overview/DashboardHome";
-import VendorProfilePage from "./vendor/pages/dashboard/VendorProfile";
+//import VendorProfilePage from "./vendor/pages/dashboard/VendorProfile";
 
 import Plans from "./vendor/pages/dashboard/Plans";
 import Mikrotiks from "./vendor/pages/dashboard/Mikrotiks";
@@ -60,6 +60,7 @@ import PayOutPanel from "./vendor/pages/dashboard/B2C002/PayOutPanel";
 
 import VendorBulkMigration from "./vendor/pages/dashboard/bulkcreate/VendorBulkMigration"
 import BulkRenewPage from "./vendor/pages/dashboard/bulkrenew/BulkRenewPage";
+import VendorProfilePage from "./vendor/pages/dashboard/vendorprofile/pages/VendorProfilePage";
 
 export default function App() {
   return (
