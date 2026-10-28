@@ -1,20 +1,6 @@
 import React from 'react';
-import { formatDate } from '../../../dashboard/CustomerEntryPage/renewsubscriptions/utils/date';
-export interface Transaction {
-  id: string | number;
-  transaction_uuid?: string;
-  amount: number | string;
-  status: string;
-  username?: string;
-  client_phone: string;
-  mpesa_receipt?: string | null;
-  service_type?: string;
-  created_at?: string | Date;
-  result_code?: number | string | null;
-  result_description?: string | null;
-  result_desc?: string | null;
-}
-
+import type { MpesaTransaction as Transaction } from '../types/transactions';
+import { formatDate } from '../../../CustomerEntryPage/renewsubscriptions/utils/date';
 interface TransactionCardProps {
   tx: Transaction;
   /** Optional custom StatusBadge component. Falls back to default if not provided. */
@@ -59,7 +45,7 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({
 
   const gatewayMessage =
     tx.result_description ||
-    tx.result_desc ||
+    tx.result_code ||
     (isSuccess
       ? 'Transaction completed successfully.'
       : 'Transaction failed or cancelled by subscriber.');

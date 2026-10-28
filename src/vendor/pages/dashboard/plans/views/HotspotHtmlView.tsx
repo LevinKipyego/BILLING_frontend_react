@@ -5,8 +5,8 @@ import {
     ChevronUpIcon,
 } from "@heroicons/react/24/outline";
 
-import ExportToolbar from "../ExportToolBar";
-import CodeCard from "../CodeCard";
+import ExportToolbar from "../components/ExportToolBar";
+import CodeCard from "../components/CodeCard";
 
 import {
     exportHTML,

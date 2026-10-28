@@ -5,7 +5,7 @@ import {
   Square2StackIcon,
   CheckIcon,
 } from "@heroicons/react/24/outline";
-import type { TabType } from "./types/plan";
+import type { TabType } from "../types/plan";
 
 interface PlanTabsProps {
   activeTab: TabType;

@@ -12,22 +12,22 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 
-import type { Plan, TabType, TimeUnit } from "./plans/types/plan";
-import { listMikrotiks, type MikrotikDevice } from "../../types/device";
+import type { Plan, TabType, TimeUnit } from "./types/plan";
+import { listMikrotiks, type MikrotikDevice } from "../../../types/device";
 import {
   listPlans,
   createPlan,
   updatePlan,
   deletePlan,
-} from "../../api/plans";
+} from "../../../api/plans";
 
-import PlanTabs from "./plans/PlanTab";
-import PlanFilter from "./plans/PlanFilter";
-import HotspotHtmlView from "./plans/views/HotspotHtmlView";
-import PlanList from "./plans/PlanList";
-import RouterConfigView from "./plans/views/RouterOSconfigView";
-import PlanPagination from "./plans/Pagination";
-import PlanFormModal from "./plans/PlanFormModal";
+import PlanTabs from "./components/PlanTab";
+import PlanFilter from "./components/PlanFilter";
+import HotspotHtmlView from "./views/HotspotHtmlView";
+import PlanList from "./components/PlanList";
+import RouterConfigView from "./views/RouterOSconfigView";
+import PlanPagination from "./components/Pagination";
+import PlanFormModal from "./components/PlanFormModal";
 
 const ITEMS_PER_PAGE = 7;
 

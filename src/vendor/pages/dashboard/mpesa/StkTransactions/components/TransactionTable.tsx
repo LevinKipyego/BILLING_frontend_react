@@ -1,25 +1,6 @@
 import React from 'react';
-import { formatDate } from '../../../dashboard/CustomerEntryPage/renewsubscriptions/utils/date';
-export interface Transaction {
-  id: string | number;
-  transaction_uuid?: string;
-  amount: number | string;
-  status: string;
-  username?: string;
-  client_phone: string;
-  mpesa_receipt?: string | null;
-  service_type?: string;
-  created_at?: string | Date;
-  result_code?: number | string | null;
-  result_description?: string | null;
-  result_desc?: string | null;
-  plan_name?: string;
-  vendor_name?: string;
-  mikrotik_name?: string;
-  payment_mode?: string;
-  query_count?: number;
-}
-
+import type { MpesaTransaction as Transaction } from '../types/transactions';
+import { formatDate } from '../../../CustomerEntryPage/renewsubscriptions/utils/date';
 interface TransactionTableProps {
   paginatedData: Transaction[];
   error?: boolean | string | null;
@@ -98,7 +79,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
 
               const responseMessage =
                 tx.result_description ||
-                tx.result_desc ||
+                tx.result_code ||
                 (isSuccess
                   ? 'Transaction completed successfully.'
                   : 'Transaction failed or cancelled.');
@@ -146,9 +127,9 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                       <span className="text-sm font-extrabold text-gray-900 dark:text-white">
                         KES {Number(tx.amount || 0).toLocaleString()}
                       </span>
-                      {tx.plan_name && (
+                      {tx.plan && (
                         <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">
-                          Plan: {tx.plan_name}
+                          Plan: {tx.plan}
                         </span>
                       )}
                     </div>

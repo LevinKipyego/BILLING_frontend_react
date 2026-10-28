@@ -10,8 +10,8 @@ import {
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
-import type { TimeUnit } from "./types/plan";
-import type { MikrotikDevice } from "../../../types/device";
+import type { TimeUnit } from "../types/plan";
+import type { MikrotikDevice } from "../../../../types/device";
 
 interface PlanFormValues {
   name: string;
@@ -44,7 +44,13 @@ const RATE_LIMIT_OPTIONS = [
   { value: "2M/2M", label: "2 Mbps", description: "Everyday browsing" },
   { value: "3M/3M", label: "3 Mbps", description: "Standard usage" },
   { value: "5M/5M", label: "5 Mbps", description: "HD streaming" },
+  { value: "6M/6M", label: "6 Mbps", description: "HD streaming" },
+  { value: "7M/7M", label: "7 Mbps", description: "HD streaming" },
+  { value: "8M/8M", label: "8 Mbps", description: "HD streaming" },
+  { value: "9M/9M", label: "9 Mbps", description: "Heavy use streaming" },
   { value: "10M/10M", label: "10 Mbps", description: "Heavy usage" },
+  { value: "12M/12M", label: "12 Mbps", description: "HD streaming" },
+  { value: "15M/15M", label: "15 Mbps", description: "High Speed" },
   { value: "20M/20M", label: "20 Mbps", description: "High-speed access" },
   { value: "50M/50M", label: "50 Mbps", description: "Premium access" },
   { value: "100M/100M", label: "100 Mbps", description: "Ultra-fast access" },

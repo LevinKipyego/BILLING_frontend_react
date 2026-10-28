@@ -11,12 +11,12 @@ import DashboardLayout from "./vendor/components/layouts/DashboardLayout";
 import DashboardHome from "./vendor/pages/dashboard/overview/DashboardHome";
 //import VendorProfilePage from "./vendor/pages/dashboard/VendorProfile";
 
-import Plans from "./vendor/pages/dashboard/Plans";
+import Plans from "./vendor/pages/dashboard/plans/Plans";
 import Mikrotiks from "./vendor/pages/dashboard/Mikrotiks";
 import Nas from "./vendor/pages/dashboard/Nas";
-import MikrotikConfig from "./vendor/pages/dashboard/MikrotikConfig";
+import MikrotikConnectionsPage from "./vendor/pages/dashboard/mikrotik-connections-feature/MikrotikConnectionsPage";
 
-import Mpesa from "./vendor/pages/mpesa/MpesaConfig";
+import Mpesa from "./vendor/pages/dashboard/mpesa/MpesaConfig";
 import C2BConfig from "./vendor/pages/dashboard/C2BConfig";
 
 //import UsersPage from "./vendor/pages/dashboard/Users";
@@ -27,7 +27,7 @@ import NetworkDetailed from "./vendor/pages/dashboard/NetworkDetailed";
 import SessionDetail from "./vendor/pages/dashboard/SessionDetail";
 import SessionsPage from "./vendor/pages/dashboard/SessionPage";
 
-import StkTransactions from "./vendor/pages/mpesa/StkTransactions/StkTransactions";
+import StkTransactions from "./vendor/pages/dashboard/mpesa/StkTransactions/StkTransactions";
 import C2bTransactions from "./vendor/pages/dashboard/C2bTransactions";
 
 import PPPoESubscriptionPage from "./vendor/pages/dashboard/PpoeSubsicriptions";
@@ -135,7 +135,7 @@ export default function App() {
 
               <Route
                 path="mikrotik/configurations"
-                element={<MikrotikConfig />}
+                element={<MikrotikConnectionsPage />}
               />
 
               {/* M-Pesa */}

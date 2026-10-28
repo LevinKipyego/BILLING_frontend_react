@@ -11,8 +11,8 @@ import {
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 
-import type { Plan } from "./types/plan";
-import { formatDuration } from "../CustomerEntryPage/renewsubscriptions/utils/date";
+import type { Plan } from "../types/plan";
+import { formatDuration } from "../../CustomerEntryPage/renewsubscriptions/utils/date";
 
 interface PlanListProps {
   plans: Plan[];

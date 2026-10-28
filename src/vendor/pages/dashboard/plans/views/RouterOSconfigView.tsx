@@ -5,8 +5,8 @@ import {
   ServerStackIcon,
 } from "@heroicons/react/24/outline";
 
-import RouterToolbar from "../RouterToolbar";
-import RouterScriptCard from "../RouterScriptCard";
+import RouterToolbar from "../components/RouterToolbar";
+import RouterScriptCard from "../components/RouterScriptCard";
 import { exportRSC, exportTXT } from "../utils/download";
 
 import type { Plan } from "../types/plan";

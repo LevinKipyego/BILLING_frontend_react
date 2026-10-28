@@ -56,6 +56,12 @@ const RATE_LIMIT_OPTIONS = [
 
     '5M/5M',
 
+    '6M/6M',
+
+    '7M/7M',
+
+    '10M/10M',
+
     '10M/10M',
 
     '15M/15M',

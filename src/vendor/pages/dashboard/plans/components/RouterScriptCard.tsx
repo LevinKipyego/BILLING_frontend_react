@@ -8,7 +8,7 @@ import {
   CubeIcon,
   SignalIcon,
 } from "@heroicons/react/24/outline";
-import type { Plan } from "./types/plan";
+import type { Plan } from "../types/plan";
 
 interface RouterScriptCardProps {
   plan: Plan;
