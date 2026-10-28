@@ -52,6 +52,9 @@ export interface DeploymentCreatePayload {
   pcc_type: PccMode;
 
   wan_interfaces: DeploymentWanConfig[];
+
+  /** Optional LAN interface override; omitted means backend auto-detection. */
+  lan_interfaces?: string[];
 }
 
 
@@ -72,6 +75,8 @@ export interface DeploymentRequestedConfig {
    * Backend normalizes this to wan_ports internally.
    */
   wan_interfaces: DeploymentWanConfig[];
+
+  lan_interfaces?: string[];
 }
 
 
@@ -426,6 +431,11 @@ export interface DeploymentDiscovery {
 
   firewall_rules?: Record<string, unknown>[];
 
+  /** Optional RouterOS metadata used for LAN auto-detection. */
+  hotspots?: Record<string, unknown>[];
+  bridge_ports?: Record<string, unknown>[];
+  interface_list_members?: Record<string, unknown>[];
+
 
   /* ---------------------------------------------- */
   /* Normalized WANs                                */
@@ -581,6 +591,12 @@ export interface DeploymentVerificationStep {
 /* PLAN                                               */
 /* ================================================== */
 
+export interface DeploymentLanPlan {
+  interfaces: string[];
+  networks: string[];
+  selection_mode: "automatic" | "manual" | string;
+}
+
 export interface DeploymentPlan {
   type: "load_balancing" | string;
 
@@ -589,6 +605,8 @@ export interface DeploymentPlan {
   pcc_type: PccMode | string;
 
   wans: PlannedWan[];
+
+  lan?: DeploymentLanPlan;
 
   route_tables: DeploymentRouteTablePlan[];
 

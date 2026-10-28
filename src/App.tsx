@@ -48,9 +48,9 @@ import OnboardingWizard from "./vendor/pages/dashboard/onboarding/OnboardingWiza
 
 
 //Load BAlANCER
-import DeploymentCreate from "./vendor/pages/dashboard/NetworkDeployments/DeploymentCreate";
-import DeploymentPreview from "./vendor/pages/dashboard/NetworkDeployments/DeploymentPreview";
-import DeploymentProgress from "./vendor/pages/dashboard/NetworkDeployments/DeploymentProgress";
+import DeploymentCreate from "./vendor/pages/dashboard/networkdeployments002/DeploymentCreate";
+import DeploymentPreview from "./vendor/pages/dashboard/networkdeployments002/DeploymentPreview";
+import DeploymentProgress from "./vendor/pages/dashboard/networkdeployments002/DeploymentProgress";
 import { SmsTemplateManager } from "./vendor/pages/dashboard/Sms/SmsTemplateManager";
 import { SmsAnalyticsDashboard } from "./vendor/pages/dashboard/Sms/SmsAnalyticsDashboard";
 

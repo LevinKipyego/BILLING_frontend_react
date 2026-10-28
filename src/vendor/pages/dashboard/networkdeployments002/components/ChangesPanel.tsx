@@ -20,13 +20,13 @@ export default function ChangesPanel({
   if (!changes) {
 
     return (
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
+      <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
           Planned Changes
         </h2>
 
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
           No change information is currently available.
         </p>
 
@@ -42,7 +42,7 @@ export default function ChangesPanel({
 
 
   return (
-    <section className="rounded-xl border bg-white p-6 shadow-sm">
+    <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
       {/* ========================================== */}
       {/* Header                                     */}
@@ -50,11 +50,11 @@ export default function ChangesPanel({
 
       <div>
 
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
           Planned Changes
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
           Changes that will be applied to the selected
           MikroTik router.
         </p>
@@ -66,13 +66,13 @@ export default function ChangesPanel({
       {/* Total                                      */}
       {/* ========================================== */}
 
-      <div className="mt-5 rounded-xl bg-gray-50 p-5">
+      <div className="mt-5 rounded-xl bg-sky-50 dark:bg-gray-800 p-5">
 
-        <p className="text-sm text-gray-500">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
           Total planned changes
         </p>
 
-        <p className="mt-1 text-3xl font-semibold text-gray-900">
+        <p className="mt-1 text-xl sm:text-3xl font-semibold text-slate-800 dark:text-gray-100">
           {totalChanges}
         </p>
 
@@ -83,7 +83,7 @@ export default function ChangesPanel({
       {/* Breakdown                                  */}
       {/* ========================================== */}
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-3">
+      <div className="mt-5 grid gap-3 sm:gap-4 sm:grid-cols-3">
 
         <ChangeCard
           label="Routing Tables"
@@ -125,23 +125,23 @@ function ChangeCard({
 }) {
 
   return (
-    <div className="rounded-xl border bg-white p-5">
+    <div className="rounded-xl border bg-white dark:bg-gray-900 p-5">
 
       <div className="flex items-start justify-between gap-3">
 
         <div>
 
-          <p className="text-sm font-medium text-gray-900">
+          <p className="text-xs sm:text-sm font-medium text-slate-800 dark:text-gray-100">
             {label}
           </p>
 
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-slate-500 dark:text-gray-400 dark:text-gray-400">
             {description}
           </p>
 
         </div>
 
-        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-sm font-semibold text-gray-900">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 dark:bg-gray-800 text-xs sm:text-sm font-semibold text-slate-800 dark:text-gray-100">
           {value}
         </span>
 

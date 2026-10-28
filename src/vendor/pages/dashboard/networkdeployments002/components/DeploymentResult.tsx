@@ -109,7 +109,7 @@ export default function DeploymentResult({
                 onDone
               }
 
-              className="rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white"
+              className="rounded-lg bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none px-5 py-3 text-xs sm:text-sm font-medium text-white"
             >
               Done
             </button>
@@ -152,9 +152,9 @@ export default function DeploymentResult({
         />
 
 
-        <div className="mt-4 rounded-lg bg-red-50 p-4">
+        <div className="mt-4 rounded-lg bg-red-50 p-3 sm:p-4">
 
-          <p className="text-sm text-red-700">
+          <p className="text-xs sm:text-sm text-red-700">
             The router may contain partial changes.
             Review the deployment logs before taking
             further action.
@@ -179,7 +179,7 @@ export default function DeploymentResult({
                 onRollback
               }
 
-              className="rounded-lg border border-red-200 bg-white px-5 py-3 text-sm font-medium text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg border border-red-200 bg-white dark:bg-gray-900 px-5 py-3 text-xs sm:text-sm font-medium text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {rollingBack
                 ? "Rolling Back..."
@@ -198,7 +198,7 @@ export default function DeploymentResult({
                 onRetry
               }
 
-              className="rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white"
+              className="rounded-lg bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none px-5 py-3 text-xs sm:text-sm font-medium text-white"
             >
               Try Again
             </button>
@@ -252,7 +252,7 @@ export default function DeploymentResult({
                 onDone
               }
 
-              className="rounded-lg bg-gray-900 px-5 py-3 text-sm font-medium text-white"
+              className="rounded-lg bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none px-5 py-3 text-xs sm:text-sm font-medium text-white"
             >
               Done
             </button>
@@ -299,7 +299,7 @@ export default function DeploymentResult({
 
           <Spinner />
 
-          <span className="text-sm text-gray-600">
+          <span className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
             Waiting for rollback to complete...
           </span>
 
@@ -343,7 +343,7 @@ export default function DeploymentResult({
 
           <Spinner />
 
-          <span className="text-sm text-gray-600">
+          <span className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
             Applying configuration...
           </span>
 
@@ -387,7 +387,7 @@ export default function DeploymentResult({
 
           <Spinner />
 
-          <span className="text-sm text-gray-600">
+          <span className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
             Verifying router configuration...
           </span>
 
@@ -431,7 +431,7 @@ export default function DeploymentResult({
 
           <Spinner />
 
-          <span className="text-sm text-gray-600">
+          <span className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
             Discovering router configuration...
           </span>
 
@@ -573,17 +573,17 @@ function ResultCard({
     success: {
 
       container:
-        "border-gray-200 bg-white",
+        "border-sky-100 dark:border-gray-700 bg-white dark:bg-gray-900",
 
       icon:
-        "bg-gray-900 text-white",
+        "bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none text-white",
     },
 
 
     error: {
 
       container:
-        "border-red-200 bg-white",
+        "border-red-200 bg-white dark:bg-gray-900",
 
       icon:
         "bg-red-100 text-red-700",
@@ -593,30 +593,30 @@ function ResultCard({
     rollback: {
 
       container:
-        "border-gray-200 bg-white",
+        "border-sky-100 dark:border-gray-700 bg-white dark:bg-gray-900",
 
       icon:
-        "bg-gray-200 text-gray-700",
+        "bg-emerald-50 dark:bg-gray-800 text-slate-700 dark:text-gray-200 dark:text-gray-200",
     },
 
 
     progress: {
 
       container:
-        "border-gray-200 bg-white",
+        "border-sky-100 dark:border-gray-700 bg-white dark:bg-gray-900",
 
       icon:
-        "bg-gray-200 text-gray-800",
+        "bg-emerald-50 dark:bg-gray-800 text-slate-800 dark:text-gray-200",
     },
 
 
     neutral: {
 
       container:
-        "border-gray-200 bg-white",
+        "border-sky-100 dark:border-gray-700 bg-white dark:bg-gray-900",
 
       icon:
-        "bg-gray-100 text-gray-500",
+        "bg-sky-50 dark:bg-gray-800 text-slate-500 dark:text-gray-400 dark:text-gray-400",
     },
 
   }[type];
@@ -624,10 +624,10 @@ function ResultCard({
 
   return (
     <section
-      className={`rounded-xl border p-6 shadow-sm ${styles.container}`}
+      className={`rounded-xl border border-sky-100 dark:border-gray-700 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20 ${styles.container}`}
     >
 
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3 sm:gap-4">
 
         <ResultIcon
           type={
@@ -638,12 +638,12 @@ function ResultCard({
 
         <div className="min-w-0 flex-1">
 
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
             {title}
           </h2>
 
 
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
             {message}
           </p>
 
@@ -684,7 +684,7 @@ function ResultIcon({
   ) {
 
     return (
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 text-white">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none text-white">
         ✓
       </div>
     );
@@ -710,7 +710,7 @@ function ResultIcon({
   ) {
 
     return (
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200 font-semibold text-gray-700">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-gray-800 font-semibold text-slate-700 dark:text-gray-200 dark:text-gray-200">
         ↶
       </div>
     );
@@ -723,7 +723,7 @@ function ResultIcon({
   ) {
 
     return (
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 dark:bg-gray-800">
 
         <Spinner />
 
@@ -733,7 +733,7 @@ function ResultIcon({
 
 
   return (
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sky-50 dark:bg-gray-800 text-slate-500 dark:text-gray-400 dark:text-gray-400">
       •
     </div>
   );
@@ -762,14 +762,14 @@ function ResultDetails({
 
 
   return (
-    <div className="mt-6 rounded-lg bg-gray-50 p-4">
+    <div className="mt-6 rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
 
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-gray-400 dark:text-gray-400">
         Deployment ID
       </p>
 
 
-      <p className="mt-1 break-all font-mono text-sm text-gray-800">
+      <p className="mt-1 break-all font-mono text-xs sm:text-sm text-slate-800 dark:text-gray-200">
         {deploymentId}
       </p>
 
@@ -815,7 +815,7 @@ function ActionButtons({
 function Spinner() {
 
   return (
-    <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+    <span className="h-4 w-4 animate-spin rounded-full border-2 border-sky-200 dark:border-gray-700 border-t-gray-900" />
   );
 }
 

@@ -33,7 +33,7 @@ export default function RouterSelector({
 }: RouterSelectorProps) {
 
   return (
-    <section className="rounded-xl border bg-white p-6 shadow-sm">
+    <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
       {/* ========================================== */}
       {/* Header                                     */}
@@ -41,11 +41,11 @@ export default function RouterSelector({
 
       <div>
 
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
           MikroTik Router
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
           Select the MikroTik router that will receive
           the PCC load-balancing configuration.
         </p>
@@ -59,11 +59,11 @@ export default function RouterSelector({
 
       {loading ? (
 
-        <div className="mt-5 flex items-center gap-3 rounded-lg bg-gray-50 p-4">
+        <div className="mt-5 flex items-center gap-3 rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
 
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-sky-200 dark:border-gray-700 border-t-gray-900" />
 
-          <span className="text-sm text-gray-600">
+          <span className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
             Loading MikroTik routers...
           </span>
 
@@ -84,7 +84,7 @@ export default function RouterSelector({
                 event.target.value,
               )
             }
-            className="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-gray-700 disabled:cursor-not-allowed disabled:bg-gray-100"
+            className="h-10 sm:h-11 w-full rounded-lg border border-sky-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 text-xs sm:text-sm text-slate-800 dark:text-gray-100 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 dark:focus:ring-sky-900/40 disabled:cursor-not-allowed disabled:bg-gray-100"
           >
 
             <option value="">
@@ -125,7 +125,7 @@ export default function RouterSelector({
 
           {routers.length === 0 && (
 
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
               No enabled MikroTik routers are available
               for this vendor.
             </p>
@@ -157,13 +157,13 @@ export default function RouterSelector({
 
       {error && (
 
-        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+        <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 sm:p-4">
 
-          <p className="text-sm font-medium text-red-800">
+          <p className="text-xs sm:text-sm font-medium text-red-800">
             Router selection error
           </p>
 
-          <p className="mt-1 text-sm text-red-700">
+          <p className="mt-1 text-xs sm:text-sm text-red-700">
             {error}
           </p>
 
@@ -204,9 +204,9 @@ function SelectedRouter({
 
 
   return (
-    <div className="mt-5 rounded-lg bg-gray-50 p-4">
+    <div className="mt-5 rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
         <RouterInfo
           label="Identity"
@@ -262,11 +262,11 @@ function RouterInfo({
   return (
     <div>
 
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-gray-400 dark:text-gray-400">
         {label}
       </p>
 
-      <p className="mt-1 break-all text-sm font-medium capitalize text-gray-900">
+      <p className="mt-1 break-all text-xs sm:text-sm font-medium capitalize text-slate-800 dark:text-gray-100">
         {value ||
           "—"}
       </p>

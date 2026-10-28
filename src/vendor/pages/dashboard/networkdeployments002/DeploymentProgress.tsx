@@ -610,16 +610,16 @@ export default function DeploymentProgress() {
   if (loading) {
 
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-3 sm:p-5 lg:p-7 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
 
         <div className="mx-auto max-w-5xl">
 
-          <div className="rounded-xl border bg-white p-8 text-center">
+          <div className="rounded-xl border bg-white dark:bg-gray-900 p-4 sm:p-6 text-center">
 
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-gray-700" />
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-sky-200 dark:border-gray-700 border-t-gray-700" />
 
 
-            <p className="text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
               Loading deployment status...
             </p>
 
@@ -637,29 +637,29 @@ export default function DeploymentProgress() {
   /* ================================================== */
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-3 sm:p-5 lg:p-7 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
 
-      <div className="mx-auto max-w-5xl space-y-6">
+      <div className="mx-auto max-w-5xl space-y-3 sm:space-y-5">
 
         {/* ========================================== */}
         {/* Header                                     */}
         {/* ========================================== */}
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-start sm:justify-between">
 
           <div>
 
-            <p className="text-sm text-gray-500">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
               Network Deployment
             </p>
 
 
-            <h1 className="mt-1 text-2xl font-semibold text-gray-900">
+            <h1 className="mt-1 text-lg sm:text-2xl font-semibold text-slate-800 dark:text-gray-100">
               Deployment Progress
             </h1>
 
 
-            <p className="mt-1 break-all text-sm text-gray-500">
+            <p className="mt-1 break-all text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
               Deployment ID: {deploymentId}
             </p>
 
@@ -691,7 +691,7 @@ export default function DeploymentProgress() {
             </p>
 
 
-            <p className="mt-1 text-sm text-red-700">
+            <p className="mt-1 text-xs sm:text-sm text-red-700">
               {error ||
                 deploymentError}
             </p>
@@ -705,16 +705,16 @@ export default function DeploymentProgress() {
         {/* Progress                                   */}
         {/* ========================================== */}
 
-        <section className="rounded-xl border bg-white p-6 shadow-sm">
+        <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
-          <div className="mb-6">
+          <div className="mb-3 sm:mb-5">
 
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
               Deployment Steps
             </h2>
 
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
               Live deployment progress from the backend.
             </p>
 
@@ -738,18 +738,18 @@ export default function DeploymentProgress() {
         {/* Logs                                       */}
         {/* ========================================== */}
 
-        <section className="rounded-xl border bg-white p-6 shadow-sm">
+        <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-3 sm:gap-4">
 
             <div>
 
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
                 Deployment Log
               </h2>
 
 
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
                 Activity reported by the deployment backend.
               </p>
 
@@ -771,7 +771,7 @@ export default function DeploymentProgress() {
 
           {logs.length === 0 ? (
 
-            <div className="mt-5 rounded-lg bg-gray-50 p-4 text-sm text-gray-500">
+            <div className="mt-5 rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
               No deployment logs yet.
             </div>
 
@@ -792,12 +792,12 @@ export default function DeploymentProgress() {
                         log.id ||
                         index
                       }
-                      className="rounded-lg bg-gray-50 p-4"
+                      className="rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4"
                     >
 
                       <div className="flex flex-wrap items-center gap-2">
 
-                        <span className="rounded-full bg-white px-2 py-1 text-xs font-medium uppercase text-gray-600">
+                        <span className="rounded-full bg-white dark:bg-gray-900 px-2 py-1 text-xs font-medium uppercase text-slate-600 dark:text-gray-300 dark:text-gray-300">
                           {log.level ||
                             "info"}
                         </span>
@@ -815,7 +815,7 @@ export default function DeploymentProgress() {
                       </div>
 
 
-                      <p className="mt-2 text-sm text-gray-800">
+                      <p className="mt-2 text-xs sm:text-sm text-slate-800 dark:text-gray-200">
                         {log.message ||
                           "Deployment event"}
                       </p>
@@ -847,7 +847,7 @@ export default function DeploymentProgress() {
                 `/dashboard/network-deployments/${deploymentId}/preview`,
               )
             }
-            className="rounded-lg border bg-white px-5 py-3 text-sm font-medium text-gray-700"
+            className="rounded-lg border bg-white dark:bg-gray-900 px-5 py-3 text-xs sm:text-sm font-medium text-slate-700 dark:text-gray-200 dark:text-gray-200"
           >
             Back to Preview
           </button>
@@ -872,7 +872,7 @@ export default function DeploymentProgress() {
                 onClick={
                   handleRollback
                 }
-                className="rounded-lg border border-red-200 bg-white px-5 py-3 text-sm font-medium text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-lg border border-red-200 bg-white dark:bg-gray-900 px-5 py-3 text-xs sm:text-sm font-medium text-red-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {rollingBack
                   ? "Rolling Back..."
@@ -892,7 +892,7 @@ export default function DeploymentProgress() {
                     "/network-deployments",
                   )
                 }
-                className="rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white"
+                className="rounded-lg bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium text-white"
               >
                 Done
               </button>
@@ -910,7 +910,7 @@ export default function DeploymentProgress() {
                     "/network-deployments",
                   )
                 }
-                className="rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white"
+                className="rounded-lg bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium text-white"
               >
                 Done
               </button>
@@ -1247,7 +1247,7 @@ function StatusBadge({
 
 
   let className =
-    "bg-gray-100 text-gray-800";
+    "bg-sky-50 dark:bg-gray-800 text-slate-800 dark:text-gray-200";
 
 
   /* ---------------------------------------------- */
@@ -1291,7 +1291,7 @@ function StatusBadge({
       "Discovering";
 
     className =
-      "bg-gray-200 text-gray-800";
+      "bg-emerald-50 dark:bg-gray-800 text-slate-800 dark:text-gray-200";
   }
 
 
@@ -1308,7 +1308,7 @@ function StatusBadge({
       "Discovered";
 
     className =
-      "bg-gray-100 text-gray-800";
+      "bg-sky-50 dark:bg-gray-800 text-slate-800 dark:text-gray-200";
   }
 
 
@@ -1325,7 +1325,7 @@ function StatusBadge({
       "Running";
 
     className =
-      "bg-gray-200 text-gray-900";
+      "bg-emerald-50 dark:bg-gray-800 text-slate-800 dark:text-gray-100";
   }
 
 
@@ -1342,7 +1342,7 @@ function StatusBadge({
       "Verifying";
 
     className =
-      "bg-gray-200 text-gray-800";
+      "bg-emerald-50 dark:bg-gray-800 text-slate-800 dark:text-gray-200";
   }
 
 
@@ -1359,7 +1359,7 @@ function StatusBadge({
       "Success";
 
     className =
-      "bg-gray-100 text-gray-800";
+      "bg-sky-50 dark:bg-gray-800 text-slate-800 dark:text-gray-200";
   }
 
 
@@ -1393,7 +1393,7 @@ function StatusBadge({
       "Rolling Back";
 
     className =
-      "bg-gray-200 text-gray-800";
+      "bg-emerald-50 dark:bg-gray-800 text-slate-800 dark:text-gray-200";
   }
 
 
@@ -1410,13 +1410,13 @@ function StatusBadge({
       "Rolled Back";
 
     className =
-      "bg-gray-200 text-gray-700";
+      "bg-emerald-50 dark:bg-gray-800 text-slate-700 dark:text-gray-200 dark:text-gray-200";
   }
 
 
   return (
     <span
-      className={`rounded-full px-3 py-1 text-sm font-medium capitalize ${className}`}
+      className={`rounded-full px-3 py-1 text-xs sm:text-sm font-medium capitalize ${className}`}
     >
       {label}
     </span>

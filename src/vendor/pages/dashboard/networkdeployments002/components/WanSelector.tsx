@@ -82,7 +82,7 @@ export default function WanSelector({
 
 
   return (
-    <section className="rounded-xl border bg-white p-6 shadow-sm">
+    <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
       {/* ========================================== */}
       {/* Header                                     */}
@@ -90,11 +90,11 @@ export default function WanSelector({
 
       <div>
 
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
           WAN Interfaces
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
           Select the WAN interfaces that should
           participate in PCC load balancing.
         </p>
@@ -108,13 +108,13 @@ export default function WanSelector({
 
       {interfaces.length === 0 ? (
 
-        <div className="mt-5 rounded-lg bg-gray-50 p-4">
+        <div className="mt-5 rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
 
-          <p className="text-sm font-medium text-gray-700">
+          <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-gray-200 dark:text-gray-200">
             No WAN interfaces available
           </p>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
             Router discovery must identify at least
             two eligible WAN interfaces before
             load balancing can be configured.
@@ -147,10 +147,10 @@ export default function WanSelector({
 
                 <label
                   key={interfaceName}
-                  className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition ${
+                  className={`flex cursor-pointer items-center gap-3 sm:gap-4 rounded-xl border border-sky-100 dark:border-gray-700 p-3 sm:p-4 transition ${
                     selected
-                      ? "border-gray-900 bg-gray-50"
-                      : "border-gray-200 bg-white hover:border-gray-400"
+                      ? "border-gray-900 bg-sky-50 dark:bg-gray-800"
+                      : "border-sky-100 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-400"
                   } ${
                     disabled
                       ? "cursor-not-allowed opacity-50"
@@ -171,7 +171,7 @@ export default function WanSelector({
                         interfaceName,
                       )
                     }
-                    className="h-4 w-4 rounded border-gray-300"
+                    className="h-4 w-4 rounded border-sky-200 dark:border-gray-700"
                   />
 
 
@@ -181,11 +181,11 @@ export default function WanSelector({
 
                   <div className="min-w-0 flex-1">
 
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-slate-800 dark:text-gray-100">
                       {interfaceName}
                     </p>
 
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-slate-500 dark:text-gray-400 dark:text-gray-400">
                       {selected
                         ? "Selected for load balancing"
                         : "Available WAN interface"}
@@ -201,7 +201,7 @@ export default function WanSelector({
                   {weighted &&
                     selectedWan && (
 
-                    <span className="shrink-0 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+                    <span className="shrink-0 rounded-full bg-sky-50 dark:bg-gray-800 px-3 py-1 text-xs font-medium text-slate-700 dark:text-gray-200 dark:text-gray-200">
                       Weight{" "}
                       {selectedWan.weight ??
                         1}
@@ -224,15 +224,15 @@ export default function WanSelector({
       {/* Selection summary                          */}
       {/* ========================================== */}
 
-      <div className="mt-5 flex flex-col gap-2 rounded-lg bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-5 flex flex-col gap-2 rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4 sm:flex-row sm:items-center sm:justify-between">
 
         <div>
 
-          <p className="text-sm font-medium text-gray-900">
+          <p className="text-xs sm:text-sm font-medium text-slate-800 dark:text-gray-100">
             Selected WANs
           </p>
 
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-slate-500 dark:text-gray-400 dark:text-gray-400">
             At least two WAN interfaces are required
             for PCC load balancing.
           </p>
@@ -241,9 +241,9 @@ export default function WanSelector({
 
 
         <span
-          className={`text-lg font-semibold ${
+          className={`text-base sm:text-lg font-semibold ${
             value.length >= 2
-              ? "text-gray-900"
+              ? "text-slate-800 dark:text-gray-100"
               : "text-red-700"
           }`}
         >
@@ -259,7 +259,7 @@ export default function WanSelector({
 
       {value.length === 1 && (
 
-        <p className="mt-3 text-sm text-red-600">
+        <p className="mt-3 text-xs sm:text-sm text-red-600">
           Select at least one more WAN interface.
         </p>
 

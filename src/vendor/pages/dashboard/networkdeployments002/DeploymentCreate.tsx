@@ -33,6 +33,7 @@ import RouterSelector from "./components/RouterSelector";
 import WanSelector from "./components/WanSelector";
 import PccModeSelector from "./components/PccModeSelector";
 import WeightEditor from "./components/WeightEditor";
+import LanInterfaceSelector, { type LanSelectionMode } from "./components/LanInterfaceSelector";
 
 
 /* ================================================== */
@@ -122,6 +123,12 @@ export default function DeploymentCreate() {
   ] = useState<DeploymentWanConfig[]>(
     [],
   );
+
+  const [lanSelectionMode, setLanSelectionMode] =
+    useState<LanSelectionMode>("automatic");
+
+  const [manualLanInterfaces, setManualLanInterfaces] =
+    useState<string[]>([]);
 
 
   /* -------------------------------------------------- */
@@ -505,6 +512,10 @@ export default function DeploymentCreate() {
               : {}),
           }),
         ),
+
+      ...(lanSelectionMode === "manual"
+        ? { lan_interfaces: manualLanInterfaces }
+        : {}),
     };
 
 
@@ -552,7 +563,7 @@ export default function DeploymentCreate() {
   /* ================================================== */
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-emerald-50 p-3 sm:p-5 lg:p-7 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
 
       <div className="mx-auto max-w-4xl">
 
@@ -560,13 +571,13 @@ export default function DeploymentCreate() {
         {/* Header                                   */}
         {/* ======================================== */}
 
-        <div className="mb-8">
+        <div className="mb-4 sm:mb-6">
 
-          <h1 className="text-2xl font-semibold text-gray-900">
+          <h1 className="text-lg sm:text-2xl font-semibold text-slate-800 dark:text-gray-100">
             Network Deployment
           </h1>
 
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
             Configure MikroTik WAN load balancing.
           </p>
 
@@ -577,7 +588,7 @@ export default function DeploymentCreate() {
           onSubmit={
             handleSubmit
           }
-          className="space-y-6"
+          className="space-y-3 sm:space-y-5"
         >
 
           {/* ====================================== */}
@@ -619,17 +630,17 @@ export default function DeploymentCreate() {
 
           {selectedMikrotikId && (
 
-            <section className="rounded-xl border bg-white p-6 shadow-sm">
+            <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
 
                 <div>
 
-                  <h2 className="text-lg font-semibold text-gray-900">
+                  <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
                     Router Discovery
                   </h2>
 
-                  <p className="mt-1 text-sm text-gray-500">
+                  <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
                     Discover the actual WAN interfaces
                     available on this MikroTik router.
                   </p>
@@ -647,7 +658,7 @@ export default function DeploymentCreate() {
                     loading ||
                     previewing
                   }
-                  className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="rounded-lg border border-sky-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-5 py-2.5 text-xs sm:text-sm font-medium text-slate-800 dark:text-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
 
                   {discovering
@@ -661,7 +672,7 @@ export default function DeploymentCreate() {
 
               {discoveryError && (
 
-                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 sm:p-4 text-xs sm:text-sm text-red-700">
                   {discoveryError}
                 </div>
 
@@ -670,17 +681,17 @@ export default function DeploymentCreate() {
 
               {discoveryData && (
 
-                <div className="mt-4 rounded-lg bg-gray-50 p-4">
+                <div className="mt-4 rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
 
-                  <div className="grid gap-4 sm:grid-cols-4">
+                  <div className="grid gap-3 sm:gap-4 sm:grid-cols-4">
 
                     <div>
 
-                      <p className="text-xs uppercase tracking-wide text-gray-500">
+                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-gray-400 dark:text-gray-400">
                         Interfaces
                       </p>
 
-                      <p className="mt-1 text-lg font-semibold text-gray-900">
+                      <p className="mt-1 text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
                         {
                           discoveryData.interfaces?.length ??
                           0
@@ -692,11 +703,11 @@ export default function DeploymentCreate() {
 
                     <div>
 
-                      <p className="text-xs uppercase tracking-wide text-gray-500">
+                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-gray-400 dark:text-gray-400">
                         DHCP Clients
                       </p>
 
-                      <p className="mt-1 text-lg font-semibold text-gray-900">
+                      <p className="mt-1 text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
                         {
                           discoveryData.dhcp_clients?.length ??
                           0
@@ -708,11 +719,11 @@ export default function DeploymentCreate() {
 
                     <div>
 
-                      <p className="text-xs uppercase tracking-wide text-gray-500">
+                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-gray-400 dark:text-gray-400">
                         Routes
                       </p>
 
-                      <p className="mt-1 text-lg font-semibold text-gray-900">
+                      <p className="mt-1 text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
                         {
                           discoveryData.routes?.length ??
                           0
@@ -724,14 +735,14 @@ export default function DeploymentCreate() {
 
                     <div>
 
-                      <p className="text-xs uppercase tracking-wide text-gray-500">
+                      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-gray-400 dark:text-gray-400">
                         Eligible WANs
                       </p>
 
                       <p
-                        className={`mt-1 text-lg font-semibold ${
+                        className={`mt-1 text-base sm:text-lg font-semibold ${
                           discoveredWanInterfaces.length >= 2
-                            ? "text-gray-900"
+                            ? "text-slate-800 dark:text-gray-100"
                             : "text-red-600"
                         }`}
                       >
@@ -766,9 +777,13 @@ export default function DeploymentCreate() {
               selectedWans
             }
 
-            onChange={
-              setSelectedWans
-            }
+            onChange={(wans) => {
+              setSelectedWans(wans);
+              const selectedWanNames = new Set(wans.map((wan) => wan.interface));
+              setManualLanInterfaces((current) =>
+                current.filter((name) => !selectedWanNames.has(name)),
+              );
+            }}
 
             disabled={
               !discoveryData ||
@@ -782,6 +797,28 @@ export default function DeploymentCreate() {
             }
           />
 
+
+          {/* ====================================== */}
+          {/* LAN interface detection               */}
+          {/* ====================================== */}
+
+          <LanInterfaceSelector
+            discovery={discoveryData}
+            wanInterfaces={selectedWans.map((wan) => wan.interface)}
+            mode={lanSelectionMode}
+            value={manualLanInterfaces}
+            onModeChange={(mode) => {
+              setLanSelectionMode(mode);
+              if (mode === "automatic") setManualLanInterfaces([]);
+            }}
+            onChange={setManualLanInterfaces}
+            disabled={
+              !discoveryData ||
+              loading ||
+              discovering ||
+              previewing
+            }
+          />
 
           {/* ====================================== */}
           {/* PCC Mode                               */}
@@ -833,17 +870,17 @@ export default function DeploymentCreate() {
           {/* Configuration Summary                 */}
           {/* ====================================== */}
 
-          <section className="rounded-xl border bg-white p-6 shadow-sm">
+          <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
 
               <div>
 
-                <h2 className="text-lg font-semibold text-gray-900">
+                <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
                   Configuration
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
                   Review the configuration before
                   generating the deployment preview.
                 </p>
@@ -853,14 +890,14 @@ export default function DeploymentCreate() {
 
               <div className="text-right">
 
-                <p className="text-xs uppercase tracking-wide text-gray-500">
+                <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-gray-400 dark:text-gray-400">
                   Selected WANs
                 </p>
 
                 <p
-                  className={`text-2xl font-semibold ${
+                  className={`text-lg sm:text-2xl font-semibold ${
                     selectedWans.length >= 2
-                      ? "text-gray-900"
+                      ? "text-slate-800 dark:text-gray-100"
                       : "text-red-600"
                   }`}
                 >
@@ -874,20 +911,33 @@ export default function DeploymentCreate() {
             </div>
 
 
+            {discoveryData && (
+              <div className="mt-5 rounded-lg border border-sky-100 dark:border-gray-700 bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-gray-400">
+                  LAN selection
+                </p>
+                <p className="mt-1 text-xs sm:text-sm font-medium text-slate-800 dark:text-gray-100">
+                  {lanSelectionMode === "automatic"
+                    ? "Automatic backend detection"
+                    : `Manual: ${manualLanInterfaces.join(", ") || "No interfaces selected"}`}
+                </p>
+              </div>
+            )}
+
             {pccMode === "weighted" && (
 
-              <div className="mt-5 rounded-lg bg-gray-50 p-4">
+              <div className="mt-5 rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
 
                 <div className="flex items-center justify-between">
 
-                  <span className="text-sm text-gray-600">
+                  <span className="text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
                     Total relative weight
                   </span>
 
                   <span
                     className={`font-semibold ${
                       totalWeight > 0
-                        ? "text-gray-900"
+                        ? "text-slate-800 dark:text-gray-100"
                         : "text-red-600"
                     }`}
                   >
@@ -903,7 +953,7 @@ export default function DeploymentCreate() {
 
             {!discoveryData && (
 
-              <p className="mt-4 text-sm text-gray-500">
+              <p className="mt-4 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
                 Discover the router before selecting
                 WAN interfaces.
               </p>
@@ -914,7 +964,7 @@ export default function DeploymentCreate() {
             {discoveryData &&
               selectedWans.length < 2 && (
 
-              <p className="mt-4 text-sm text-red-600">
+              <p className="mt-4 text-xs sm:text-sm text-red-600">
                 Select at least two WAN interfaces.
               </p>
 
@@ -929,7 +979,7 @@ export default function DeploymentCreate() {
 
           {error && (
 
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 sm:p-4 text-xs sm:text-sm text-red-700">
               {error}
             </div>
 
@@ -951,7 +1001,7 @@ export default function DeploymentCreate() {
                 previewing ||
                 loadingRouters
               }
-              className="rounded-lg bg-gray-900 px-6 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-lg bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
 
               {loading ||

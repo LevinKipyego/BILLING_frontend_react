@@ -22,13 +22,13 @@ export default function ConflictPanel({
   if (!conflicts) {
 
     return (
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
+      <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
           Conflict Analysis
         </h2>
 
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
           No conflict analysis is currently available.
         </p>
 
@@ -58,21 +58,21 @@ export default function ConflictPanel({
 
 
   return (
-    <section className="rounded-xl border bg-white p-6 shadow-sm">
+    <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
       {/* ========================================== */}
       {/* Header                                     */}
       {/* ========================================== */}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-start sm:justify-between">
 
         <div>
 
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
             Conflict Analysis
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
             Validation performed against the router's
             current configuration.
           </p>
@@ -240,21 +240,21 @@ export default function ConflictPanel({
       {safe &&
         blockingConflicts.length === 0 && (
 
-          <div className="mt-6 rounded-lg bg-gray-50 p-4">
+          <div className="mt-6 rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
 
             <div className="flex items-start gap-3">
 
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none text-xs sm:text-sm font-semibold text-white">
                 ✓
               </span>
 
               <div>
 
-                <p className="font-medium text-gray-900">
+                <p className="font-medium text-slate-800 dark:text-gray-100">
                   No blocking conflicts detected
                 </p>
 
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
                   The deployment can proceed based on the
                   current conflict analysis.
                 </p>
@@ -284,9 +284,9 @@ function StatusBadge({
 
   return (
     <span
-      className={`inline-flex w-fit rounded-full px-3 py-1 text-sm font-medium ${
+      className={`inline-flex w-fit rounded-full px-3 py-1 text-xs sm:text-sm font-medium ${
         safe
-          ? "bg-gray-100 text-gray-800"
+          ? "bg-sky-50 dark:bg-gray-800 text-slate-800 dark:text-gray-200"
           : "bg-red-100 text-red-700"
       }`}
     >
@@ -314,22 +314,22 @@ function SummaryCard({
 
   return (
     <div
-      className={`rounded-lg border p-4 ${
+      className={`rounded-lg border p-3 sm:p-4 ${
         danger && value > 0
           ? "border-red-200 bg-red-50"
-          : "bg-gray-50"
+          : "bg-sky-50 dark:bg-gray-800"
       }`}
     >
 
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-gray-400 dark:text-gray-400">
         {label}
       </p>
 
       <p
-        className={`mt-1 text-2xl font-semibold ${
+        className={`mt-1 text-lg sm:text-2xl font-semibold ${
           danger && value > 0
             ? "text-red-700"
-            : "text-gray-900"
+            : "text-slate-800 dark:text-gray-100"
         }`}
       >
         {value}
@@ -351,7 +351,7 @@ function SectionHeading({
 }) {
 
   return (
-    <h3 className="text-sm font-semibold text-gray-900">
+    <h3 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-gray-100">
       {children}
     </h3>
   );
@@ -395,20 +395,20 @@ function ConflictRow({
 
   return (
     <div
-      className={`rounded-lg border p-4 ${
+      className={`rounded-lg border p-3 sm:p-4 ${
         danger
           ? "border-red-200 bg-red-50"
-          : "border-gray-200 bg-gray-50"
+          : "border-sky-100 dark:border-gray-700 bg-sky-50 dark:bg-gray-800"
       }`}
     >
 
       <div className="flex items-start gap-3">
 
         <span
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs sm:text-sm font-semibold ${
             danger
               ? "bg-red-100 text-red-700"
-              : "bg-gray-200 text-gray-700"
+              : "bg-emerald-50 dark:bg-gray-800 text-slate-700 dark:text-gray-200 dark:text-gray-200"
           }`}
         >
           {danger
@@ -423,7 +423,7 @@ function ConflictRow({
             className={`font-medium ${
               danger
                 ? "text-red-800"
-                : "text-gray-800"
+                : "text-slate-800 dark:text-gray-200"
             }`}
           >
             {message}
@@ -432,7 +432,7 @@ function ConflictRow({
 
           {resource && (
 
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
               Resource:{" "}
               {resource}
             </p>
@@ -442,7 +442,7 @@ function ConflictRow({
 
           {severity && (
 
-            <p className="mt-1 text-xs capitalize text-gray-500">
+            <p className="mt-1 text-xs capitalize text-slate-500 dark:text-gray-400 dark:text-gray-400">
               Severity:{" "}
               {severity}
             </p>
@@ -489,15 +489,15 @@ function CheckRow({
 
 
   return (
-    <div className="flex items-start gap-3 p-4">
+    <div className="flex items-start gap-3 p-3 sm:p-4">
 
       <span
         className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
           passed
-            ? "bg-gray-100 text-gray-800"
+            ? "bg-sky-50 dark:bg-gray-800 text-slate-800 dark:text-gray-200"
             : failed
               ? "bg-red-100 text-red-700"
-              : "bg-gray-100 text-gray-500"
+              : "bg-sky-50 dark:bg-gray-800 text-slate-500 dark:text-gray-400 dark:text-gray-400"
         }`}
       >
         {passed
@@ -512,7 +512,7 @@ function CheckRow({
 
         <div className="flex flex-wrap items-center justify-between gap-2">
 
-          <p className="font-medium text-gray-900">
+          <p className="font-medium text-slate-800 dark:text-gray-100">
             {check.code ||
               "Validation check"}
           </p>
@@ -530,7 +530,7 @@ function CheckRow({
 
         {check.message && (
 
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
             {check.message}
           </p>
 

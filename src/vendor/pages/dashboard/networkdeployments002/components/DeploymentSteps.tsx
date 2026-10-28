@@ -184,9 +184,9 @@ export default function DeploymentSteps({
   ) {
 
     return (
-      <div className="rounded-lg border bg-gray-50 p-4">
+      <div className="rounded-lg border bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
 
-        <p className="text-sm text-gray-500">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
           No deployment steps are available.
         </p>
 
@@ -323,7 +323,7 @@ function StepRow({
             className={`mt-1 w-px flex-1 ${
               success
                 ? "bg-gray-400"
-                : "bg-gray-200"
+                : "bg-emerald-50 dark:bg-gray-800"
             }`}
           />
 
@@ -358,10 +358,10 @@ function StepRow({
                       ? "text-red-700"
                       : running ||
                           isCurrent
-                        ? "text-gray-900"
+                        ? "text-slate-800 dark:text-gray-100"
                         : rolledBack
-                          ? "text-gray-600"
-                          : "text-gray-800"
+                          ? "text-slate-600 dark:text-gray-300 dark:text-gray-300"
+                          : "text-slate-800 dark:text-gray-200"
                 }`}
               >
                 {step.label}
@@ -369,7 +369,7 @@ function StepRow({
 
 
               {isCurrent && (
-                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-gray-600">
+                <span className="rounded-full bg-sky-50 dark:bg-gray-800 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-600 dark:text-gray-300 dark:text-gray-300">
                   Current
                 </span>
               )}
@@ -390,7 +390,7 @@ function StepRow({
 
         {step.message && (
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
             {step.message}
           </p>
 
@@ -431,7 +431,7 @@ function StepIndicator({
 
     return (
       <div
-        className={`${base} bg-gray-900 text-white`}
+        className={`${base} bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none text-white`}
       >
         ✓
       </div>
@@ -449,7 +449,7 @@ function StepIndicator({
 
     return (
       <div
-        className={`${base} bg-gray-200 text-gray-900`}
+        className={`${base} bg-emerald-50 dark:bg-gray-800 text-slate-800 dark:text-gray-100`}
       >
 
         <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-gray-400 border-t-gray-900" />
@@ -487,7 +487,7 @@ function StepIndicator({
 
     return (
       <div
-        className={`${base} bg-gray-200 text-gray-700`}
+        className={`${base} bg-emerald-50 dark:bg-gray-800 text-slate-700 dark:text-gray-200 dark:text-gray-200`}
       >
         ↶
       </div>
@@ -505,7 +505,7 @@ function StepIndicator({
 
     return (
       <div
-        className={`${base} bg-gray-100 text-gray-400`}
+        className={`${base} bg-sky-50 dark:bg-gray-800 text-gray-400`}
       >
         –
       </div>
@@ -519,7 +519,7 @@ function StepIndicator({
 
   return (
     <div
-      className={`${base} bg-gray-100 text-gray-400`}
+      className={`${base} bg-sky-50 dark:bg-gray-800 text-gray-400`}
     >
       •
     </div>
@@ -578,17 +578,17 @@ function StepStatusLabel({
           : status ===
               "running"
 
-            ? "text-gray-900"
+            ? "text-slate-800 dark:text-gray-100"
 
             : status ===
                 "success"
 
-              ? "text-gray-700"
+              ? "text-slate-700 dark:text-gray-200 dark:text-gray-200"
 
               : status ===
                   "rolled_back"
 
-                ? "text-gray-600"
+                ? "text-slate-600 dark:text-gray-300 dark:text-gray-300"
 
                 : "text-gray-400"
       }`}

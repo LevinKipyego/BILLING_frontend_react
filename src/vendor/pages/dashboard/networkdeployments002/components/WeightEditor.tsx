@@ -28,13 +28,13 @@ export default function WeightEditor({
   if (wans.length === 0) {
 
     return (
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
+      <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
           WAN Weights
         </h2>
 
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
           Select WAN interfaces before assigning
           weights.
         </p>
@@ -57,7 +57,7 @@ export default function WeightEditor({
 
 
   return (
-    <section className="rounded-xl border bg-white p-6 shadow-sm">
+    <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
       {/* ========================================== */}
       {/* Header                                     */}
@@ -65,11 +65,11 @@ export default function WeightEditor({
 
       <div>
 
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
           WAN Weights
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
           Assign relative traffic weights to each
           selected WAN interface.
         </p>
@@ -131,15 +131,15 @@ export default function WeightEditor({
       {/* Total                                      */}
       {/* ========================================== */}
 
-      <div className="mt-5 flex flex-col gap-2 rounded-lg bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-5 flex flex-col gap-2 rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4 sm:flex-row sm:items-center sm:justify-between">
 
         <div>
 
-          <p className="text-sm font-medium text-gray-900">
+          <p className="text-xs sm:text-sm font-medium text-slate-800 dark:text-gray-100">
             Total weight
           </p>
 
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-slate-500 dark:text-gray-400 dark:text-gray-400">
             Weights are relative; they do not need to
             add up to a fixed percentage.
           </p>
@@ -147,9 +147,9 @@ export default function WeightEditor({
         </div>
 
         <span
-          className={`text-lg font-semibold ${
+          className={`text-base sm:text-lg font-semibold ${
             totalWeight > 0
-              ? "text-gray-900"
+              ? "text-slate-800 dark:text-gray-100"
               : "text-red-700"
           }`}
         >
@@ -186,7 +186,7 @@ function WeightRow({
 
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 sm:gap-4 rounded-lg border p-3 sm:p-4 sm:flex-row sm:items-center sm:justify-between">
 
       {/* ======================================== */}
       {/* Interface                               */}
@@ -194,11 +194,11 @@ function WeightRow({
 
       <div className="min-w-0">
 
-        <p className="font-medium text-gray-900">
+        <p className="font-medium text-slate-800 dark:text-gray-100">
           {wan.interface}
         </p>
 
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-slate-500 dark:text-gray-400 dark:text-gray-400">
           Relative PCC weight
         </p>
 
@@ -225,7 +225,7 @@ function WeightRow({
               ),
             )
           }
-          className="flex h-9 w-9 items-center justify-center rounded-lg border text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border text-slate-700 dark:text-gray-200 dark:text-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label={`Decrease weight for ${wan.interface}`}
         >
           −
@@ -265,7 +265,7 @@ function WeightRow({
             );
 
           }}
-          className="h-9 w-20 rounded-lg border px-3 text-center text-sm font-medium text-gray-900 outline-none focus:border-gray-500 disabled:bg-gray-100"
+          className="h-9 w-20 rounded-lg border border-sky-100 dark:border-gray-700 px-3 text-center text-xs sm:text-sm font-medium text-slate-800 dark:text-gray-100 outline-none focus:border-gray-500 disabled:bg-gray-100"
           aria-label={`Weight for ${wan.interface}`}
         />
 
@@ -280,7 +280,7 @@ function WeightRow({
               weight + 1,
             )
           }
-          className="flex h-9 w-9 items-center justify-center rounded-lg border text-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-9 w-9 items-center justify-center rounded-lg border text-slate-700 dark:text-gray-200 dark:text-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label={`Increase weight for ${wan.interface}`}
         >
           +

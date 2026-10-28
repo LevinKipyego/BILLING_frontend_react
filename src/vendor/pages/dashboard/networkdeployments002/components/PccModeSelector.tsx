@@ -24,7 +24,7 @@ export default function PccModeSelector({
 }: PccModeSelectorProps) {
 
   return (
-    <section className="rounded-xl border bg-white p-6 shadow-sm">
+    <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
       {/* ========================================== */}
       {/* Header                                     */}
@@ -32,11 +32,11 @@ export default function PccModeSelector({
 
       <div>
 
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
           PCC Load-Balancing Mode
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
           Choose how traffic should be distributed
           between the selected WAN interfaces.
         </p>
@@ -48,7 +48,7 @@ export default function PccModeSelector({
       {/* Options                                    */}
       {/* ========================================== */}
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
+      <div className="mt-5 grid gap-3 sm:gap-4 md:grid-cols-2">
 
         <ModeOption
           value="regular"
@@ -80,17 +80,17 @@ export default function PccModeSelector({
       {/* Selected explanation                       */}
       {/* ========================================== */}
 
-      <div className="mt-5 rounded-lg bg-gray-50 p-4">
+      <div className="mt-5 rounded-lg bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
 
         {value === "regular" ? (
 
           <>
 
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-xs sm:text-sm font-medium text-slate-800 dark:text-gray-100">
               Regular PCC selected
             </p>
 
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
               Each selected WAN will receive an equal
               share of PCC connections.
             </p>
@@ -101,11 +101,11 @@ export default function PccModeSelector({
 
           <>
 
-            <p className="text-sm font-medium text-gray-900">
+            <p className="text-xs sm:text-sm font-medium text-slate-800 dark:text-gray-100">
               Weighted PCC selected
             </p>
 
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-gray-300 dark:text-gray-300">
               Traffic distribution will follow the
               weights assigned to the selected WANs.
             </p>
@@ -155,10 +155,10 @@ function ModeOption({
       onClick={() =>
         onChange(value)
       }
-      className={`w-full rounded-xl border p-5 text-left transition ${
+      className={`w-full rounded-xl border border-sky-100 dark:border-gray-700 p-5 text-left transition ${
         selected
-          ? "border-gray-900 bg-gray-50"
-          : "border-gray-200 bg-white hover:border-gray-400"
+          ? "border-gray-900 bg-sky-50 dark:bg-gray-800"
+          : "border-sky-100 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-400"
       } ${
         disabled
           ? "cursor-not-allowed opacity-50"
@@ -166,7 +166,7 @@ function ModeOption({
       }`}
     >
 
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3 sm:gap-4">
 
         {/* -------------------------------------- */}
         {/* Radio                                  */}
@@ -176,13 +176,13 @@ function ModeOption({
           className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
             selected
               ? "border-gray-900"
-              : "border-gray-300"
+              : "border-sky-200 dark:border-gray-700"
           }`}
         >
 
           {selected && (
 
-            <span className="h-2.5 w-2.5 rounded-full bg-gray-900" />
+            <span className="h-2.5 w-2.5 rounded-full bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none" />
 
           )}
 
@@ -195,11 +195,11 @@ function ModeOption({
 
         <div className="min-w-0">
 
-          <p className="font-medium text-gray-900">
+          <p className="font-medium text-slate-800 dark:text-gray-100">
             {title}
           </p>
 
-          <p className="mt-1 text-sm leading-5 text-gray-500">
+          <p className="mt-1 text-xs sm:text-sm leading-5 text-slate-500 dark:text-gray-400 dark:text-gray-400">
             {description}
           </p>
 

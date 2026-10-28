@@ -20,13 +20,13 @@ export default function DeploymentSummary({
   if (!preview) {
 
     return (
-      <section className="rounded-xl border bg-white p-6 shadow-sm">
+      <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
           Deployment Summary
         </h2>
 
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
           No deployment preview is currently available.
         </p>
 
@@ -64,21 +64,21 @@ export default function DeploymentSummary({
 
 
   return (
-    <section className="rounded-xl border bg-white p-6 shadow-sm">
+    <section className="rounded-xl border bg-white dark:bg-gray-900 p-3 sm:p-5 shadow-sm shadow-sky-950/[0.04] dark:shadow-black/20">
 
       {/* ========================================== */}
       {/* Header                                     */}
       {/* ========================================== */}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-start sm:justify-between">
 
         <div>
 
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-gray-100">
             Deployment Summary
           </h2>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
             Review the selected router and planned
             load-balancing changes.
           </p>
@@ -106,9 +106,9 @@ export default function DeploymentSummary({
           Router
         </SectionTitle>
 
-        <div className="mt-3 rounded-lg border bg-gray-50 p-4">
+        <div className="mt-3 rounded-lg border bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
             <InfoItem
               label="Identity"
@@ -157,7 +157,7 @@ export default function DeploymentSummary({
           Current Router Configuration
         </SectionTitle>
 
-        <div className="mt-3 grid gap-4 sm:grid-cols-3">
+        <div className="mt-3 grid gap-3 sm:gap-4 sm:grid-cols-3">
 
           <Metric
             label="Discovered WANs"
@@ -180,6 +180,57 @@ export default function DeploymentSummary({
 
 
       {/* ========================================== */}
+      {/* LAN interfaces used for PCC                */}
+      {/* ========================================== */}
+
+      <div className="mt-6">
+        <SectionTitle>LAN Interfaces & Networks</SectionTitle>
+        <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50/40 p-3 sm:p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-gray-100">
+              {preview.plan?.lan?.selection_mode === "manual"
+                ? "Manual override"
+                : "Automatic detection"}
+            </p>
+            <span className="rounded-full bg-white dark:bg-gray-900 px-3 py-1 text-xs font-medium text-slate-700 dark:text-gray-200">
+              {preview.plan?.lan?.interfaces?.length ?? 0} interface(s)
+            </span>
+          </div>
+
+          {preview.plan?.lan?.interfaces?.length ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {preview.plan.lan.interfaces.map((name) => (
+                <span key={name} className="rounded-md border border-sky-100 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-1.5 font-mono text-xs sm:text-sm text-slate-800">
+                  {name}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-xs sm:text-sm text-amber-800">
+              The backend did not include resolved LAN interfaces in this preview. Do not apply until this is understood.
+            </p>
+          )}
+
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-gray-400">
+            LAN subnets
+          </p>
+          {preview.plan?.lan?.networks?.length ? (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {preview.plan.lan.networks.map((network) => (
+                <span key={network} className="rounded-md bg-white dark:bg-gray-900 px-3 py-1.5 font-mono text-xs sm:text-sm text-slate-700 dark:text-gray-200">
+                  {network}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-1 text-xs sm:text-sm text-amber-800">
+              No LAN subnets were resolved. Verify the router addressing before applying.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* ========================================== */}
       {/* Planned Changes                            */}
       {/* ========================================== */}
 
@@ -189,7 +240,7 @@ export default function DeploymentSummary({
           Planned Changes
         </SectionTitle>
 
-        <div className="mt-3 grid gap-4 sm:grid-cols-3">
+        <div className="mt-3 grid gap-3 sm:gap-4 sm:grid-cols-3">
 
           <Metric
             label="Route Tables"
@@ -221,17 +272,17 @@ export default function DeploymentSummary({
       {/* Safety                                     */}
       {/* ========================================== */}
 
-      <div className="mt-6 rounded-lg border p-4">
+      <div className="mt-6 rounded-lg border p-3 sm:p-4">
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
 
           <div>
 
-            <p className="font-medium text-gray-900">
+            <p className="font-medium text-slate-800 dark:text-gray-100">
               Deployment Safety
             </p>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-gray-400 dark:text-gray-400">
               Conflict analysis determines whether
               this plan can safely be executed.
             </p>
@@ -285,7 +336,7 @@ function SectionTitle({
 }) {
 
   return (
-    <h3 className="text-sm font-semibold text-gray-900">
+    <h3 className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-gray-100">
       {children}
     </h3>
   );
@@ -309,12 +360,12 @@ function InfoItem({
   return (
     <div>
 
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-gray-400 dark:text-gray-400">
         {label}
       </p>
 
       <p
-        className={`mt-1 break-all text-sm font-medium text-gray-900 ${
+        className={`mt-1 break-all text-xs sm:text-sm font-medium text-slate-800 dark:text-gray-100 ${
           monospace
             ? "font-mono"
             : ""
@@ -345,13 +396,13 @@ function Metric({
 }) {
 
   return (
-    <div className="rounded-lg border bg-gray-50 p-4">
+    <div className="rounded-lg border bg-sky-50 dark:bg-gray-800 p-3 sm:p-4">
 
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-gray-400 dark:text-gray-400">
         {label}
       </p>
 
-      <p className="mt-1 text-2xl font-semibold text-gray-900">
+      <p className="mt-1 text-lg sm:text-2xl font-semibold text-slate-800 dark:text-gray-100">
         {value}
       </p>
 
@@ -372,9 +423,9 @@ function SafetyBadge({
 
   return (
     <span
-      className={`w-fit rounded-full px-3 py-1 text-sm font-medium ${
+      className={`w-fit rounded-full px-3 py-1 text-xs sm:text-sm font-medium ${
         safe
-          ? "bg-gray-100 text-gray-800"
+          ? "bg-sky-50 dark:bg-gray-800 text-slate-800 dark:text-gray-200"
           : "bg-red-100 text-red-700"
       }`}
     >
@@ -402,7 +453,7 @@ function CapabilityBadge({
     <span
       className={`rounded-full px-3 py-1 text-xs font-medium ${
         enabled
-          ? "bg-gray-100 text-gray-800"
+          ? "bg-sky-50 dark:bg-gray-800 text-slate-800 dark:text-gray-200"
           : "bg-red-100 text-red-700"
       }`}
     >
