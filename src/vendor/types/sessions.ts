@@ -30,7 +30,7 @@ export interface SessionDetailResponse {
     in_bytes: number
     out_bytes: number
     service_type: string
-    mikrotik__identity_name: string
+    mikrotik: string
   }[]
 }
 

@@ -15,26 +15,26 @@ export default function SummaryCard({
     footer,
 }: Props) {
     return (
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 sm:p-5 shadow-sm hover:shadow-md transition-all">
-            <div className="flex items-center justify-between gap-3">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-3 sm:p-4 shadow-xs hover:shadow-sm transition-all duration-200 dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center justify-between gap-2.5">
                 <div className="min-w-0 flex-1">
-                    <p className="text-[10px] sm:text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate">
+                    <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">
                         {title}
                     </p>
 
-                    <h3 className="mt-1 sm:mt-2 text-base sm:text-xl font-extrabold text-slate-900 dark:text-white truncate">
+                    <h3 className="mt-0.5 sm:mt-1  text-sm sm:text-base lg:text-lg font-bold text-slate-900 dark:text-white truncate">
                         {value}
                     </h3>
 
                     {footer && (
-                        <div className="mt-2 sm:mt-4">
+                        <div className="mt-1.5 sm:mt-2.5 text-[11px] text-slate-500 dark:text-slate-400">
                             {footer}
                         </div>
                     )}
                 </div>
 
                 {icon && (
-                    <div className="rounded-xl bg-blue-50 dark:bg-blue-900/20 p-2.5 sm:p-3 text-blue-600 dark:text-blue-400 shrink-0">
+                    <div className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-4.5 sm:[&>svg]:h-4.5">
                         {icon}
                     </div>
                 )}
@@ -42,4 +42,3 @@ export default function SummaryCard({
         </div>
     );
 }
-

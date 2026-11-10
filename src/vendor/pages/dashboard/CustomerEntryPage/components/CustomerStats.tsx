@@ -20,32 +20,35 @@ export default function CustomerStats({
     return (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard
-                title="Total Customers"
+                title="Total Active Customers"
                 value={stats.total}
                 icon={<Users size={18} />}
                 color="blue"
             />
 
             <StatCard
-                title="Hotspot Users"
+                title="Active Hotspot Users"
                 value={stats.hotspot}
                 icon={<Wifi size={18} />}
                 color="amber"
             />
 
             <StatCard
-                title="PPPoE Subscribers"
+                title="Active PPPoE Users"
                 value={stats.pppoe}
                 icon={<Router size={18} />}
                 color="indigo"
             />
 
             <StatCard
-                title="Active Accounts"
-                value={stats.active}
+                title="Online Users"
+                value={stats.online}
                 icon={<CheckCircle2 size={18} />}
                 color="emerald"
             />
+
+
+            
         </div>
     );
 }

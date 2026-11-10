@@ -250,7 +250,7 @@ function EditableField({
                                         )
                                     }
                                     disabled={saving}
-                                    className="w-full rounded-lg border border-sky-200 bg-white px-2 py-1.5 text-xs sm:text-sm text-slate-800 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-sky-950"
+                                    className="w-full rounded-lg border border-sky-200 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-sky-950"
                                 >
                                     <option value="true">Active</option>
                                     <option value="false">Inactive</option>
@@ -275,7 +275,7 @@ function EditableField({
                                     placeholder={placeholder ?? `Enter ${label.toLowerCase()}`}
                                     disabled={saving}
                                     autoFocus
-                                    className="w-full min-w-0 rounded-lg border border-sky-200 bg-white px-2 py-1.5 text-xs sm:text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-100 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-sky-950"
+                                    className="w-full min-w-0 rounded-lg border border-sky-200 bg-white px-2 py-1.5 text-xs text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-100 disabled:opacity-60 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-sky-950"
                                 />
                             )}
 
@@ -321,7 +321,7 @@ function EditableField({
                             )}
 
                             <p
-                                className={`min-w-0 break-words text-xs sm:text-sm font-medium ${
+                                className={`min-w-0 break-words text-xs font-medium ${
                                     field === "active"
                                         ? savedValue
                                             ? "text-emerald-700 dark:text-emerald-400"
@@ -370,10 +370,8 @@ export function UserHeader({
     const [refreshing, setRefreshing] = useState(false);
     const [refreshError, setRefreshError] = useState("");
 
-    // Mobile collapse state: closed by default on small screens, open on desktop
-    const [infoOpen, setInfoOpen] = useState(
-        typeof window !== "undefined" ? window.innerWidth >= 640 : false
-    );
+    // Hidden by default on both mobile and desktop viewports
+    const [infoOpen, setInfoOpen] = useState(false);
 
     const handleRefresh = async () => {
         setRefreshing(true);
@@ -545,7 +543,7 @@ export function UserHeader({
                         {/* Profile summary */}
                         <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                                <h1 className="break-words text-base sm:text-lg lg:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                                <h1 className="break-words text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">
                                     {user.full_name || "Unnamed customer"}
                                 </h1>
 
@@ -663,10 +661,10 @@ export function UserHeader({
             </section>
 
             {/* -------------------------------------------------------------- */}
-            {/* Editable customer information (Collapsible on Mobile)          */}
+            {/* Editable customer information (Collapsible, hidden by default) */}
             {/* -------------------------------------------------------------- */}
 
-            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:rounded-3xl">
+            <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:rounded-2xl">
                 <button
                     type="button"
                     onClick={() => setInfoOpen(!infoOpen)}
@@ -677,7 +675,7 @@ export function UserHeader({
                             <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
                                 Customer information
                             </h2>
-                            <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-300">
+                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-300">
                                 <CheckCircle2 size={12} />
                                 Field editing enabled
                             </span>
@@ -688,7 +686,7 @@ export function UserHeader({
                     </div>
 
                     <div className="flex shrink-0 items-center gap-2">
-                        <span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400 sm:hidden">
+                        <span className="text-[11px] font-semibold text-sky-600 dark:text-sky-400">
                             {infoOpen ? "Hide" : "Show"}
                         </span>
                         <ChevronDown
@@ -788,7 +786,7 @@ export function UserHeader({
                     <div className="col-span-2 sm:col-span-1">
                         <StatCard
                             title="Last Seen"
-                            value={overview.last_seen ?? "—"}
+                            value={formatDate(overview.last_seen) ?? "—"}
                             icon={
                                 <Clock
                                     size={16}

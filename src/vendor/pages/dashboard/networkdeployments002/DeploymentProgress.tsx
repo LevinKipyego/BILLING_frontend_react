@@ -889,7 +889,7 @@ export default function DeploymentProgress() {
                 type="button"
                 onClick={() =>
                   navigate(
-                    "/network-deployments",
+                    "/dashboard/network-deployments/create",
                   )
                 }
                 className="rounded-lg bg-gradient-to-r from-sky-600 to-emerald-600 dark:bg-gray-800 dark:bg-none px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium text-white"

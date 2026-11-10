@@ -293,12 +293,12 @@ const SessionDetail = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 dark:divide-white/5">
-              {paginatedHistory.length > 0 ? paginatedHistory.map((h, i) => (
+              {paginatedHistory.length > 0 ? paginatedHistory.map((h  , i) => (
                 <tr key={i} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <CpuChipIcon className="w-3 h-3 text-indigo-500 opacity-70" />
-                      <span className="text-[10px] font-black text-slate-700 dark:text-gray-300 truncate">{h.mikrotik__identity_name || "Core-Node"}</span>
+                      <span className="text-[10px] font-black text-slate-700 dark:text-gray-300 truncate">{h.mikrotik || "Core-Node"}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-[10px] font-bold text-slate-500 dark:text-gray-500">

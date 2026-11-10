@@ -317,7 +317,7 @@ const Sidebar = ({
               <div className="flex items-center gap-2 px-2 mb-1.5">
                 <span
                   className="
-                    text-[9px]
+                    text-[9px] lg:text-[11px]
                     font-bold
                     uppercase
                     tracking-[0.14em]
@@ -471,7 +471,7 @@ const Sidebar = ({
                             flex-1
                             truncate
 
-                            text-[11.5px]
+                            text-[11.5px] lg:text-sm
                             leading-none
                             tracking-[-0.005em]
 
@@ -571,7 +571,7 @@ const Sidebar = ({
                               px-2.5
                               py-1.5
 
-                              text-[10px]
+                              text-[10px] lg:text-xs
                               font-medium
                               text-white
 

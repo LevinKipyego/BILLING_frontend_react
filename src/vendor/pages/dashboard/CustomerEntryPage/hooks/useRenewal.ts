@@ -36,21 +36,24 @@ export default function useCustomers() {
 
     const stats = {
 
-        total: customers.length,
+        total:  customers.filter(
+            customer =>
+                customer.subscription_active
+        ).length,
 
         hotspot: customers.filter(
             customer =>
-                customer.service_type === "HOTSPOT"
+                customer.service_type === "HOTSPOT" && customer.subscription_active
         ).length,
 
         pppoe: customers.filter(
             customer =>
-                customer.service_type === "PPPOE"
+                customer.service_type === "PPPOE" && customer.subscription_active
         ).length,
 
-        active: customers.filter(
+        online: customers.filter(
             customer =>
-                customer.subscription_active
+                customer.session_status === "ONLINE" && customer.subscription_active
         ).length,
 
     };

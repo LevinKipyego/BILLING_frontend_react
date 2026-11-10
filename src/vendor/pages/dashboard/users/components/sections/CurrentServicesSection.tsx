@@ -19,22 +19,22 @@ export default function CurrentServicesSection({
         pppoeAccounts.length > 0;
 
     return (
-        <section className="space-y-3 sm:space-y-5">
+        <section className="space-y-3 sm:space-y-4">
             <div>
-                <h2 className="text-base sm:text-xl font-bold text-slate-900 dark:text-white">
+                <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
                     Current Services
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     Active internet services assigned to this customer.
                 </p>
             </div>
 
             {!hasServices ? (
-                <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-800 py-8 sm:py-10 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-6 text-center text-xs text-slate-500 dark:text-slate-400">
                     No internet services found.
                 </div>
             ) : (
-                <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
                     {hotspotAccounts.map((account, index) => (
                         <ServiceCard
                             key={`hotspot-${account.credential?.id ?? index}`}

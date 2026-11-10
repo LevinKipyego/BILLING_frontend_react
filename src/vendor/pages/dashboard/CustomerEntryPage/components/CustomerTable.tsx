@@ -1,21 +1,19 @@
 import { useState, useMemo } from "react";
-import { 
-  Search, 
-  ChevronLeft, 
-  ChevronRight, 
-  Users 
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Users } from "lucide-react";
 
 import CustomerRow from "./CustomerRow";
 import CustomerActions from "./CustomerActions";
 import ServiceBadge from "./ServiceBadge";
 import StatusBadge from "./StatusBadge";
-
+import CustomerFilter from "./CustomerFilter";
+import type{ StatusFilter } from "./CustomerFilter";
 import type { Customer } from "../types/types";
+import type {  MikrotikDevice } from "../../../../types/device";
 import { formatDate } from "../renewsubscriptions/utils/date";
 
 interface Props {
   customers: Customer[];
+  mikrotikDevices: MikrotikDevice[]; // Passed down to populate router filter
   loading?: boolean;
   onViewCustomer(customer: Customer): void;
   onCreatePPPoE(customer: Customer): void;
@@ -24,10 +22,9 @@ interface Props {
   onDeleteCustomer?(customer: Customer): void;
 }
 
-type StatusFilter = "ALL" | "ACTIVE" | "ONLINE" | "OFFLINE" | "SUSPENDED";
-
 export default function CustomerTable({
   customers,
+  mikrotikDevices,
   loading = false,
   onViewCustomer,
   onCreatePPPoE,
@@ -38,36 +35,48 @@ export default function CustomerTable({
   // Filter States
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
-  const [selectedDate, setSelectedDate] = useState("");
+  const [serviceFilter, setServiceFilter] = useState<Parameters<typeof CustomerFilter>[0]["serviceFilter"]>("ALL");
+  const [selectedMikrotik, setSelectedMikrotik] = useState("");
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // 1. Filter Logic
+  // 1. Filter Logic based on your specific requirements
   const filteredCustomers = useMemo(() => {
     return customers.filter((customer) => {
+      // Search matching logic
       const matchesSearch =
         !searchQuery ||
         customer.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         customer.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         customer.router_ip?.toLowerCase().includes(searchQuery.toLowerCase());
 
+      // Status filtering rules implementation
       let matchesStatus = true;
-      if (statusFilter !== "ALL") {
-        const cStatus = (customer.session_status || "").toUpperCase();
-        matchesStatus = cStatus === statusFilter;
+      if (statusFilter === "ACTIVE") {
+        matchesStatus = customer.active === true;
+      } else if (statusFilter === "ONLINE") {
+        matchesStatus = customer.session_status === "ONLINE";
+      } else if (statusFilter === "OFFLINE") {
+        // Offline status rule: session_status === "OFFLINE" && active === true
+        matchesStatus = customer.session_status === "OFFLINE" && customer.active === true;
+      } else if (statusFilter === "SUSPENDED") {
+        // Suspended status rule: active === false
+        matchesStatus = customer.active === false;
       }
 
-      let matchesDate = true;
-      if (selectedDate && customer.expires_at) {
-        const customerDate = new Date(customer.expires_at).toISOString().split("T")[0];
-        matchesDate = customerDate === selectedDate;
+      const matchesService = serviceFilter === "ALL" || customer.service_type === serviceFilter;
+
+      // MikroTik router filter matching logic
+      let matchesRouter = true;
+      if (selectedMikrotik) {
+        matchesRouter = customer.router_name === selectedMikrotik;
       }
 
-      return matchesSearch && matchesStatus && matchesDate;
+      return matchesSearch && matchesStatus && matchesService && matchesRouter;
     });
-  }, [customers, searchQuery, statusFilter, selectedDate]);
+  }, [customers, searchQuery, statusFilter, serviceFilter, selectedMikrotik]);
 
   // 2. Pagination Calculation
   const totalItems = filteredCustomers.length;
@@ -78,8 +87,23 @@ export default function CustomerTable({
     return filteredCustomers.slice(startIdx, startIdx + pageSize);
   }, [filteredCustomers, currentPage, pageSize]);
 
-  const handleFilterChange = (setter: () => void) => {
-    setter();
+  const handleStatusChange = (status: StatusFilter) => {
+    setStatusFilter(status);
+    setCurrentPage(1);
+  };
+
+  const handleServiceChange = (service: Parameters<typeof CustomerFilter>[0]["serviceFilter"]) => {
+    setServiceFilter(service);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  };
+
+  const handleMikrotikChange = (mikrotikId: string) => {
+    setSelectedMikrotik(mikrotikId);
     setCurrentPage(1);
   };
 
@@ -135,59 +159,18 @@ export default function CustomerTable({
 
   return (
     <div className="space-y-4">
-      {/* 🔍 FILTER & SEARCH TOOLBAR */}
-      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 dark:border-gray-700 bg-white p-3.5 shadow-sm dark:bg-gray-900 lg:flex-row lg:items-center lg:justify-between">
-        
-        {/* Search Input */}
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
-          <input
-            type="text"
-            placeholder="Search customer, username, or IP..."
-            value={searchQuery}
-            onChange={(e) => handleFilterChange(() => setSearchQuery(e.target.value))}
-            className="w-full rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50/50 dark:bg-gray-800 py-2 pl-9 pr-3 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-colors focus:border-slate-400 dark:focus:border-gray-500 focus:bg-white dark:focus:bg-gray-800 focus:outline-none"
-          />
-        </div>
-
-        {/* Filter Pills & Date Selector */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Status Pills */}
-          <div className="flex items-center rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-800 p-1">
-            {(["ALL", "ACTIVE", "ONLINE", "OFFLINE", "SUSPENDED"] as StatusFilter[]).map((st) => (
-              <button
-                key={st}
-                onClick={() => handleFilterChange(() => setStatusFilter(st))}
-                className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${
-                  statusFilter === st
-                    ? "bg-white text-slate-900 shadow-sm dark:bg-gray-700 dark:text-white"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200"
-                }`}
-              >
-                {st.charAt(0) + st.slice(1).toLowerCase()}
-              </button>
-            ))}
-          </div>
-
-          {/* Date Selector */}
-          <div className="relative flex items-center">
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => handleFilterChange(() => setSelectedDate(e.target.value))}
-              className="rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50/50 dark:bg-gray-800 py-1.5 px-2.5 text-xs text-slate-700 dark:text-slate-200 focus:outline-none"
-            />
-            {selectedDate && (
-              <button
-                onClick={() => handleFilterChange(() => setSelectedDate(""))}
-                className="ml-1 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* 🔍 FILTER COMPONENT INTEGRATION */}
+      <CustomerFilter
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        statusFilter={statusFilter}
+        onStatusChange={handleStatusChange}
+        serviceFilter={serviceFilter}
+        onServiceChange={handleServiceChange}
+        selectedMikrotik={selectedMikrotik}
+        onMikrotikChange={handleMikrotikChange}
+        mikrotikDevices={mikrotikDevices}
+      />
 
       {/* 📭 EMPTY STATE */}
       {!filteredCustomers.length ? (
@@ -199,7 +182,7 @@ export default function CustomerTable({
             No customers found
           </h3>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            Try adjusting your search query, status, or date filter.
+            Try adjusting your search criteria, status filter, or selected router.
           </p>
         </div>
       ) : (

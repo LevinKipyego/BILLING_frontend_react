@@ -121,7 +121,8 @@ export interface CustomerStats {
 
     pppoe: number;
 
-    active: number;
+    online: number;
+    
 
 }
 
