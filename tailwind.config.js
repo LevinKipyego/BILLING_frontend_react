@@ -14,11 +14,15 @@ export default {
         patrickhand: ['Patrickhand','sans-serif'],
         poppins: ['Poppins','sans-serif'],
         gummyminimal: ['Gummymimimal','sans-serif'],
-        
+        outfit: ['Outfit','sans-serif'],
+        geist: ['Geist','sans-serif'],
+        inter: ['Inter','sans-serif'],
+        urbanist: ['Urbanist','sans-serif'],
+
         //figtree: ['Figtree', 'sans-serif'],
         
         // This maps the default 'font-sans' utilities to use your CSS-controlled cascade
-        sans: ['Jakarta', 'Rosemary', 'Chocolate', 'Comfortaa', 'Delius' , 'Patrickhand', 'Gummymimimal', 'sans-serif'],
+        sans: ['Jakarta', 'Rosemary', 'Chocolate', 'Comfortaa', 'Delius' , 'Patrickhand', 'Gummymimimal', 'Outfit', 'Geist', 'Inter', 'Urbanist', 'sans-serif'],
       },
     },
   },
