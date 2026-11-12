@@ -24,7 +24,11 @@ interface Plan {
     id: number;
     name: string;
     price: string;
-    duration_minutes: number;
+    duration_minutes?: number | null;
+    service_type?: string;
+    mikrotik?: {
+        id: string;
+    } | string | null;
 }
 
 interface Customer {
@@ -67,7 +71,7 @@ export default function PPPoECreateDrawer({
     const [activate, setActivate] = useState(true);
     const [pushRadius, setPushRadius] = useState(true);
     const [includeInstallationFee, setIncludeInstallationFee] = useState(false);
-    const [installationFee, setInstallationFee] = useState("1500"); // Default installation fee amount
+    const [installationFee, setInstallationFee] = useState("1500");
 
     useEffect(() => {
         if (!open) return;
@@ -79,14 +83,30 @@ export default function PPPoECreateDrawer({
         setInstallationFee("1500");
     }, [open]);
 
+    // Filter plans to only show PPPoE service type and match the selected MikroTik device
+    const filteredPlans = useMemo(() => {
+        return plans.filter((p) => {
+            const isPPPoE = !p.service_type || p.service_type?.toUpperCase() === "PPPOE";
+            if (!isPPPoE) return false;
+
+            if (!mikrotik) return false;
+
+            const planMikrotikId = typeof p.mikrotik === "object" && p.mikrotik !== null 
+                ? p.mikrotik.id 
+                : p.mikrotik;
+
+            return !planMikrotikId || String(planMikrotikId) === String(mikrotik);
+        });
+    }, [plans, mikrotik]);
+
     const router = useMemo(
         () => mikrotiks.find(r => r.id === mikrotik),
         [mikrotik, mikrotiks]
     );
 
     const selectedPlan = useMemo(
-        () => plans.find(p => p.id === Number(plan)),
-        [plan, plans]
+        () => filteredPlans.find(p => p.id === Number(plan)),
+        [plan, filteredPlans]
     );
 
     const parsedPlanPrice = selectedPlan ? Number(selectedPlan.price) || 0 : 0;
@@ -106,10 +126,10 @@ export default function PPPoECreateDrawer({
             />
 
             {/* Drawer Container */}
-            <div className="fixed right-0 top-0 z-50 flex h-screen w-full max-w-lg flex-col bg-white shadow-2xl dark:bg-gray-900 border-l border-slate-200 dark:border-gray-800">
+            <div className="fixed inset-y-0 right-0 z-50 flex h-[100dvh] w-full max-w-lg flex-col bg-white shadow-2xl dark:bg-gray-900 border-l border-slate-200 dark:border-gray-800">
                 
                 {/* Fixed Header */}
-                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95">
+                <div className="shrink-0 flex items-center justify-between border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/95">
                     <div>
                         <h2 className="text-base font-semibold text-slate-900 dark:text-white">
                             Create PPPoE Account
@@ -127,7 +147,7 @@ export default function PPPoECreateDrawer({
                 </div>
 
                 {/* Independent Scrollable Body Content */}
-                <div className="flex-1 overflow-y-auto space-y-4 p-5">
+                <div className="flex-1 overflow-y-auto space-y-4 p-5 pb-24 sm:pb-20">
                     {/* Customer Info Card */}
                     <div className="rounded-lg border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900">
                         <div className="flex items-center gap-2 border-b border-slate-200 dark:border-gray-800 px-4 py-3">
@@ -163,7 +183,10 @@ export default function PPPoECreateDrawer({
                                 </label>
                                 <select
                                     value={mikrotik}
-                                    onChange={(e) => setMikrotik(e.target.value)}
+                                    onChange={(e) => {
+                                        setMikrotik(e.target.value);
+                                        setPlan("");
+                                    }}
                                     className="w-full rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50/50 dark:bg-gray-800 py-2.5 px-3 text-xs text-slate-800 dark:text-slate-100 focus:border-slate-400 dark:focus:border-gray-500 focus:outline-none"
                                 >
                                     <option value="">Select Router</option>
@@ -182,12 +205,19 @@ export default function PPPoECreateDrawer({
                                 <select
                                     value={plan}
                                     onChange={(e) => setPlan(e.target.value)}
-                                    className="w-full rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50/50 dark:bg-gray-800 py-2.5 px-3 text-xs text-slate-800 dark:text-slate-100 focus:border-slate-400 dark:focus:border-gray-500 focus:outline-none"
+                                    disabled={!mikrotik}
+                                    className="w-full rounded-lg border border-slate-200 dark:border-gray-700 bg-slate-50/50 dark:bg-gray-800 py-2.5 px-3 text-xs text-slate-800 dark:text-slate-100 focus:border-slate-400 dark:focus:border-gray-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <option value="">Select Plan</option>
-                                    {plans.map((plan) => (
-                                        <option key={plan.id} value={plan.id}>
-                                            {plan.name}
+                                    <option value="">
+                                        {!mikrotik 
+                                            ? "Select a router first" 
+                                            : filteredPlans.length === 0 
+                                                ? "No PPPoE plans available for this router" 
+                                                : "Select Plan"}
+                                    </option>
+                                    {filteredPlans.map((p) => (
+                                        <option key={p.id} value={p.id}>
+                                            {p.name} (KES {p.price})
                                         </option>
                                     ))}
                                 </select>
@@ -202,7 +232,7 @@ export default function PPPoECreateDrawer({
                                     <div className="flex justify-between text-slate-600 dark:text-slate-400">
                                         <span>Duration</span>
                                         <strong className="text-slate-900 dark:text-white font-mono">
-                                            {selectedPlan.duration_minutes} minutes
+                                            {selectedPlan.duration_minutes ?? "Unlimited"} minutes
                                         </strong>
                                     </div>
                                     {includeInstallationFee && (
@@ -278,7 +308,7 @@ export default function PPPoECreateDrawer({
                                     Radius Username Preview
                                 </p>
                                 <p className="mt-1 font-mono text-xs text-blue-700 dark:text-blue-400">
-                                    VGO000001-{router.identity_name}
+                                    RTLX1440
                                 </p>
                                 <p className="mt-1.5 text-[11px] text-slate-400 dark:text-slate-500">
                                     This is only a preview. The actual username will be generated
@@ -322,7 +352,7 @@ export default function PPPoECreateDrawer({
                 </div>
 
                 {/* Fixed Sticky Footer */}
-                <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t border-slate-200 bg-white px-5 py-3.5 dark:border-gray-800 dark:bg-gray-900">
+                <div className="sticky bottom-0 flex justify-end gap-2 border-t border-slate-200 bg-white px-5 py-3.5 pb-safe dark:border-gray-800 dark:bg-gray-900 shadow-lg">
                     <button
                         onClick={onClose}
                         disabled={loading}
