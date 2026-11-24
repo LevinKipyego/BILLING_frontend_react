@@ -1,6 +1,11 @@
 import { useMemo, useState, type ReactNode } from "react";
 
 import type { UserProfile } from "./types/types";
+import { updateCustomerProfile } from "../services/userProfileApi";
+import type {
+    WalletBalanceUpdatePayload,
+    CreditBalanceUpdatePayload,
+} from "./sections/SummarySection";
 
 import OverviewTab from "./tabs/OverviewTab";
 import HotspotTab from "../hotspot/HotspotTab";
@@ -12,6 +17,12 @@ import DeviceTab from "../devices/DeviceTab";
 interface Props {
     profile: UserProfile;
     reload: () => Promise<void>;
+    onUpdateWalletBalance?: (
+        payload: WalletBalanceUpdatePayload,
+    ) => Promise<void> | void;
+    onUpdateCreditBalance?: (
+        payload: CreditBalanceUpdatePayload,
+    ) => Promise<void> | void;
 }
 
 type Tab =
@@ -55,9 +66,46 @@ const tabs: {
 export default function UserTabs({
     profile,
     reload,
+    onUpdateWalletBalance,
+    onUpdateCreditBalance,
 }: Props) {
     const [activeTab, setActiveTab] =
         useState<Tab>("overview");
+
+    const customerId =
+        (profile as { id?: number | string }).id ?? profile.user?.id;
+
+    const handleWalletUpdate = async (
+        payload: WalletBalanceUpdatePayload,
+    ): Promise<void> => {
+        if (onUpdateWalletBalance) {
+            await onUpdateWalletBalance(payload);
+            return;
+        }
+
+        if (customerId !== undefined) {
+            await updateCustomerProfile(customerId, {
+                wallet_balance: payload.wallet_balance,
+            });
+        }
+    };
+
+    const handleCreditUpdate = async (
+        payload: CreditBalanceUpdatePayload,
+    ): Promise<void> => {
+        if (onUpdateCreditBalance) {
+            await onUpdateCreditBalance(payload);
+            return;
+        }
+
+        if (customerId !== undefined) {
+            await updateCustomerProfile(customerId, {
+                credit_balance: payload.credit_balance,
+                credit_adjustment_reason: payload.reason,
+                reason: payload.reason,
+            });
+        }
+    };
 
     const tabComponents = useMemo<Record<Tab, ReactNode>>(
         () => ({
@@ -65,6 +113,8 @@ export default function UserTabs({
                 <OverviewTab
                     profile={profile}
                     reload={reload}
+                    onUpdateWalletBalance={handleWalletUpdate}
+                    onUpdateCreditBalance={handleCreditUpdate}
                 />
             ),
             hotspot: (
@@ -96,6 +146,9 @@ export default function UserTabs({
         [
             profile,
             reload,
+            onUpdateWalletBalance,
+            onUpdateCreditBalance,
+            customerId,
         ]
     );
 

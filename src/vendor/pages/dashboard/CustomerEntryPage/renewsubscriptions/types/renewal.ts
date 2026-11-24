@@ -88,3 +88,12 @@ export interface UseRenewalResult {
     setNotes(notes: string): void;
 
 }
+
+
+// types/renewal.ts
+export interface RenewalConfiguration {
+    mode: "extend" | "reset" | "custom" | "wallet";
+    notes: string;
+    custom_minutes?: number;
+    duration_minutes?: number;
+}

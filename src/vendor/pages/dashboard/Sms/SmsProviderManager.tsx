@@ -380,7 +380,7 @@ export const SMSProviderManager: React.FC = () => {
   };
 
   return (
-    <div className="space-y-3 font-sans text-slate-800 dark:text-slate-200">
+    <div className="space-y-3 text-slate-800 dark:text-slate-200">
       {/* Header Surface Container */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-lg px-4 sm:px-5 py-3.5 shadow-sm">
         <div className="min-w-0">

@@ -1,3 +1,5 @@
+    
+
 /* =====================================================
  * Available Plan
  * ===================================================== */
@@ -44,6 +46,8 @@ export interface CurrentSubscription {
 
     remaining_minutes: number;
 
+    walletbalance: number;
+
     auto_renew: boolean;
 
 }
@@ -65,12 +69,7 @@ export interface SubscriptionChange {
 /* =====================================================
  * Renewal Mode
  * ===================================================== */
-
-export type RenewalMode =
-
-    | "extend"
-
-    | "reset";
+export type RenewalMode = "extend" | "reset" | "custom" | "wallet";
 
 /* =====================================================
  * Renewal Preview

@@ -4,19 +4,38 @@ import type { UserProfile } from "../types/types";
 
 import { formatDate } from "../../../CustomerEntryPage/renewsubscriptions/utils/date";
 
+type OverviewProp = UserProfile["overview"] & {
+    plan?: {
+        id?: number | string;
+        name?: string;
+        price?: number | string;
+        duration_minutes?: number | string;
+    } | null;
+};
+
 interface Props {
     profile: UserProfile;
+    overview?: OverviewProp;
 }
 
 export default function CurrentServicesSection({
     profile,
+    overview: overviewProp,
 }: Props) {
-    const hotspotAccounts = Array.isArray(profile.hotspot.accounts) ? profile.hotspot.accounts : [];
-    const pppoeAccounts = Array.isArray(profile.pppoe.accounts) ? profile.pppoe.accounts : [];
+    const overview = overviewProp ?? profile.overview;
+
+    const hotspotAccounts = Array.isArray(profile.hotspot?.accounts)
+        ? profile.hotspot.accounts
+        : [];
+    const pppoeAccounts = Array.isArray(profile.pppoe?.accounts)
+        ? profile.pppoe.accounts
+        : [];
 
     const hasServices =
-        hotspotAccounts.length > 0 ||
-        pppoeAccounts.length > 0;
+        hotspotAccounts.length > 0 || pppoeAccounts.length > 0;
+
+    const overviewPlanName =
+        (overview as OverviewProp | undefined)?.plan?.name ?? undefined;
 
     return (
         <section className="space-y-3 sm:space-y-4">
@@ -49,13 +68,14 @@ export default function CurrentServicesSection({
                             plan={
                                 typeof account.current_subscription?.plan === "string"
                                     ? account.current_subscription.plan
-                                    : account.current_subscription?.plan?.name
+                                    : account.current_subscription?.plan?.name ??
+                                      overviewPlanName
                             }
                             username={account.credential?.username ?? "unknown"}
                             expires={
                                 account.current_subscription?.end_at
                                     ? formatDate(
-                                          account.current_subscription.end_at
+                                          account.current_subscription.end_at,
                                       )
                                     : null
                             }
@@ -65,7 +85,7 @@ export default function CurrentServicesSection({
                     {pppoeAccounts.map((account, index) => (
                         <ServiceCard
                             key={`pppoe-${account.credential?.id ?? index}`}
-                            title={`PPPoE • ${account.credential?.mikrotik?.identity_name ?? "Router"}`}
+                            title={`PPPoE • ${account.credential?.mikrotik?.identity_name ?? overview.mikrotik?.identity_name}`}
                             status={
                                 account.current_subscription?.active
                                     ? "active"
@@ -73,12 +93,15 @@ export default function CurrentServicesSection({
                                         ? "expired"
                                         : "pending"
                             }
-                            plan={account.current_subscription?.plan_name}
+                            plan={
+                                account.current_subscription?.plan_name ??
+                                overviewPlanName
+                            }
                             username={account.credential?.username ?? "unknown"}
                             expires={
                                 account.current_subscription?.end_at
                                     ? formatDate(
-                                          account.current_subscription.end_at
+                                          account.current_subscription.end_at,
                                       )
                                     : null
                             }

@@ -1,12 +1,12 @@
 import {
     CalendarPlus,
     RotateCcw,
+    Clock,
+    Wallet,
     CheckCircle2,
 } from "lucide-react";
 
-import type {
-    RenewalMode,
-} from "../../types/subscription";
+export type RenewalMode = "extend" | "reset" | "custom" | "wallet";
 
 interface RenewalModeSelectorProps {
     value: RenewalMode;
@@ -14,20 +14,41 @@ interface RenewalModeSelectorProps {
     className?: string;
 }
 
-const OPTIONS = [
+const OPTIONS: Array<{
+    value: RenewalMode;
+    title: string;
+    description: string;
+    icon: typeof CalendarPlus;
+}> = [
     {
-        value: "extend" as const,
-        title: "Extend Current Subscription",
-        description:
-            "Add the new plan duration to the customer's remaining subscription period.",
-        icon: CalendarPlus,
-    },
-    {
-        value: "reset" as const,
+        value: "reset",
         title: "Start Fresh Subscription",
         description:
-            "End the current subscription and start a new billing cycle immediately.",
+            "End the current subscription and start a new billing cycle immediately.Upgrade / downgrade will be applied",
         icon: RotateCcw,
+    },
+    
+    {
+        value: "extend",
+        title: "Extend by Current Plan ",
+        description:
+            "Add the selected plan duration onto the customer's remaining subscription period.",
+        icon: CalendarPlus,
+    },
+    
+    {
+        value: "custom",
+        title: "Extend by Custom Duration",
+        description:
+            "Extend current plan by  custom duration  .",
+        icon: Clock,
+    },
+    {
+        value: "wallet",
+        title: "Redeem Wallet Balance",
+        description:
+            "Extend current plan by Converting available customer wallet balance into subscription duration based on plan rate.",
+        icon: Wallet,
     },
 ];
 

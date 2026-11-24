@@ -1,7 +1,5 @@
-
-import {useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 
 import CustomerHeader from "./components/CustomerHeader";
 import CreateHotspotCustomerModal from "./modal/CreateHotspotCustomerModal";
@@ -27,8 +25,6 @@ import type {
     PPPoEProvisionResponse,
 } from "./types/types";
 
-
-
 export default function CustomersPage() {
     const navigate = useNavigate();
 
@@ -37,11 +33,11 @@ export default function CustomersPage() {
     // ============================================================
 
     const {
-        customers,
-        stats,
-        loading,
-        mikrotiks,
-        plans,
+        customers = [],
+        stats = { total: 0, hotspot: 0, pppoe: 0, online: 0 },
+        loading = false,
+        mikrotiks = [],
+        plans = [],
         refresh,
         createPPPoE,
     } = useCustomers();
@@ -50,23 +46,17 @@ export default function CustomersPage() {
     // CUSTOMER DRAWER / ACTION STATE
     // ============================================================
 
-    const [drawerCustomer, setDrawerCustomer] =
-        useState<Customer | null>(null);
-
+    const [drawerCustomer, setDrawerCustomer] = useState<Customer | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
 
-    const [actionCustomer, setActionCustomer] =
-        useState<Customer | null>(null);
-
-    const [customerAction, setCustomerAction] =
-        useState<CustomerActionType | null>(null);
+    const [actionCustomer, setActionCustomer] = useState<Customer | null>(null);
+    const [customerAction, setCustomerAction] = useState<CustomerActionType | null>(null);
 
     // ============================================================
     // PPPOE PROVISIONING STATE
     // ============================================================
 
     const [successOpen, setSuccessOpen] = useState(false);
-
     const [provisionResult, setProvisionResult] =
         useState<PPPoEProvisionResponse | null>(null);
 
@@ -74,16 +64,8 @@ export default function CustomersPage() {
     // CREATE MODAL STATE
     // ============================================================
 
-    const [hotspotModalOpen, setHotspotModalOpen] =
-        useState(false);
-
-    const [pppoeModalOpen, setPPPoEModalOpen] =
-        useState(false);
-
-   
-
-
-    
+    const [hotspotModalOpen, setHotspotModalOpen] = useState(false);
+    const [pppoeModalOpen, setPPPoEModalOpen] = useState(false);
 
     // ============================================================
     // PPPOE DRAWER
@@ -103,16 +85,10 @@ export default function CustomersPage() {
     // PPPOE PROVISION
     // ============================================================
 
-    const handleProvision = async (
-        payload: CreatePPPoEPayload
-    ) => {
+    const handleProvision = async (payload: CreatePPPoEPayload) => {
         if (!drawerCustomer) return;
 
-        const result = await createPPPoE(
-            drawerCustomer.id,
-            payload
-        );
-
+        const result = await createPPPoE(drawerCustomer.id, payload);
         if (!result) return;
 
         setProvisionResult(result);
@@ -134,10 +110,7 @@ export default function CustomersPage() {
     // CUSTOMER ACTION CENTER
     // ============================================================
 
-    const openCustomerAction = (
-        customer: Customer,
-        action: CustomerActionType
-    ) => {
+    const openCustomerAction = (customer: Customer, action: CustomerActionType) => {
         setActionCustomer(customer);
         setCustomerAction(action);
     };
@@ -148,8 +121,8 @@ export default function CustomersPage() {
     };
 
     const handleCustomerActionCompleted = async () => {
-        await refresh();
         closeCustomerAction();
+        await refresh();
     };
 
     // ============================================================
@@ -192,44 +165,32 @@ export default function CustomersPage() {
 
     return (
         <div className="min-w-0 space-y-5">
-
             {/* HEADER */}
-
             <CustomerHeader
                 onCreateHotspot={openHotspotModal}
                 onCreatePPPoE={openPPPoEModal}
             />
 
             {/* STATISTICS */}
-
             <CustomerStats stats={stats} />
 
-           
-
             {/* CUSTOMER TABLE */}
-
             <CustomerTable
                 customers={customers}
                 mikrotikDevices={mikrotiks.map((device) => ({
                     ...device,
-                    serial_number: "N/A",
+                    serial_number:
+                        (device as { serial_number?: string }).serial_number ?? "N/A",
                 }))}
                 loading={loading}
                 onViewCustomer={handleViewCustomer}
                 onCreatePPPoE={openPPPoEDrawer}
-                onRenewCustomer={(customer) =>
-                    openCustomerAction(customer, "renew")
-                }
-                onSuspendCustomer={(customer) =>
-                    openCustomerAction(customer, "suspend")
-                }
-                onDeleteCustomer={(customer) =>
-                    openCustomerAction(customer, "delete")
-                }
+                onRenewCustomer={(customer) => openCustomerAction(customer, "renew")}
+                onSuspendCustomer={(customer) => openCustomerAction(customer, "suspend")}
+                onDeleteCustomer={(customer) => openCustomerAction(customer, "delete")}
             />
 
             {/* PPPOE PROVISION DRAWER */}
-
             {drawerCustomer && (
                 <PPPoECreateDrawer
                     open={drawerOpen}
@@ -243,10 +204,9 @@ export default function CustomersPage() {
             )}
 
             {/* CUSTOMER ACTION CENTER */}
-
             {actionCustomer && customerAction && (
                 <CustomerActionCenter
-                    open={customerAction !== null}
+                    open={Boolean(actionCustomer && customerAction)}
                     customer={actionCustomer}
                     action={customerAction}
                     onClose={closeCustomerAction}
@@ -255,7 +215,6 @@ export default function CustomersPage() {
             )}
 
             {/* PPPOE PROVISION SUCCESS */}
-
             <PPPoEProvisionSuccessModal
                 open={successOpen}
                 onClose={closeSuccess}
@@ -263,14 +222,12 @@ export default function CustomersPage() {
             />
 
             {/* CREATE HOTSPOT CUSTOMER */}
-
             <CreateHotspotCustomerModal
                 open={hotspotModalOpen}
                 onClose={closeHotspotModal}
             />
 
             {/* CREATE PPPOE CUSTOMER */}
-
             <CreatePPPoECustomerModal
                 open={pppoeModalOpen}
                 onClose={closePPPoEModal}

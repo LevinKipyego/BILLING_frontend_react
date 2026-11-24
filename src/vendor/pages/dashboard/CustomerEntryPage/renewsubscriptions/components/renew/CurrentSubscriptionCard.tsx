@@ -2,6 +2,7 @@ import {
     CalendarDays,
     Clock3,
     Wifi,
+    CreditCardIcon
 } from "lucide-react";
 
 import Card from "../common/Card";
@@ -55,6 +56,22 @@ export default function CurrentSubscriptionCard({
                     label="Plan"
 
                     value={subscription.plan.name}
+
+                />
+
+                <InfoRow
+
+                    icon={CreditCardIcon}
+
+                    label="Wallet Balance"
+
+                    value={subscription.walletbalance.toLocaleString("en-US", {
+
+                        style: "currency",
+
+                        currency: "USD",
+
+                    })}
 
                 />
 

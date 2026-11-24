@@ -1,25 +1,86 @@
-import { useState, useMemo } from "react";
-import { ChevronLeft, ChevronRight, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Users, CheckCircle2, AlertCircle } from "lucide-react";
 
 import CustomerRow from "./CustomerRow";
 import CustomerActions from "./CustomerActions";
 import ServiceBadge from "./ServiceBadge";
 import StatusBadge from "./StatusBadge";
 import CustomerFilter from "./CustomerFilter";
-import type{ StatusFilter } from "./CustomerFilter";
+import type { StatusFilter } from "./CustomerFilter";
 import type { Customer } from "../types/types";
-import type {  MikrotikDevice } from "../../../../types/device";
+import type { MikrotikDevice } from "../../../../types/device";
 import { formatDate } from "../renewsubscriptions/utils/date";
 
 interface Props {
   customers: Customer[];
-  mikrotikDevices: MikrotikDevice[]; // Passed down to populate router filter
+  mikrotikDevices: MikrotikDevice[];
   loading?: boolean;
   onViewCustomer(customer: Customer): void;
   onCreatePPPoE(customer: Customer): void;
-  onRenewCustomer?(customer: Customer): void;
-  onSuspendCustomer?(customer: Customer): void;
-  onDeleteCustomer?(customer: Customer): void;
+  onRenewCustomer?(customer: Customer, responseData?: unknown): void;
+  onSuspendCustomer?(customer: Customer, responseData?: unknown): void;
+  onDeleteCustomer?(customer: Customer, responseData?: unknown): void;
+}
+
+function isConfirmedRenewalResponse(responseData?: unknown): boolean {
+  if (!responseData || typeof responseData !== "object") {
+    return false;
+  }
+  const obj = responseData as Record<string, unknown>;
+  if (obj.success === false || obj.error) {
+    return false;
+  }
+  return (
+    obj.success === true ||
+    Boolean(obj.id) ||
+    Boolean(obj.subscription) ||
+    Boolean(obj.payload) ||
+    Boolean(obj.expires_at) ||
+    Boolean(obj.end_at) ||
+    Boolean(obj.message)
+  );
+}
+
+function extractResponseMessage(data: unknown, fallback: string): string {
+  if (data && typeof data === "object") {
+    const obj = data as { message?: string; detail?: string; error?: string };
+    return obj.message || obj.detail || obj.error || fallback;
+  }
+  return fallback;
+}
+
+function mergeRenewalIntoCustomer(customer: Customer, responseData?: unknown): Customer {
+  let planName = customer.plan_name;
+  let expiresAt = customer.expires_at;
+
+  if (responseData && typeof responseData === "object") {
+    const obj = responseData as Record<string, unknown>;
+    const payload =
+      obj.payload && typeof obj.payload === "object"
+        ? (obj.payload as Record<string, unknown>)
+        : obj;
+
+    if (typeof payload.plan_name === "string" && payload.plan_name) {
+      planName = payload.plan_name;
+    } else if (typeof obj.plan_name === "string" && obj.plan_name) {
+      planName = obj.plan_name;
+    }
+
+    if (typeof payload.expires_at === "string" && payload.expires_at) {
+      expiresAt = payload.expires_at;
+    } else if (typeof payload.end_at === "string" && payload.end_at) {
+      expiresAt = payload.end_at;
+    } else if (typeof obj.expires_at === "string" && obj.expires_at) {
+      expiresAt = obj.expires_at;
+    }
+  }
+
+  return {
+    ...customer,
+    active: true,
+    plan_name: planName,
+    expires_at: expiresAt,
+  };
 }
 
 export default function CustomerTable({
@@ -32,43 +93,115 @@ export default function CustomerTable({
   onSuspendCustomer,
   onDeleteCustomer,
 }: Props) {
+  // Local optimistic/synced list so rows update or disappear immediately
+  const [tableCustomers, setTableCustomers] = useState<Customer[]>(customers);
+  const [banner, setBanner] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    setTableCustomers(customers);
+  }, [customers]);
+
   // Filter States
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
-  const [serviceFilter, setServiceFilter] = useState<Parameters<typeof CustomerFilter>[0]["serviceFilter"]>("ALL");
+  const [serviceFilter, setServiceFilter] =
+    useState<Parameters<typeof CustomerFilter>[0]["serviceFilter"]>("ALL");
   const [selectedMikrotik, setSelectedMikrotik] = useState("");
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // 1. Filter Logic based on your specific requirements
+  const handleCustomerRenewed = (targetCustomer: Customer, responseData?: unknown) => {
+    if (!isConfirmedRenewalResponse(responseData)) {
+      // Opening renewal modal from row/action menu has no backend response yet
+      onRenewCustomer?.(targetCustomer, responseData);
+      return;
+    }
+
+    const updatedCustomer = mergeRenewalIntoCustomer(targetCustomer, responseData);
+
+    setTableCustomers((prev) =>
+      prev.map((item) => (item.id === updatedCustomer.id ? updatedCustomer : item)),
+    );
+
+    setBanner({
+      type: "success",
+      message: extractResponseMessage(
+        responseData,
+        `Subscription renewed for "${updatedCustomer.full_name}".`,
+      ),
+    });
+
+    onRenewCustomer?.(updatedCustomer, responseData);
+  };
+
+  const handleCustomerSuspended = (updatedCustomer: Customer, responseData?: unknown) => {
+    setTableCustomers((prev) =>
+      prev.map((item) =>
+        item.id === updatedCustomer.id
+          ? { ...item, ...updatedCustomer, active: false }
+          : item,
+      ),
+    );
+    setBanner({
+      type: "success",
+      message: extractResponseMessage(
+        responseData,
+        `Customer "${updatedCustomer.full_name}" has been suspended.`,
+      ),
+    });
+    onSuspendCustomer?.(updatedCustomer, responseData);
+  };
+
+  const handleCustomerDeleted = (deletedCustomer: Customer, responseData?: unknown) => {
+    setTableCustomers((prev) => prev.filter((item) => item.id !== deletedCustomer.id));
+    setBanner({
+      type: "success",
+      message: extractResponseMessage(
+        responseData,
+        `Customer "${deletedCustomer.full_name}" deleted successfully.`,
+      ),
+    });
+    onDeleteCustomer?.(deletedCustomer, responseData);
+  };
+
+  const handleActionError = (
+    action: "suspend" | "delete",
+    message: string,
+  ) => {
+    setBanner({
+      type: "error",
+      message: message || `Failed to ${action} customer.`,
+    });
+  };
+
+  // 1. Filter Logic
   const filteredCustomers = useMemo(() => {
-    return customers.filter((customer) => {
-      // Search matching logic
+    return tableCustomers.filter((customer) => {
       const matchesSearch =
         !searchQuery ||
         customer.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         customer.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         customer.router_ip?.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Status filtering rules implementation
       let matchesStatus = true;
       if (statusFilter === "ACTIVE") {
         matchesStatus = customer.active === true;
       } else if (statusFilter === "ONLINE") {
         matchesStatus = customer.session_status === "ONLINE";
       } else if (statusFilter === "OFFLINE") {
-        // Offline status rule: session_status === "OFFLINE" && active === true
         matchesStatus = customer.session_status === "OFFLINE" && customer.active === true;
       } else if (statusFilter === "SUSPENDED") {
-        // Suspended status rule: active === false
         matchesStatus = customer.active === false;
       }
 
-      const matchesService = serviceFilter === "ALL" || customer.service_type === serviceFilter;
+      const matchesService =
+        serviceFilter === "ALL" || customer.service_type === serviceFilter;
 
-      // MikroTik router filter matching logic
       let matchesRouter = true;
       if (selectedMikrotik) {
         matchesRouter = customer.router_name === selectedMikrotik;
@@ -76,12 +209,18 @@ export default function CustomerTable({
 
       return matchesSearch && matchesStatus && matchesService && matchesRouter;
     });
-  }, [customers, searchQuery, statusFilter, serviceFilter, selectedMikrotik]);
+  }, [tableCustomers, searchQuery, statusFilter, serviceFilter, selectedMikrotik]);
 
-  // 2. Pagination Calculation
+  // 2. Pagination Calculation & Safe Page Clamping
   const totalItems = filteredCustomers.length;
-  const totalPages = Math.ceil(totalItems / pageSize) || 1;
-  
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const paginatedCustomers = useMemo(() => {
     const startIdx = (currentPage - 1) * pageSize;
     return filteredCustomers.slice(startIdx, startIdx + pageSize);
@@ -92,7 +231,9 @@ export default function CustomerTable({
     setCurrentPage(1);
   };
 
-  const handleServiceChange = (service: Parameters<typeof CustomerFilter>[0]["serviceFilter"]) => {
+  const handleServiceChange = (
+    service: Parameters<typeof CustomerFilter>[0]["serviceFilter"],
+  ) => {
     setServiceFilter(service);
     setCurrentPage(1);
   };
@@ -108,7 +249,7 @@ export default function CustomerTable({
   };
 
   // ---------------------------------------------------------------------------
-  // 💀 LOADING SKELETON STATE
+  // LOADING SKELETON STATE
   // ---------------------------------------------------------------------------
   if (loading) {
     return (
@@ -138,7 +279,10 @@ export default function CustomerTable({
 
         <div className="grid gap-3 md:hidden">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="animate-pulse rounded-lg border border-slate-200 dark:border-gray-700 bg-white p-4 space-y-3 dark:bg-gray-900">
+            <div
+              key={i}
+              className="animate-pulse rounded-lg border border-slate-200 dark:border-gray-700 bg-white p-4 space-y-3 dark:bg-gray-900"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-slate-200 dark:bg-gray-800" />
@@ -159,7 +303,35 @@ export default function CustomerTable({
 
   return (
     <div className="space-y-4">
-      {/* 🔍 FILTER COMPONENT INTEGRATION */}
+      {/* ACTION RESPONSE BANNER */}
+      {banner && (
+        <div
+          role="status"
+          className={`flex items-center justify-between gap-3 rounded-lg border px-4 py-2.5 text-xs shadow-sm ${
+            banner.type === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/50 dark:text-emerald-300"
+              : "border-red-200 bg-red-50 text-red-800 dark:border-red-900/60 dark:bg-red-950/50 dark:text-red-300"
+          }`}
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            {banner.type === "success" ? (
+              <CheckCircle2 size={15} className="shrink-0" />
+            ) : (
+              <AlertCircle size={15} className="shrink-0" />
+            )}
+            <span className="font-medium truncate">{banner.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setBanner(null)}
+            className="text-xs font-semibold opacity-75 hover:opacity-100 shrink-0"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* FILTER COMPONENT INTEGRATION */}
       <CustomerFilter
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
@@ -172,7 +344,7 @@ export default function CustomerTable({
         mikrotikDevices={mikrotikDevices}
       />
 
-      {/* 📭 EMPTY STATE */}
+      {/* EMPTY STATE */}
       {!filteredCustomers.length ? (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-12 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-gray-800 text-slate-400 dark:text-slate-500">
@@ -187,7 +359,7 @@ export default function CustomerTable({
         </div>
       ) : (
         <>
-          {/* 📱 MOBILE CARD VIEW */}
+          {/* MOBILE CARD VIEW */}
           <div className="grid gap-3 md:hidden">
             {paginatedCustomers.map((customer) => {
               const initial = customer.full_name?.charAt(0).toUpperCase() || "?";
@@ -218,9 +390,10 @@ export default function CustomerTable({
                         customer={customer}
                         onCreatePPPoE={onCreatePPPoE}
                         onView={onViewCustomer}
-                        onRenew={onRenewCustomer}
-                        onSuspend={onSuspendCustomer}
-                        onDelete={onDeleteCustomer}
+                        onRenew={(c, responseData) => handleCustomerRenewed(c, responseData)}
+                        onSuspend={handleCustomerSuspended}
+                        onDelete={handleCustomerDeleted}
+                        onActionError={handleActionError}
                       />
                     </div>
                   </div>
@@ -232,21 +405,25 @@ export default function CustomerTable({
 
                   <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-gray-800 space-y-2 text-xs">
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                      <span className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Plan</span>
+                      <span className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">
+                        Plan
+                      </span>
                       <div className="text-right">
                         <span className="font-medium text-slate-900 dark:text-white">
                           {customer.plan_name ?? "-"}
                         </span>
                         {customer.expires_at && (
                           <span className="ml-1.5 text-[11px] text-slate-500 dark:text-slate-400">
-                            • {formatDate(customer.expires_at)}
+                            - {formatDate(customer.expires_at)}
                           </span>
                         )}
                       </div>
                     </div>
 
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                      <span className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">Router</span>
+                      <span className="text-[9px] font-medium uppercase tracking-[0.07em] text-slate-400 dark:text-slate-500">
+                        Router
+                      </span>
                       <div className="text-right truncate max-w-[65%]">
                         <span className="font-medium text-slate-800 dark:text-slate-200">
                           {customer.router_name ?? "-"}
@@ -264,7 +441,7 @@ export default function CustomerTable({
             })}
           </div>
 
-          {/* 🖥️ DESKTOP TABLE VIEW */}
+          {/* DESKTOP TABLE VIEW */}
           <div className="hidden md:block overflow-visible rounded-lg border border-slate-200 dark:border-gray-700 bg-white shadow-sm dark:bg-gray-900">
             <div className="overflow-visible rounded-lg bg-white dark:bg-gray-900">
               <table className="w-full text-left border-collapse">
@@ -297,9 +474,11 @@ export default function CustomerTable({
                       customer={customer}
                       onViewCustomer={onViewCustomer}
                       onCreatePPPoE={onCreatePPPoE}
-                      onRenewCustomer={onRenewCustomer}
-                      onSuspendCustomer={onSuspendCustomer}
-                      onDeleteCustomer={onDeleteCustomer}
+                      onRenewCustomer={(c, responseData) =>
+                        handleCustomerRenewed(c, responseData)
+                      }
+                      onSuspendCustomer={handleCustomerSuspended}
+                      onDeleteCustomer={handleCustomerDeleted}
                     />
                   ))}
                 </tbody>
@@ -307,7 +486,7 @@ export default function CustomerTable({
             </div>
           </div>
 
-          {/* 📄 PAGINATION CONTROLS FOOTER */}
+          {/* PAGINATION CONTROLS FOOTER */}
           <div className="flex flex-col items-center justify-between gap-3 rounded-lg border border-slate-200 dark:border-gray-700 bg-white p-3.5 text-xs text-slate-500 dark:text-slate-400 dark:bg-gray-900 sm:flex-row">
             <div className="flex items-center gap-2">
               <span>Rows per page:</span>
@@ -331,21 +510,22 @@ export default function CustomerTable({
               </span>
             </div>
 
-            {/* Navigation Buttons */}
             <div className="flex items-center gap-1">
               <button
+                type="button"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:hover:bg-transparent"
               >
                 <ChevronLeft size={16} />
               </button>
-              
+
               <span className="px-2 font-medium text-slate-700 dark:text-slate-300">
                 Page {currentPage} of {totalPages}
               </span>
 
               <button
+                type="button"
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-gray-700 text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:hover:bg-transparent"

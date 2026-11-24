@@ -8,132 +8,82 @@ import {
 } from "./actionRegistry";
 import type { Customer } from "../../types/types";
 
-
-
 interface CustomerActionCenterProps {
-
     customer: Customer;
-
     /**
      * Controlled mode.
      */
     open?: boolean;
-
     action?: CustomerActionType | null;
-
     /**
      * Callback after successful completion.
      */
     onCompleted?(): void;
-
     /**
      * Close callback.
      */
     onClose?(): void;
-
 }
 
 export default function CustomerActionCenter({
-
     customer,
-
     open = false,
-
     action = null,
-
     onCompleted,
-
     onClose,
-
 }: CustomerActionCenterProps) {
-
     /**
      * Internal state (used when toolbar controls actions)
      */
     const [
-
         internalAction,
-
         setInternalAction,
-
     ] = useState<CustomerActionType | null>(null);
 
     /**
      * If a parent supplies an action,
      * use it. Otherwise use toolbar state.
      */
-    const activeAction =
-        action ?? internalAction;
+    const activeAction = action ?? internalAction;
 
     const definition = useMemo(
-
-        () =>
-
-            activeAction
-                ? getCustomerAction(activeAction)
-                : null,
-
-        [
-
-            activeAction,
-
-        ],
-
+        () => (activeAction ? getCustomerAction(activeAction) : null),
+        [activeAction],
     );
 
-    const Modal =
-        definition?.modal;
+    const Modal = definition?.modal;
 
     function handleClose() {
-
         setInternalAction(null);
-
         onClose?.();
-
     }
 
+    function handleCompleted() {
+        setInternalAction(null);
+        onCompleted?.();
+    }
+
+    const isModalOpen = action ? Boolean(open) : Boolean(internalAction);
+
     return (
-
         <>
-
             {/* Toolbar is only shown in standalone mode */}
-
             {!action && (
-
                 <CustomerActionToolbar
-
                     active={internalAction ?? undefined}
-
                     onSelect={setInternalAction}
-
                 />
-
             )}
 
-            {Modal && (
-
+            {Modal && isModalOpen && (
                 <Modal
-
-                    open={
-
-                        action
-                            ? open
-                            : true
-
-                    }
-
+                    open={isModalOpen}
                     customer={customer}
-
                     onClose={handleClose}
-
-                    onCompleted={onCompleted}
-
+                    onSuccess={handleCompleted}
+                    onCompleted={handleCompleted}
                 />
-
             )}
-
         </>
-
     );
-
 }

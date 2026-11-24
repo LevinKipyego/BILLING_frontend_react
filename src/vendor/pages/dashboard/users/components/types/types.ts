@@ -61,6 +61,9 @@ export interface Overview {
 
     wallet_balance: number;
 
+    credit_balance: number | string;
+    
+    mikrotik?:mikrotik
 
     installation_fee:number;
 
@@ -508,6 +511,8 @@ export interface UserProfile {
     activity: Activity[];
 
     activities: Activity[];
+
+    
 
 
 

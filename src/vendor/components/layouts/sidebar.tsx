@@ -9,7 +9,7 @@ import {
 
 import {
   GitFork,
-  ShieldCheck,
+
   Users,
   Wifi,
   Boxes,
@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 
 import { SiMikrotik } from "react-icons/si";
-import { TbLockCheck } from "react-icons/tb";
+
 
 interface SidebarProps {
   closeMobile?: () => void;
@@ -116,33 +116,19 @@ const navSections: NavSection[] = [
   {
     title: "Subscriber Services",
     items: [
-      {
-        to: "/dashboard/pppoe/credentials/list",
-        label: "PPPoE Accounts",
-        icon: TbLockCheck,
-        color: "text-indigo-600 dark:text-indigo-400",
-        bgHover:
-          "hover:bg-indigo-50/60 dark:hover:bg-indigo-950/10 hover:text-indigo-700 dark:hover:text-indigo-400",
-      },
+     
       {
         to: "/dashboard/pppoe/subscriptions/list",
-        label: "PPPoE Subscriptions",
+        label: "PPPoE   Accounts",
         icon: GitFork,
         color: "text-indigo-600 dark:text-indigo-400",
         bgHover:
           "hover:bg-indigo-50/60 dark:hover:bg-indigo-950/10 hover:text-indigo-700 dark:hover:text-indigo-400",
       },
-      {
-        to: "/dashboard/hotspot/credentials/list",
-        label: "Hotspot Accounts",
-        icon: ShieldCheck,
-        color: "text-amber-600 dark:text-amber-500",
-        bgHover:
-          "hover:bg-amber-50/60 dark:hover:bg-amber-950/10 hover:text-amber-700 dark:hover:text-amber-400",
-      },
+      
       {
         to: "/dashboard/hotspot/subscriptions/list",
-        label: "Hotspot Subscriptions",
+        label: "Hotspot Accounts",
         icon: Wifi,
         color: "text-amber-600 dark:text-amber-500",
         bgHover:

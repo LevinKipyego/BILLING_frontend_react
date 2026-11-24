@@ -60,21 +60,75 @@ export type EditableUserField =
 
 type EditableUserValue = string | boolean | null;
 
+export interface CustomerPatchRequestOptions {
+    endpointBase?: string;
+    headers?: HeadersInit;
+    reloadAfterSave?: boolean;
+}
+
+export async function patchCustomerField(
+    customerId: number | string,
+    field: EditableUserField,
+    value: EditableUserValue,
+    options: CustomerPatchRequestOptions = {},
+): Promise<void> {
+    const endpointBase = options.endpointBase ?? "/api/customers";
+    const normalizedBase = endpointBase.replace(/\/+$/, "");
+    const url = `${normalizedBase}/${customerId}/`;
+
+    const response = await fetch(url, {
+        method: "PATCH",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+            ...options.headers,
+        },
+        body: JSON.stringify({
+            [field]: value,
+        }),
+    });
+
+    if (!response.ok) {
+        let message = `Failed to update ${field} (HTTP ${response.status}).`;
+        try {
+            const data = await response.json();
+            if (typeof data?.detail === "string" && data.detail.trim()) {
+                message = data.detail;
+            } else if (typeof data?.message === "string" && data.message.trim()) {
+                message = data.message;
+            } else if (data && typeof data === "object") {
+                const fieldErr = data[field];
+                if (Array.isArray(fieldErr) && fieldErr.length > 0) {
+                    message = String(fieldErr[0]);
+                } else if (typeof fieldErr === "string" && fieldErr.trim()) {
+                    message = fieldErr;
+                }
+            }
+        } catch {
+            // Keep fallback HTTP error message
+        }
+        throw new Error(message);
+    }
+}
+
 interface Props {
     user: User;
     overview: Overview;
     reload: () => Promise<void>;
 
     /**
-     * Persist exactly one customer field.
-     *
-     * Connect this callback to your existing backend update endpoint.
-     * Throw an error if the API request fails.
+     * Optional custom field saver. When omitted, UserHeader sends a PATCH
+     * request to `/api/customers/<user.id>/` and keeps the panel open
+     * with the saved value visible immediately.
      */
-    onSaveField: (
+    onSaveField?: (
         field: EditableUserField,
         value: EditableUserValue,
     ) => Promise<void>;
+
+    endpointBase?: string;
+    headers?: HeadersInit;
+    reloadAfterSave?: boolean;
 }
 
 interface EditableFieldProps {
@@ -82,7 +136,10 @@ interface EditableFieldProps {
     label: string;
     value: string | boolean | null | undefined;
     icon: ReactNode;
-    onSave: Props["onSaveField"];
+    onSave: (
+        field: EditableUserField,
+        value: EditableUserValue,
+    ) => Promise<void>;
     inputType?: "text" | "email" | "tel" | "url";
     placeholder?: string;
 }
@@ -111,20 +168,23 @@ function EditableField({
 
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [justSaved, setJustSaved] = useState(false);
     const [copied, setCopied] = useState(false);
     const [error, setError] = useState("");
 
-    // Keep local values synchronized when the parent receives fresh API data.
+    // Keep local values synchronized when the parent receives fresh API data,
+    // without clobbering an active edit or recently saved local value.
     useEffect(() => {
+        if (editing || saving) {
+            return;
+        }
+
         const nextValue: string | boolean =
             typeof value === "boolean" ? value : value ?? "";
 
         setSavedValue(nextValue);
-
-        if (!editing) {
-            setDraft(nextValue);
-        }
-    }, [value, editing]);
+        setDraft(nextValue);
+    }, [value, editing, saving]);
 
     const displayValue =
         typeof savedValue === "boolean"
@@ -136,6 +196,7 @@ function EditableField({
     const startEditing = () => {
         setDraft(savedValue);
         setEditing(true);
+        setJustSaved(false);
         setError("");
     };
 
@@ -148,6 +209,7 @@ function EditableField({
     const handleSave = async () => {
         setSaving(true);
         setError("");
+        setJustSaved(false);
 
         try {
             const valueToSave: EditableUserValue =
@@ -159,11 +221,12 @@ function EditableField({
 
             await onSave(field, valueToSave);
 
-            setSavedValue(
-                valueToSave === null ? "" : valueToSave,
-            );
-            setDraft(valueToSave === null ? "" : valueToSave);
+            const normalizedSaved = valueToSave === null ? "" : valueToSave;
+            setSavedValue(normalizedSaved);
+            setDraft(normalizedSaved);
             setEditing(false);
+            setJustSaved(true);
+            window.setTimeout(() => setJustSaved(false), 2000);
         } catch (err) {
             setError(
                 err instanceof Error
@@ -332,6 +395,12 @@ function EditableField({
                                 {displayValue}
                             </p>
 
+                            {justSaved && (
+                                <span className="shrink-0 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                    Saved
+                                </span>
+                            )}
+
                             {copied && (
                                 <span className="shrink-0 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                                     Copied
@@ -364,14 +433,54 @@ export function UserHeader({
     overview,
     reload,
     onSaveField,
+    endpointBase = "/api/customers",
+    headers,
+    reloadAfterSave = false,
 }: Props) {
     const navigate = useNavigate();
 
     const [refreshing, setRefreshing] = useState(false);
     const [refreshError, setRefreshError] = useState("");
 
+    // Local overlay so hero/summary fields immediately reflect saves without
+    // forcing a full-page reload or closing the collapsible panel.
+    const [localUserOverrides, setLocalUserOverrides] =
+        useState<Partial<Record<EditableUserField, EditableUserValue>>>({});
+
+    useEffect(() => {
+        setLocalUserOverrides({});
+    }, [user.id]);
+
+    const effectiveUser: User = {
+        ...user,
+        ...(localUserOverrides as Partial<User>),
+    };
+
     // Hidden by default on both mobile and desktop viewports
     const [infoOpen, setInfoOpen] = useState(false);
+
+    const handlePersistField = async (
+        field: EditableUserField,
+        value: EditableUserValue,
+    ): Promise<void> => {
+        if (onSaveField) {
+            await onSaveField(field, value);
+        } else {
+            await patchCustomerField(user.id, field, value, {
+                endpointBase,
+                headers,
+            });
+        }
+
+        setLocalUserOverrides((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+
+        if (reloadAfterSave) {
+            await reload();
+        }
+    };
 
     const handleRefresh = async () => {
         setRefreshing(true);
@@ -379,6 +488,7 @@ export function UserHeader({
 
         try {
             await reload();
+            setLocalUserOverrides({});
         } catch {
             setRefreshError("Unable to refresh customer details.");
         } finally {
@@ -399,12 +509,7 @@ export function UserHeader({
             icon: <UserRound size={15} />,
             placeholder: "Customer's full name",
         },
-        {
-            field: "username",
-            label: "Username",
-            icon: <AtSign size={15} />,
-            placeholder: "Customer username",
-        },
+        
         {
             field: "phone",
             label: "Phone number",
@@ -518,22 +623,22 @@ export function UserHeader({
                     <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:gap-4">
                         {/* Avatar */}
                         <div className="relative shrink-0 self-start">
-                            {user.avatar ? (
+                            {effectiveUser.avatar ? (
                                 <img
-                                    src={user.avatar}
-                                    alt={`${user.full_name}'s avatar`}
+                                    src={effectiveUser.avatar}
+                                    alt={`${effectiveUser.full_name}'s avatar`}
                                     className="h-14 w-14 rounded-xl border border-white object-cover shadow-sm ring-2 ring-sky-100/80 sm:h-16 sm:w-16 dark:border-slate-700 dark:ring-slate-800"
                                 />
                             ) : (
                                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-emerald-500 text-xl font-bold text-white shadow-sm ring-2 ring-white sm:h-16 sm:w-16 sm:text-2xl dark:ring-slate-800">
-                                    {user.full_name?.charAt(0).toUpperCase() || "?"}
+                                    {effectiveUser.full_name?.charAt(0).toUpperCase() || "?"}
                                 </div>
                             )}
 
                             <span
-                                title={user.active ? "Account active" : "Account inactive"}
+                                title={effectiveUser.active ? "Account active" : "Account inactive"}
                                 className={`absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-slate-900 ${
-                                    user.active
+                                    effectiveUser.active
                                         ? "bg-emerald-500"
                                         : "bg-slate-400"
                                 }`}
@@ -544,7 +649,7 @@ export function UserHeader({
                         <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
                                 <h1 className="break-words text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white">
-                                    {user.full_name || "Unnamed customer"}
+                                    {effectiveUser.full_name || "Unnamed customer"}
                                 </h1>
 
                                 <StatusBadge status={overview.status} />
@@ -553,13 +658,13 @@ export function UserHeader({
                             <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
                                 <AtSign size={13} className="shrink-0" />
                                 <span className="break-all">
-                                    {user.username || "No username"}
+                                    {effectiveUser.username || "No username"}
                                 </span>
                                 <span className="text-slate-300 dark:text-slate-700">
                                     /
                                 </span>
                                 <span className="text-[11px]">
-                                    ID: {user.id}
+                                    ID: {effectiveUser.id}
                                 </span>
                             </p>
 
@@ -574,18 +679,18 @@ export function UserHeader({
                                             Phone
                                         </p>
                                         <p className="break-all text-xs font-medium text-slate-800 dark:text-slate-100">
-                                            {user.phone || "Not provided"}
+                                            {effectiveUser.phone || "Not provided"}
                                         </p>
                                     </div>
 
-                                    {user.phone && (
+                                    {effectiveUser.phone && (
                                         <button
                                             type="button"
                                             title="Copy phone number"
                                             aria-label="Copy phone number"
                                             onClick={() =>
                                                 void navigator.clipboard.writeText(
-                                                    user.phone,
+                                                    effectiveUser.phone,
                                                 )
                                             }
                                             className="rounded-lg p-1.5 text-slate-400 transition hover:bg-sky-100 hover:text-sky-700 dark:hover:bg-slate-800 dark:hover:text-sky-300"
@@ -605,18 +710,18 @@ export function UserHeader({
                                             Email
                                         </p>
                                         <p className="break-all text-xs font-medium text-slate-800 dark:text-slate-100">
-                                            {user.email || "Not provided"}
+                                            {effectiveUser.email || "Not provided"}
                                         </p>
                                     </div>
 
-                                    {user.email && (
+                                    {effectiveUser.email && (
                                         <button
                                             type="button"
                                             title="Copy email address"
                                             aria-label="Copy email address"
                                             onClick={() =>
                                                 void navigator.clipboard.writeText(
-                                                    user.email,
+                                                    effectiveUser.email,
                                                 )
                                             }
                                             className="rounded-lg p-1.5 text-slate-400 transition hover:bg-emerald-100 hover:text-emerald-700 dark:hover:bg-slate-800 dark:hover:text-emerald-300"
@@ -645,12 +750,12 @@ export function UserHeader({
                                     <ShieldCheck
                                         size={13}
                                         className={
-                                            user.active
+                                            effectiveUser.active
                                                 ? "text-emerald-600"
                                                 : "text-slate-400"
                                         }
                                     />
-                                    {user.active
+                                    {effectiveUser.active
                                         ? "Account enabled"
                                         : "Account disabled"}
                                 </span>
@@ -705,11 +810,11 @@ export function UserHeader({
                                 key={item.field}
                                 field={item.field}
                                 label={item.label}
-                                value={user[item.field]}
+                                value={effectiveUser[item.field]}
                                 icon={item.icon}
                                 inputType={item.inputType}
                                 placeholder={item.placeholder}
-                                onSave={onSaveField}
+                                onSave={handlePersistField}
                             />
                         ))}
                     </div>

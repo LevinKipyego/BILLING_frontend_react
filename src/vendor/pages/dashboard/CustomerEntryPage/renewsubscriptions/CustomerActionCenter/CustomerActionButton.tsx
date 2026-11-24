@@ -33,6 +33,10 @@ export default function CustomerActionButton({
 
         getCustomerAction(action);
 
+    if (!definition) {
+        return null;
+    }
+
     const Icon = definition.icon;
 
     const disabled =

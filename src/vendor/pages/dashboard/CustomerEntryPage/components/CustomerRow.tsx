@@ -17,9 +17,9 @@ interface Props {
     customer: Customer;
     onViewCustomer(customer: Customer): void;
     onCreatePPPoE(customer: Customer): void;
-    onRenewCustomer?(customer: Customer): void;
-    onSuspendCustomer?(customer: Customer): void;
-    onDeleteCustomer?(customer: Customer): void;
+    onRenewCustomer?(customer: Customer, responseData?: unknown): void;
+    onSuspendCustomer?(customer: Customer, responseData?: unknown): void;
+    onDeleteCustomer?(customer: Customer, responseData?: unknown): void;
 }
 
 export default function CustomerRow({
@@ -107,9 +107,9 @@ export default function CustomerRow({
                     customer={customer}
                     onView={onViewCustomer}
                     onCreatePPPoE={onCreatePPPoE}
-                    onRenew={onRenewCustomer}
-                    onSuspend={onSuspendCustomer}
-                    onDelete={onDeleteCustomer}
+                    onRenew={(c, responseData) => onRenewCustomer?.(c, responseData)}
+                    onSuspend={(c, responseData) => onSuspendCustomer?.(c, responseData)}
+                    onDelete={(c, responseData) => onDeleteCustomer?.(c, responseData)}
                 />
             </td>
 
